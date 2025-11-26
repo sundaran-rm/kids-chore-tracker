@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kids Chore & Reward Tracker — History & Charts</title>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#fff9f0; --card:#ffffff; --accent:#4A90E2; --muted:#7a8a96;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#fffefc 0%,#fff9f0 100%);color:#222}
+  .app{max-width:1200px;margin:18px auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .title-badge{background:linear-gradient(90deg,var(--accent),#8bb8f3);color:#fff;padding:10px 12px;border-radius:12px}
+  h1{margin:0;font-size:20px}
+  .grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
+  .col{display:flex;flex-direction:column;gap:12px}
+  .section{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(41,52,65,0.06)}
+  .section h2{margin:0 0 10px 0;font-size:16px;color:var(--accent)}
+  .slot,.reward{display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:8px;border-radius:10px;border:1px solid #eee;background:#fbfbfb}
+  .slot input[type=text], .reward input[type=text]{flex:1;padding:8px;border-radius:8px;border:1px solid #ddd}
+  .token-val{width:42px;padding:6px;text-align:center;border-radius:8px;border:1px solid #ccc}
+  .btn{padding:6px 10px;border-radius:8px;border:none;cursor:pointer}
+  .btn.complete{background:linear-gradient(90deg,#7ED321,#b7f08b);color:#07320a;font-weight:700}
+  .btn.delete{background:#ffe0e0}
+  .add-btn{background:#7ed321;color:#053400;padding:6px 10px;border-radius:8px;border:none;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  .token-display{font-size:28px;font-weight:800;text-align:center}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .secondary{background:#fff;border:1px solid #eee;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .history-list{max-height:300px;overflow:auto;padding:4px}
+  .history-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px dashed #f0f0f0}
+  .charts{display:flex;flex-direction:column;gap:12px}
+  canvas{background:#fff;border-radius:8px;padding:6px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-badge">⭐ Kids Chore Tracker</div>
+    <h1>Chores, Rewards, Tokens — History & Charts</h1>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button id="exportBtn" class="secondary">Export JSON</button>
+      <button id="importBtn" class="secondary">Import JSON</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Left column: chores & rewards -->
+    <div class="col">
+
+      <div class="section">
+        <h2>🟦 Daily Tasks (max 10)</h2>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button class="add-btn" onclick="addChore('daily')">+ Add</button>
+        </div>
+        <div id="dailyTasks"></div>
+        <div class="small">Tip: Add or delete chores. Set tokens per chore and mark Done to award tokens (once per day).</div>
+      </div>
+
+      <div class="section">
+        <h2>🟩 Mon–Sat Chores (max 6)</h2>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button class="add-btn" onclick="addChore('monsat')">+ Add</button>
+        </div>
+        <div id="monsatTasks"></div>
+      </div>
+
+      <div class="section">
+        <h2>🟧 Bonus Chores (max 10)</h2>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button class="add-btn" onclick="addChore('bonus')">+ Add</button>
+        </div>
+        <div id="bonusTasks"></div>
+      </div>
+
+      <div class="section">
+        <h2>🏆 Rewards (max 18)</h2>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="small">Add, edit, redeem or remove rewards</div>
+          <button class="add-btn" onclick="addReward()">+ Add Reward</button>
+        </div>
+        <div id="rewardsUnified"></div>
+      </div>
+
+    </div>
+
+    <!-- Right column: tokens, manual adjustments, history, charts -->
+    <div class="col">
+
+      <div class="section">
+        <h2>Total Tokens</h2>
+        <div class="token-display" id="tokenTotal">0</div>
+
+        <!-- Manual token adjustment -->
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <input id="manualTokenInput" type="number" placeholder="0" style="width:84px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center">
+          <button class="btn complete" onclick="manualAddTokens()">+ Add</button>
+          <button class="btn delete" onclick="manualRemoveTokens()">– Remove</button>
+          <button class="secondary" onclick="clearHistory()">Clear History</button>
+        </div>
+        <div class="small" style="margin-top:8px">Manual adjustments are recorded in the token history (won't change chores/rewards).</div>
+      </div>
+
+      <div class="section">
+        <h2>🔎 Token History</h2>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div class="section charts">
+        <h2>📈 Weekly & Monthly Charts</h2>
+        <div class="small">Weekly (last 7 days) and Monthly (last 12 months) token net totals.</div>
+        <canvas id="weeklyChart" height="160"></canvas>
+        <canvas id="monthlyChart" height="160"></canvas>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* -----------------------------
+   STORAGE & DEFAULTS
+------------------------------*/
+const STORAGE_KEY = "kidsChoreHistoryChartsV1";
+
+const DEFAULT_STATE = {
+  daily: [],
+  monsat: [],
+  bonus: [],
+  rewards: [],
+  tokens: []
+};
+
+const MAX = { daily:10, monsat:6, bonus:10, rewards:18 };
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    return {...JSON.parse(raw)};
+  }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/* -----------------------------
+   INITIALIZE
+------------------------------*/
+let state = loadState();
+
+/* -----------------------------
+   UTILS
+------------------------------*/
+function tokenTotal(){
+  return state.tokens.reduce((s,e)=>s + Number(e.amount || 0), 0);
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleString();
+}
+
+/* -----------------------------
+   CHORE / REWARD MANAGEMENT
+------------------------------*/
+function addChore(group){
+  if(state[group].length >= MAX[group]){
+    alert("Maximum slots reached."); 
+    return; 
+  }
+  state[group].push({
+    title: "",
+    tokens: 1,
+    done: false,
+    lastDoneDate: null
+  });
+  saveState(); 
+  renderAll();
+}
+
+function addReward(){
+  if(state.rewards.length >= MAX.rewards){ alert("Max rewards"); return; }
+  state.rewards.push({title:"", cost:5});
+  saveState(); renderAll();
+}
+
+function createChoreRow(group, index, item) {
+  const el = document.createElement('div'); 
+  el.className = 'slot';
+
+  const icon = document.createElement('div'); 
+  icon.className = 'icon';
+  icon.textContent = group === 'daily' ? '🧼' : group === 'monsat' ? '🧺' : '⭐'; 
+  el.appendChild(icon);
+
+  const input = document.createElement('input'); 
+  input.type = 'text'; 
+  input.value = item.title; 
+  input.placeholder = 'Chore...';
+  input.oninput = (e) => { item.title = e.target.value; saveState(); };
+  el.appendChild(input);
+
+  const tinput = document.createElement('input'); 
+  tinput.type = 'number'; 
+  tinput.className = 'token-val'; 
+  tinput.value = item.tokens; 
+  tinput.min = 0;
+  tinput.oninput = (e) => { item.tokens = Number(e.target.value || 0); saveState(); };
+  el.appendChild(tinput);
+
+  const done = document.createElement('button'); 
+  done.className = 'btn complete';
+  el.appendChild(done);
+
+  // Update button appearance based on lastDoneDate
+  const updateDoneButton = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if(item.lastDoneDate === todayStr){
+      done.textContent = '✔ Done';
+      done.style.background = 'linear-gradient(90deg,#7ED321,#b7f08b)';
+      done.style.color = '#07320a';
+    } else {
+      done.textContent = '✔';
+      done.style.background = '';
+      done.style.color = '';
+    }
+  };
+  updateDoneButton();
+
+  done.onclick = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (item.lastDoneDate === todayStr) {
+      alert("This chore is already done today!");
+      return;
+    }
+    item.done = true;
+    item.lastDoneDate = todayStr;
+    const amount = Number(item.tokens || 0);
+    state.tokens.unshift({
+      amount,
+      note: `${group} chore: ${item.title || 'untitled'}`,
+      timestamp: Date.now()
+    });
+    saveState();
+    renderAll();
+  };
+
+  // Undo button
+  const undo = document.createElement('button'); 
+  undo.className = 'btn undo'; 
+  undo.textContent = '⮪';
+  undo.title = 'Undo today\'s token';
+  undo.onclick = () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (item.lastDoneDate !== todayStr) {
+      alert("Nothing to undo for today.");
+      return;
+    }
+    item.done = false;
+    item.lastDoneDate = null;
+    const amount = -Number(item.tokens || 0);
+    state.tokens.unshift({
+      amount,
+      note: `Undo ${group} chore: ${item.title || 'untitled'}`,
+      timestamp: Date.now()
+    });
+    saveState();
+    renderAll();
+  };
+  el.appendChild(undo);
+
+  const del = document.createElement('button'); 
+  del.className = 'btn delete'; 
+  del.textContent = '🗑';
+  del.title = 'Delete chore';
+  del.onclick = () => { state[group].splice(index, 1); saveState(); renderAll(); };
+  el.appendChild(del);
+
+  return el;
+}
+
+function createRewardRow(index,item){
+  const el = document.createElement('div'); el.className='reward';
+  const icon = document.createElement('div'); icon.className='icon'; icon.textContent='🎁'; el.appendChild(icon);
+
+  const input = document.createElement('input'); input.type='text'; input.value=item.title; input.placeholder='Reward...';
+  input.oninput = e=>{ item.title = e.target.value; saveState(); };
+  el.appendChild(input);
+
+  const costBox = document.createElement('div'); costBox.className='cost';
+  const costInput = document.createElement('input'); costInput.type='number'; costInput.min=0; costInput.value = item.cost;
+  costInput.oninput = e=>{ item.cost = Number(e.target.value||0); saveState(); };
+  costBox.appendChild(costInput);
+
+  const redeemBtn = document.createElement('button'); redeemBtn.className='btn'; redeemBtn.textContent='Redeem';
+  redeemBtn.onclick = ()=>{
+    if(tokenTotal() < item.cost){ alert('Not enough tokens'); return; }
+    state.tokens.unshift({amount:-item.cost, note:`Redeemed reward: ${item.title||'reward'}`, timestamp: Date.now()});
+    saveState(); renderAll();
+  };
+  costBox.appendChild(redeemBtn);
+  el.appendChild(costBox);
+
+  const del = document.createElement('button'); del.className='btn delete'; del.textContent='🗑';
+  del.onclick = ()=>{ state.rewards.splice(index,1); saveState(); renderAll(); };
+  el.appendChild(del);
+
+  return el;
+}
+
+/* -----------------------------
+   MANUAL TOKEN ADJUSTMENT
+------------------------------*/
+function manualAddTokens(){
+  const v = Number(document.getElementById('manualTokenInput').value || 0);
+  if(!v){ return; }
+  state.tokens.unshift({amount:v, note:'Manual add', timestamp: Date.now()});
+  document.getElementById('manualTokenInput').value='';
+  saveState(); renderAll();
+}
+function manualRemoveTokens(){
+  const v = Number(document.getElementById('manualTokenInput').value || 0);
+  if(!v){ return; }
+  state.tokens.unshift({amount:-v, note:'Manual subtract', timestamp: Date.now()});
+  document.getElementById('manualTokenInput').value='';
+  saveState(); renderAll();
+}
+function clearHistory(){
+  if(!confirm('Clear token history? This will remove all events but not chores or rewards.')) return;
+  state.tokens = []; saveState(); renderAll();
+}
+
+/* -----------------------------
+   HISTORY & CHARTS
+------------------------------*/
+const historyListEl = document.getElementById('historyList');
+let weeklyChart, monthlyChart;
+
+function renderHistory(){
+  historyListEl.innerHTML = '';
+  if(!state.tokens || state.tokens.length===0){
+    historyListEl.innerHTML = '<div class="small">No token events yet.</div>';
+    return;
+  }
+  state.tokens.forEach((ev,i)=>{
+    const item = document.createElement('div'); item.className='history-item';
+    const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:700">${ev.amount>0?'+':''}${ev.amount}</div><div class="small">${ev.note||''}</div>`;
+    const right = document.createElement('div'); right.style.textAlign='right';
+    right.innerHTML = `<div class="small">${fmtDate(ev.timestamp)}</div>`;
+    item.appendChild(left); item.appendChild(right);
+    historyListEl.appendChild(item);
+  });
+}
+
+/* Chart helpers: build data arrays */
+function buildWeeklyData(){
+  const labels = [], totals = [];
+  const today = new Date();
+  for(let i=6;i>=0;i--){
+    const d = new Date(today); d.setDate(today.getDate()-i);
+    labels.push(d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}));
+    totals.push(0);
+  }
+  const start = new Date(); start.setDate(today.getDate()-6); start.setHours(0,0,0,0);
+  const end = new Date(); end.setHours(23,59,59,999);
+  state.tokens.forEach(ev=>{
+    const t = Number(ev.amount||0);
+    const ts = new Date(ev.timestamp);
+    if(ts >= start && ts <= end){
+      const diffDays = Math.floor((ts.setHours(0,0,0,0) - start.getTime()) / (24*3600*1000));
+      if(diffDays>=0 && diffDays<7) totals[diffDays]+=t;
+    }
+  });
+  return {labels,totals};
+}
+
+function buildMonthlyData(){
+  const labels = [], totals = [], months = [];
+  const now = new Date();
+  for(let i=11;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    labels.push(d.toLocaleDateString(undefined,{month:'short', year:'numeric'}));
+    months.push({year:d.getFullYear(), month:d.getMonth()});
+    totals.push(0);
+  }
+  state.tokens.forEach(ev=>{
+    const t = Number(ev.amount||0);
+    const d = new Date(ev.timestamp);
+    for(let i=0;i<months.length;i++){
+      if(d.getFullYear()===months[i].year && d.getMonth()===months[i].month){
+        totals[i]+=t; break;
+      }
+    }
+  });
+  return {labels,totals};
+}
+
+function renderCharts(){
+  const w = buildWeeklyData();
+  const m = buildMonthlyData();
+
+  const wCtx = document.getElementById('weeklyChart').getContext('2d');
+  if(weeklyChart) weeklyChart.destroy();
+  weeklyChart = new Chart(wCtx, {
+    type: 'bar',
+    data: {
+      labels: w.labels,
+      datasets: [{
+        label: 'Tokens (net)',
+        data: w.totals,
+        backgroundColor: (ctx)=> ctx.dataset.data.map(v=> v>=0 ? 'rgba(74,144,226,0.9)' : 'rgba(245,92,92,0.9)'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label: (t)=> ` ${t.formattedValue} tokens`}}}, scales:{y:{beginAtZero:true}}
+    }
+  });
+
+  const mCtx = document.getElementById('monthlyChart').getContext('2d');
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart = new Chart(mCtx, {
+    type: 'line',
+    data: {
+      labels: m.labels,
+      datasets: [{
+        label: 'Tokens (net/month)',
+        data: m.totals,
+        fill:true,
+        backgroundColor:'rgba(74,144,226,0.12)',
+        borderColor:'rgba(74,144,226,0.9)',
+        tension:0.3,
+        pointRadius:4
+      }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:(t)=>` ${t.formattedValue} tokens`}}}, scales:{y:{beginAtZero:true}}
+    }
+  });
+}
+
+/* -----------------------------
+   EXPORT / IMPORT / RESET
+------------------------------*/
+document.getElementById('exportBtn').onclick = ()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kids-chore-data.json';a.click();};
+document.getElementById('importBtn').onclick = ()=>{const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = e=>{const f = e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=evt=>{try{ const imported = JSON.parse(evt.target.result); state = {...DEFAULT_STATE, ...imported}; saveState(); renderAll();}catch(err){ alert('Invalid JSON'); } }; reader.readAsText(f);}; inp.click();};
+document.getElementById('resetBtn').onclick = ()=>{if(!confirm('Reset everything? This clears chores, rewards, and history.')) return; state = JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState(); renderAll();};
+
+/* -----------------------------
+   RENDER MAIN
+------------------------------*/
+function renderAll(){
+  const groups = ['daily','monsat','bonus'];
+  const targets = ['dailyTasks','monsatTasks','bonusTasks'];
+  groups.forEach((g,i)=>{
+    const container = document.getElementById(targets[i]);
+    container.innerHTML = '';
+    state[g].forEach((item, idx)=> container.appendChild(createChoreRow(g, idx, item)));
+  });
+
+  const rewardsEl = document.getElementById('rewardsUnified'); rewardsEl.innerHTML='';
+  state.rewards.forEach((r, idx)=> rewardsEl.appendChild(createRewardRow(idx, r)));
+
+  document.getElementById('tokenTotal').textContent = tokenTotal();
+  renderHistory();
+  renderCharts();
+}
+
+/* boot */
+renderAll();
+
+</script>
+</body>
+</html>
