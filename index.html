@@ -45,6 +45,15 @@
   <header>
     <div class="title-badge">⭐ Kids Chore Tracker</div>
     <h1>Chores, Rewards, Tokens — History & Charts</h1>
+
+    <!-- Child name input -->
+    <input 
+      id="childNameInput"
+      type="text"
+      placeholder="Child Name"
+      style="padding:8px;border-radius:8px;border:1px solid #ccc;"
+    />
+
     <div style="margin-left:auto;display:flex;gap:8px">
       <button id="exportBtn" class="secondary">Export JSON</button>
       <button id="importBtn" class="secondary">Import JSON</button>
@@ -53,7 +62,7 @@
   </header>
 
   <div class="grid">
-    <!-- Left column: chores & rewards -->
+    <!-- Left column -->
     <div class="col">
 
       <div class="section">
@@ -92,21 +101,23 @@
 
     </div>
 
-    <!-- Right column: tokens, manual adjustments, history, charts -->
+    <!-- Right column -->
     <div class="col">
 
       <div class="section">
         <h2>Total Tokens</h2>
         <div class="token-display" id="tokenTotal">0</div>
 
-        <!-- Manual token adjustment -->
+        <!-- UPDATED: manual comment input included -->
         <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-          <input id="manualTokenInput" type="number" placeholder="0" style="width:84px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center">
+          <input id="manualTokenInput" type="number" placeholder="0" style="width:32px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center">
+          <input id="manualTokenComment" type="text" placeholder="Comment (optional)" style="width:60px;padding:8px;border-radius:8px;border:1px solid #ccc;">
           <button class="btn complete" onclick="manualAddTokens()">+ Add</button>
           <button class="btn delete" onclick="manualRemoveTokens()">– Remove</button>
           <button class="secondary" onclick="clearHistory()">Clear History</button>
         </div>
-        <div class="small" style="margin-top:8px">Manual adjustments are recorded in the token history (won't change chores/rewards).</div>
+
+        <div class="small" style="margin-top:8px">Manual adjustments are recorded in the token history (won’t change chores/rewards).</div>
       </div>
 
       <div class="section">
@@ -132,6 +143,7 @@
 const STORAGE_KEY = "kidsChoreHistoryChartsV1";
 
 const DEFAULT_STATE = {
+  childName: "",
   daily: [],
   monsat: [],
   bonus: [],
@@ -157,6 +169,15 @@ function saveState(){
    INITIALIZE
 ------------------------------*/
 let state = loadState();
+
+window.addEventListener("load", () => {
+  document.getElementById("childNameInput").value = state.childName || "";
+});
+
+document.getElementById("childNameInput").oninput = (e) => {
+  state.childName = e.target.value;
+  saveState();
+};
 
 /* -----------------------------
    UTILS
@@ -221,7 +242,6 @@ function createChoreRow(group, index, item) {
   done.className = 'btn complete';
   el.appendChild(done);
 
-  // Update button appearance based on lastDoneDate
   const updateDoneButton = () => {
     const todayStr = new Date().toISOString().split('T')[0];
     if(item.lastDoneDate === todayStr){
@@ -254,7 +274,6 @@ function createChoreRow(group, index, item) {
     renderAll();
   };
 
-  // Undo button
   const undo = document.createElement('button'); 
   undo.className = 'btn undo'; 
   undo.textContent = '⮪';
@@ -320,20 +339,41 @@ function createRewardRow(index,item){
 /* -----------------------------
    MANUAL TOKEN ADJUSTMENT
 ------------------------------*/
+
 function manualAddTokens(){
   const v = Number(document.getElementById('manualTokenInput').value || 0);
+  const c = document.getElementById('manualTokenComment').value.trim();
   if(!v){ return; }
-  state.tokens.unshift({amount:v, note:'Manual add', timestamp: Date.now()});
+
+  state.tokens.unshift({
+    amount: v,
+    note: c ? `Manual add: ${c}` : 'Manual add',
+    timestamp: Date.now()
+  });
+
   document.getElementById('manualTokenInput').value='';
-  saveState(); renderAll();
+  document.getElementById('manualTokenComment').value='';
+  saveState(); 
+  renderAll();
 }
+
 function manualRemoveTokens(){
   const v = Number(document.getElementById('manualTokenInput').value || 0);
+  const c = document.getElementById('manualTokenComment').value.trim();
   if(!v){ return; }
-  state.tokens.unshift({amount:-v, note:'Manual subtract', timestamp: Date.now()});
+
+  state.tokens.unshift({
+    amount: -v,
+    note: c ? `Manual subtract: ${c}` : 'Manual subtract',
+    timestamp: Date.now()
+  });
+
   document.getElementById('manualTokenInput').value='';
-  saveState(); renderAll();
+  document.getElementById('manualTokenComment').value='';
+  saveState(); 
+  renderAll();
 }
+
 function clearHistory(){
   if(!confirm('Clear token history? This will remove all events but not chores or rewards.')) return;
   state.tokens = []; saveState(); renderAll();
@@ -361,7 +401,6 @@ function renderHistory(){
   });
 }
 
-/* Chart helpers: build data arrays */
 function buildWeeklyData(){
   const labels = [], totals = [];
   const today = new Date();
@@ -455,9 +494,43 @@ function renderCharts(){
 /* -----------------------------
    EXPORT / IMPORT / RESET
 ------------------------------*/
-document.getElementById('exportBtn').onclick = ()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kids-chore-data.json';a.click();};
-document.getElementById('importBtn').onclick = ()=>{const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = e=>{const f = e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=evt=>{try{ const imported = JSON.parse(evt.target.result); state = {...DEFAULT_STATE, ...imported}; saveState(); renderAll();}catch(err){ alert('Invalid JSON'); } }; reader.readAsText(f);}; inp.click();};
-document.getElementById('resetBtn').onclick = ()=>{if(!confirm('Reset everything? This clears chores, rewards, and history.')) return; state = JSON.parse(JSON.stringify(DEFAULT_STATE)); saveState(); renderAll();};
+document.getElementById('exportBtn').onclick = ()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download = (state.childName?.trim() ? `${state.childName}-chore-data.json` : 'kids-chore-data.json');
+  a.click();
+};
+
+document.getElementById('importBtn').onclick = ()=>{
+  const inp=document.createElement('input'); 
+  inp.type='file'; 
+  inp.accept='application/json'; 
+  inp.onchange = e=>{
+    const f = e.target.files[0]; 
+    if(!f) return; 
+    const reader=new FileReader(); 
+    reader.onload=evt=>{
+      try{ 
+        const imported = JSON.parse(evt.target.result);
+        state = {...DEFAULT_STATE, ...imported};
+        saveState();
+        document.getElementById("childNameInput").value = state.childName || "";
+        renderAll();
+      }catch(err){ alert('Invalid JSON'); } 
+    }; 
+    reader.readAsText(f);
+  }; 
+  inp.click();
+};
+
+document.getElementById('resetBtn').onclick = ()=>{
+  if(!confirm('Reset everything? This clears chores, rewards, and history.')) return;
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  saveState(); 
+  document.getElementById("childNameInput").value = "";
+  renderAll();
+};
 
 /* -----------------------------
    RENDER MAIN
@@ -471,7 +544,8 @@ function renderAll(){
     state[g].forEach((item, idx)=> container.appendChild(createChoreRow(g, idx, item)));
   });
 
-  const rewardsEl = document.getElementById('rewardsUnified'); rewardsEl.innerHTML='';
+  const rewardsEl = document.getElementById('rewardsUnified'); 
+  rewardsEl.innerHTML='';
   state.rewards.forEach((r, idx)=> rewardsEl.appendChild(createRewardRow(idx, r)));
 
   document.getElementById('tokenTotal').textContent = tokenTotal();
