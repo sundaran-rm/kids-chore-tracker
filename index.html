@@ -36,7 +36,8 @@
   .history-list{max-height:300px;overflow:auto;padding:4px}
   .history-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px dashed #f0f0f0}
   .charts{display:flex;flex-direction:column;gap:12px}
-  canvas{background:#fff;border-radius:8px;padding:6px}
+  canvas{background:#fff;border-radius:8px;padding:6px;display:block;width:100%}
+  .chart-fallback{padding:12px;border-radius:8px;background:#fff8f6;border:1px solid #ffe8e3;color:#7a5a50;text-align:center}
   @media(max-width:980px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -111,7 +112,7 @@
         <!-- UPDATED: manual comment input included -->
         <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
           <input id="manualTokenInput" type="number" placeholder="0" style="width:32px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center">
-          <input id="manualTokenComment" type="text" placeholder="Comment (optional)" style="width:60px;padding:8px;border-radius:8px;border:1px solid #ccc;">
+          <input id="manualTokenComment" type="text" placeholder="Comment (optional)" style="width:60px;padding:8px;border-radius:8px;border:1px solid:#ccc;">
           <button class="btn complete" onclick="manualAddTokens()">+ Add</button>
           <button class="btn delete" onclick="manualRemoveTokens()">– Remove</button>
           <button class="secondary" onclick="clearHistory()">Clear History</button>
@@ -128,8 +129,14 @@
       <div class="section charts">
         <h2>📈 Weekly & Monthly Charts</h2>
         <div class="small">Weekly (last 7 days) and Monthly (last 12 months) token net totals.</div>
-        <canvas id="weeklyChart" height="160"></canvas>
-        <canvas id="monthlyChart" height="160"></canvas>
+        <div id="weeklyWrapper">
+          <canvas id="weeklyChart" height="160"></canvas>
+          <div id="weeklyFallback" class="chart-fallback" style="display:none">Charts unavailable</div>
+        </div>
+        <div id="monthlyWrapper" style="margin-top:8px">
+          <canvas id="monthlyChart" height="160"></canvas>
+          <div id="monthlyFallback" class="chart-fallback" style="display:none">Charts unavailable</div>
+        </div>
       </div>
 
     </div>
@@ -363,7 +370,7 @@ function manualRemoveTokens(){
   if(!v){ return; }
 
   state.tokens.unshift({
-    amount: -v,
+    amount:-v,
     note: c ? `Manual subtract: ${c}` : 'Manual subtract',
     timestamp: Date.now()
   });
@@ -401,27 +408,48 @@ function renderHistory(){
   });
 }
 
+/* ------------------------------------------------------
+   WEEKLY CHART FIX — STRONG, TIMEZONE SAFE
+------------------------------------------------------*/
 function buildWeeklyData(){
   const labels = [], totals = [];
   const today = new Date();
+
+  // Build labels from oldest (6 days ago) to newest (today)
   for(let i=6;i>=0;i--){
-    const d = new Date(today); d.setDate(today.getDate()-i);
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
     labels.push(d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}));
     totals.push(0);
   }
-  const start = new Date(); start.setDate(today.getDate()-6); start.setHours(0,0,0,0);
-  const end = new Date(); end.setHours(23,59,59,999);
-  state.tokens.forEach(ev=>{
-    const t = Number(ev.amount||0);
-    const ts = new Date(ev.timestamp);
-    if(ts >= start && ts <= end){
-      const diffDays = Math.floor((ts.setHours(0,0,0,0) - start.getTime()) / (24*3600*1000));
-      if(diffDays>=0 && diffDays<7) totals[diffDays]+=t;
+
+  // start = midnight of (today - 6)
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+  const msPerDay = 24 * 60 * 60 * 1000;
+
+  // For each token event, compute its midnight and difference in days
+  for(let i = 0; i < (state.tokens || []).length; i++){
+    const ev = state.tokens[i];
+    const amount = Number(ev.amount || 0);
+    if (!ev || isNaN(amount)) continue;
+
+    const evDate = new Date(ev.timestamp);
+    // eventDayMidnight = midnight of event's local date
+    const eventDayMidnight = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate());
+
+    // difference in days between event day and start
+    const diffDays = Math.round((eventDayMidnight.getTime() - start.getTime()) / msPerDay);
+
+    if (diffDays >= 0 && diffDays < 7) {
+      totals[diffDays] += amount;
     }
-  });
-  return {labels,totals};
+  }
+
+  return { labels, totals };
 }
 
+/* ------------------------------------------------------
+   MONTHLY CHART (unchanged)
+------------------------------------------------------*/
 function buildMonthlyData(){
   const labels = [], totals = [], months = [];
   const now = new Date();
@@ -443,52 +471,113 @@ function buildMonthlyData(){
   return {labels,totals};
 }
 
+/* ------------------------------------------------------
+   RENDER CHARTS — more defensive, no function-valued props
+------------------------------------------------------*/
 function renderCharts(){
+  // hide fallback messages initially
+  document.getElementById('weeklyFallback').style.display = 'none';
+  document.getElementById('monthlyFallback').style.display = 'none';
+
+  // Basic guard: Chart must be available
+  if (typeof window.Chart === 'undefined') {
+    document.getElementById('weeklyFallback').textContent = 'Chart.js not loaded.';
+    document.getElementById('monthlyFallback').textContent = 'Chart.js not loaded.';
+    document.getElementById('weeklyFallback').style.display = 'block';
+    document.getElementById('monthlyFallback').style.display = 'block';
+    return;
+  }
+
   const w = buildWeeklyData();
   const m = buildMonthlyData();
 
-  const wCtx = document.getElementById('weeklyChart').getContext('2d');
-  if(weeklyChart) weeklyChart.destroy();
-  weeklyChart = new Chart(wCtx, {
-    type: 'bar',
-    data: {
-      labels: w.labels,
-      datasets: [{
-        label: 'Tokens (net)',
-        data: w.totals,
-        backgroundColor: (ctx)=> ctx.dataset.data.map(v=> v>=0 ? 'rgba(74,144,226,0.9)' : 'rgba(245,92,92,0.9)'),
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label: (t)=> ` ${t.formattedValue} tokens`}}}, scales:{y:{beginAtZero:true}}
-    }
-  });
+  // compute colors arrays (no scriptable function inside chart config)
+  const weeklyColors = (w.totals || []).map(v => (v >= 0 ? 'rgba(74,144,226,0.9)' : 'rgba(245,92,92,0.9)'));
+  const monthlyFill = 'rgba(74,144,226,0.12)';
+  const monthlyBorder = 'rgba(74,144,226,0.9)';
 
-  const mCtx = document.getElementById('monthlyChart').getContext('2d');
-  if(monthlyChart) monthlyChart.destroy();
-  monthlyChart = new Chart(mCtx, {
-    type: 'line',
-    data: {
-      labels: m.labels,
-      datasets: [{
-        label: 'Tokens (net/month)',
-        data: m.totals,
-        fill:true,
-        backgroundColor:'rgba(74,144,226,0.12)',
-        borderColor:'rgba(74,144,226,0.9)',
-        tension:0.3,
-        pointRadius:4
-      }]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:(t)=>` ${t.formattedValue} tokens`}}}, scales:{y:{beginAtZero:true}}
-    }
-  });
+  // destroy prior charts safely
+  try {
+    if (weeklyChart) { weeklyChart.destroy(); weeklyChart = null; }
+  } catch (e) {
+    console.warn('Error destroying weeklyChart', e);
+  }
+  try {
+    if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
+  } catch (e) {
+    console.warn('Error destroying monthlyChart', e);
+  }
+
+  // create weekly bar chart inside try/catch so a failure doesn't break the whole app
+  try {
+    const wCtx = document.getElementById('weeklyChart').getContext('2d');
+    weeklyChart = new Chart(wCtx, {
+      type: 'bar',
+      data: {
+        labels: w.labels,
+        datasets: [{
+          label: 'Tokens (net)',
+          data: w.totals,
+          backgroundColor: weeklyColors,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (t) => ` ${t.formattedValue} tokens`
+            }
+          }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  } catch (err) {
+    console.error('Weekly chart render failed', err);
+    document.getElementById('weeklyFallback').textContent = 'Weekly chart failed to render.';
+    document.getElementById('weeklyFallback').style.display = 'block';
+  }
+
+  // create monthly line chart
+  try {
+    const mCtx = document.getElementById('monthlyChart').getContext('2d');
+    monthlyChart = new Chart(mCtx, {
+      type: 'line',
+      data: {
+        labels: m.labels,
+        datasets: [{
+          label: 'Tokens (net/month)',
+          data: m.totals,
+          fill: true,
+          backgroundColor: monthlyFill,
+          borderColor: monthlyBorder,
+          tension: 0.3,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (t) => ` ${t.formattedValue} tokens`
+            }
+          }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  } catch (err) {
+    console.error('Monthly chart render failed', err);
+    document.getElementById('monthlyFallback').textContent = 'Monthly chart failed to render.';
+    document.getElementById('monthlyFallback').style.display = 'block';
+  }
 }
 
 /* -----------------------------
