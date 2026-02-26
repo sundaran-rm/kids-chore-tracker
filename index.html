@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --navy:#0d1424; --navy2:#141c2e; --navy3:#1b2540; --navy4:#232e4a;
@@ -174,6 +176,9 @@ body{background-image:
 .m-note::placeholder{color:var(--muted)}
 .m-add{background:linear-gradient(135deg,var(--green-dark),#00e676);color:#003020;font-family:var(--font);font-size:11px;font-weight:800;border:none;border-radius:8px;padding:6px 10px;cursor:pointer}
 .m-rem{background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.28);color:var(--red);font-family:var(--font);font-size:11px;font-weight:800;border-radius:8px;padding:6px 10px;cursor:pointer}
+.m-undo{background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.28);color:var(--blue);font-family:var(--font);font-size:11px;font-weight:800;border-radius:8px;padding:6px 10px;cursor:pointer;transition:all .15s}
+.m-undo:hover{background:rgba(79,195,247,0.2)}
+.m-undo:disabled{opacity:.3;cursor:default}
 .m-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
 
 /* ── HISTORY ── */
@@ -227,6 +232,53 @@ body{background-image:
 @keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
 .confetti{position:fixed;width:7px;height:7px;border-radius:2px;animation:burst .55s ease forwards;pointer-events:none;z-index:9999}
 
+
+/* SYNC PILL */
+.sync-pill{display:flex;align-items:center;gap:5px;background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0;transition:all .3s;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s;}
+.sync-pill.synced{color:var(--green);border-color:rgba(105,240,174,0.28)}
+.sync-pill.synced .sync-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sync-pill.syncing{color:var(--yellow);border-color:rgba(255,215,64,0.28);animation:syncPulse 1.2s ease-in-out infinite}
+.sync-pill.syncing .sync-dot{background:var(--yellow)}
+.sync-pill.error{color:var(--red);border-color:rgba(255,107,107,0.28)}
+.sync-pill.error .sync-dot{background:var(--red)}
+@keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.5}}
+.hbtn.db-btn{border-color:rgba(105,240,174,0.3);color:var(--green)}
+.hbtn.db-btn:hover{border-color:var(--green);background:rgba(105,240,174,0.08)}
+
+/* DB SETUP MODAL */
+.setup-modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
+.setup-body{padding:22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.setup-step{background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:15px 16px}
+.step-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#0a1a26;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-weight:800;font-size:14px}
+.setup-step p{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:6px}
+.setup-step p:last-child{margin-bottom:0}
+.setup-step a{color:var(--blue);text-decoration:none}.setup-step a:hover{text-decoration:underline}
+.setup-step code{background:var(--navy4);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11px;color:var(--yellow);font-family:monospace}
+.cfg-textarea{width:100%;height:136px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:monospace;font-size:12px;border-radius:9px;padding:10px;outline:none;resize:vertical;margin-top:8px;}
+.cfg-textarea:focus{border-color:var(--blue)}
+.cfg-textarea::placeholder{color:var(--muted)}
+.setup-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.setup-input{flex:1;min-width:140px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;font-weight:700;border-radius:9px;padding:8px 12px;outline:none;}
+.setup-input:focus{border-color:var(--blue)}
+.setup-input::placeholder{color:var(--muted)}
+.setup-btn{background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff;font-family:var(--font);font-size:13px;font-weight:800;border:none;border-radius:9px;padding:9px 18px;cursor:pointer;white-space:nowrap;}
+.setup-btn:hover{filter:brightness(1.1)}
+.setup-btn.ghost{background:var(--navy3);border:1px solid var(--border);color:var(--text)}
+.setup-btn.danger{background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.3);color:var(--red)}
+.cfg-err{font-size:12px;color:var(--red);font-weight:700;margin-top:6px;display:none}
+.cfg-err.show{display:block}
+.setup-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.skip-link{background:transparent;border:none;color:var(--muted);font-family:var(--font);font-size:12px;cursor:pointer;text-decoration:underline;padding:4px}
+.connected-box{background:rgba(105,240,174,0.06);border:1px solid rgba(105,240,174,0.28);border-radius:12px;padding:15px 16px}
+.connected-title{font-weight:800;font-size:14px;color:var(--green);margin-bottom:10px}
+.hid-row{display:flex;align-items:center;gap:8px;background:var(--navy4);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin:8px 0}
+.hid-val{font-family:monospace;font-size:13px;color:var(--yellow);flex:1;word-break:break-all}
+.copy-btn{background:var(--navy3);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:10px;font-weight:700;border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{border-color:var(--blue);color:var(--blue)}
+
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 @media(max-width:540px){.logo{font-size:19px}.stat-grid{grid-template-columns:repeat(2,1fr)}.hdr-btns .hbtn:not(.summary){display:none}}
 </style>
@@ -239,6 +291,8 @@ body{background-image:
     <div class="kid-tabs" id="kidTabs"></div>
     <button class="btn-add-kid" id="btnAddKid">+ Add Kid</button>
     <div class="hdr-btns">
+      <div class="sync-pill" id="syncPill"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Local only</span></div>
+      <button class="hbtn db-btn" id="btnDB">&#x2601; Database</button>
       <button class="hbtn summary" id="btnSummary">📊 Summary</button>
       <button class="hbtn" id="btnExport">⬇ Export</button>
       <button class="hbtn" id="btnImport">⬆ Import</button>
@@ -319,24 +373,34 @@ body{background-image:
             <input class="m-note" id="mNote" type="text" placeholder="Note (optional)"/>
             <button class="m-add" id="btnMAdd">+Add</button>
             <button class="m-rem" id="btnMRem">−Sub</button>
+            <button class="m-undo" id="btnMUndo" title="Undo last manual adjustment">↩ Undo</button>
           </div>
           <div class="m-hint">Manual adjustments are logged in history.</div>
         </div>
       </div>
-      <div class="section">
-        <div class="sec-hdr">
-          <div class="sec-title">📜 History</div>
-          <button class="clear-btn" id="btnClearHist">Clear</button>
+      <div class="section" id="secHistory">
+        <div class="sec-hdr" onclick="toggleSection('secHistory')">
+          <div class="sec-title">📜 History<span class="collapse-icon"></span></div>
+          <button class="clear-btn" id="btnClearHist" onclick="event.stopPropagation()">Clear</button>
         </div>
-        <div class="hist-feed" id="histFeed"></div>
+        <div class="hist-feed sec-body" id="histFeed"></div>
       </div>
-      <div class="section">
-        <div class="sec-hdr"><div class="sec-title">📈 Charts</div></div>
-        <div class="charts-body">
-          <div class="chart-lbl">Last 7 Days</div>
+      <div class="section" id="secCharts">
+        <div class="sec-hdr" onclick="toggleSection('secCharts')"><div class="sec-title">📈 Charts<span class="collapse-icon"></span></div></div>
+        <div class="charts-body sec-body">
+          <div class="chart-lbl">Last 7 Days — Earned</div>
           <div class="chart-wrap"><canvas id="wChart"></canvas></div>
-          <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
+          <div class="chart-lbl" style="margin-top:3px">Last 12 Months — Earned</div>
           <div class="chart-wrap"><canvas id="mChart"></canvas></div>
+        </div>
+      </div>
+      <div class="section" id="secRedemptions">
+        <div class="sec-hdr" onclick="toggleSection('secRedemptions')"><div class="sec-title">🎁 Redemptions<span class="collapse-icon"></span></div></div>
+        <div class="charts-body sec-body">
+          <div class="chart-lbl">Last 7 Days — Redeemed</div>
+          <div class="chart-wrap"><canvas id="wRChart"></canvas></div>
+          <div class="chart-lbl" style="margin-top:3px">Last 12 Months — Redeemed</div>
+          <div class="chart-wrap"><canvas id="mRChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -350,6 +414,69 @@ body{background-image:
       <button class="m-close" id="btnSumClose">✕</button>
     </div>
     <div class="m-body" id="sumBody"></div>
+  </div>
+</div>
+
+
+<!-- DATABASE SETUP MODAL -->
+<div class="overlay" id="dbOverlay">
+  <div class="setup-modal">
+    <div class="m-hdr">
+      <div class="m-title">&#x2601; Cloud Database</div>
+      <button class="m-close" id="btnDBClose">&#x2715;</button>
+    </div>
+    <div class="setup-body">
+
+      <!-- CONNECTED STATE -->
+      <div class="connected-box" id="connectedBox" style="display:none">
+        <div class="connected-title">&#x2714; Connected to Firebase</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Your data syncs in real-time. Share your Household ID with another device or browser to access the same data.</p>
+        <p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:0">Household ID</p>
+        <div class="hid-row"><span class="hid-val" id="connectedHID"></span><button class="copy-btn" id="btnCopyHID">Copy</button></div>
+        <button class="setup-btn danger" id="btnDisconnect">Disconnect</button>
+      </div>
+
+      <!-- SETUP FORM -->
+      <div id="setupForm">
+        <div class="setup-step">
+          <div class="step-head"><div class="step-num">1</div><div class="step-title">Create a free Firebase project</div></div>
+          <p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> &rarr; <strong>Add project</strong>. Any name works. Disable Google Analytics if asked &mdash; not needed.</p>
+        </div>
+
+        <div class="setup-step">
+          <div class="step-head"><div class="step-num">2</div><div class="step-title">Add a Web App &amp; copy the config</div></div>
+          <p>Click the <code>&lt;/&gt;</code> Web icon &rarr; register with any nickname. After registering, Firebase shows a <code>firebaseConfig</code> block. Copy the whole <code>{ &hellip; }</code> object and paste it here:</p>
+          <textarea class="cfg-textarea" id="fbConfigInput" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "your-app.firebaseapp.com",
+  "projectId": "your-app",
+  "storageBucket": "your-app.appspot.com",
+  "messagingSenderId": "123456",
+  "appId": "1:123:web:abc"
+}'></textarea>
+          <div class="cfg-err" id="cfgErr">Invalid config &mdash; paste the full { ... } object from Firebase.</div>
+        </div>
+
+        <div class="setup-step">
+          <div class="step-head"><div class="step-num">3</div><div class="step-title">Enable Firestore Database</div></div>
+          <p>In Firebase Console &rarr; <strong>Build &rarr; Firestore Database &rarr; Create database</strong>. Choose <strong>Start in test mode</strong>, pick any region, click Enable.</p>
+        </div>
+
+        <div class="setup-step">
+          <div class="step-head"><div class="step-num">4</div><div class="step-title">Set your Household ID</div></div>
+          <p>This private ID links all your devices. Generate one, or type your own. To sync a second device, enter the exact same ID there.</p>
+          <div class="setup-row">
+            <input class="setup-input" id="householdInput" placeholder="e.g. smith-family-2024"/>
+            <button class="setup-btn ghost" id="btnGenHID">Generate</button>
+          </div>
+        </div>
+
+        <div class="setup-actions">
+          <button class="setup-btn" id="btnConnectDB">Connect &amp; Sync</button>
+          <button class="skip-link" id="btnSkipDB">Skip &mdash; keep local only</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -375,13 +502,77 @@ function mkReward(){return{id:uid(),title:'',cost:5};}
 /* ── STATE ── */
 let S;
 function load(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):{kids:[],activeId:null};}catch(e){return{kids:[],activeId:null};}}
-function save(){localStorage.setItem(SK,JSON.stringify(S));}
-S=load();
+
+/* ══ FIREBASE ══ */
+let db=null, fbUnsub=null, saveTimer=null, ownWrite=false;
+
+function setSyncUI(cls,label){
+  const p=document.getElementById('syncPill');
+  p.className='sync-pill'+(cls?' '+cls:'');
+  document.getElementById('syncLabel').textContent=label;
+}
+
+function connectFirebase(cfg,hid){
+  try{
+    firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));
+    firebase.initializeApp(cfg);
+    db=firebase.firestore();
+    db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    localStorage.setItem('cq_fbcfg',JSON.stringify(cfg));
+    localStorage.setItem('cq_hid',hid);
+    startListener(hid);
+    return true;
+  }catch(e){console.error(e);db=null;return false;}
+}
+
+function startListener(hid){
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  setSyncUI('syncing','Connecting…');
+  fbUnsub=db.collection('chorequest').doc(hid).onSnapshot(snap=>{
+    if(ownWrite)return;
+    if(snap.exists){
+      const remote=snap.data().data;
+      if(remote&&JSON.stringify(remote)!==JSON.stringify(S)){S=remote;if(!S.kids)S.kids=[];saveLocal();renderAll();}
+    }else{save();}
+    setSyncUI('synced','Synced ✓');
+  },err=>{console.error(err);setSyncUI('error','Offline');});
+}
+
+function disconnectFirebase(){
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));
+  db=null;localStorage.removeItem('cq_fbcfg');localStorage.removeItem('cq_hid');
+  setSyncUI('','Local only');
+}
+
+// auto reconnect
+(function(){
+  const raw=localStorage.getItem('cq_fbcfg'),hid=localStorage.getItem('cq_hid');
+  if(raw&&hid){try{connectFirebase(JSON.parse(raw),hid);}catch(e){localStorage.removeItem('cq_fbcfg');}}
+})();
+
+function saveLocal(){localStorage.setItem(SK,JSON.stringify(S));}
+function save(){
+  saveLocal();
+  if(!db)return;
+  clearTimeout(saveTimer);
+  setSyncUI('syncing','Saving…');
+  saveTimer=setTimeout(async()=>{
+    try{
+      ownWrite=true;
+      await db.collection('chorequest').doc(localStorage.getItem('cq_hid')).set({data:S,ts:firebase.firestore.FieldValue.serverTimestamp()});
+      setSyncUI('synced','Synced ✓');
+    }catch(e){console.error(e);setSyncUI('error','Sync error');}
+    finally{setTimeout(()=>{ownWrite=false;},600);}
+  },700);
+}
+S=(()=>{try{const r=localStorage.getItem(SK);return r?JSON.parse(r):{kids:[],activeId:null};}catch(e){return{kids:[],activeId:null};}})();
 if(!S.kids)S.kids=[];
 function kid(){return S.kids.find(k=>k.id===S.activeId)||S.kids[0]||null;}
 
 /* ── UTILS ── */
-function todayStr(){return new Date().toISOString().split('T')[0];}
+function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){const d=new Date();return dateStr(d);}
 function todayDow(){return new Date().getDay();}
 function tokenSum(k){return(k.tokens||[]).reduce((s,e)=>s+Number(e.amount||0),0);}
 function timeAgo(ts){const ms=Date.now()-ts,h=ms/3600000,d=ms/86400000;if(ms<60000)return'Just now';if(h<1)return Math.floor(ms/60000)+'m ago';if(h<24)return Math.floor(h)+'h ago';if(d<7)return Math.floor(d)+'d ago';return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});}
@@ -390,7 +581,7 @@ function calcStreak(k){
   const set=new Set(k.streakDates||[]);if(!set.size)return 0;
   const today=todayStr();let cur=new Date(),streak=0;
   if(!set.has(today))cur.setDate(cur.getDate()-1);
-  while(true){const ds=cur.toISOString().split('T')[0];if(set.has(ds)){streak++;cur.setDate(cur.getDate()-1);}else break;}
+  while(true){const ds=dateStr(cur);if(set.has(ds)){streak++;cur.setDate(cur.getDate()-1);}else break;}
   return streak;
 }
 function refreshStreak(k){
@@ -580,21 +771,41 @@ function renderRight(){
 
 /* ── CHARTS ── */
 Chart.defaults.color='#6b7fa3';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.font.weight='700';
-let wC,mC;
+let wC,mC,wRC,mRC;
 function renderCharts(k){
-  const wL=[],wT=[],today=new Date();
-  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);wL.push(d.toLocaleDateString(undefined,{weekday:'short'}));wT.push(0);}
+  const wL=[],wT=[],wRT=[],today=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);wL.push(d.toLocaleDateString(undefined,{weekday:'short'}));wT.push(0);wRT.push(0);}
   const wS=new Date();wS.setDate(today.getDate()-6);wS.setHours(0,0,0,0);
-  if(k)(k.tokens||[]).forEach(ev=>{const t=Number(ev.amount||0),ts=new Date(ev.timestamp);if(ts>=wS){const diff=Math.floor((new Date(ev.timestamp).setHours(0,0,0,0)-wS.getTime())/86400000);if(diff>=0&&diff<7)wT[diff]+=t;}});
-  const mL=[],mT=[],months=[],now=new Date();
-  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);mL.push(d.toLocaleDateString(undefined,{month:'short'}));months.push({y:d.getFullYear(),m:d.getMonth()});mT.push(0);}
-  if(k)(k.tokens||[]).forEach(ev=>{const t=Number(ev.amount||0),d=new Date(ev.timestamp);for(let i=0;i<months.length;i++){if(d.getFullYear()===months[i].y&&d.getMonth()===months[i].m){mT[i]+=t;break;}}});
+  if(k)(k.tokens||[]).forEach(ev=>{
+    const t=Number(ev.amount||0),ts=new Date(ev.timestamp);
+    if(ts<wS)return;
+    const diff=Math.floor((new Date(ev.timestamp).setHours(0,0,0,0)-wS.getTime())/86400000);
+    if(diff<0||diff>=7)return;
+    if((ev.note||'').startsWith('🎁'))wRT[diff]+=Math.abs(t);
+    else wT[diff]+=t;
+  });
+  const mL=[],mT=[],mRT=[],months=[],now=new Date();
+  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);mL.push(d.toLocaleDateString(undefined,{month:'short'}));months.push({y:d.getFullYear(),m:d.getMonth()});mT.push(0);mRT.push(0);}
+  if(k)(k.tokens||[]).forEach(ev=>{
+    const t=Number(ev.amount||0),d=new Date(ev.timestamp);
+    for(let i=0;i<months.length;i++){
+      if(d.getFullYear()===months[i].y&&d.getMonth()===months[i].m){
+        if((ev.note||'').startsWith('🎁'))mRT[i]+=Math.abs(t);
+        else mT[i]+=t;
+        break;
+      }
+    }
+  });
   const tt={backgroundColor:'#141c2e',borderColor:'#2a3854',borderWidth:1,callbacks:{label:t=>` ${t.formattedValue} tokens`}};
   const scl={y:{beginAtZero:true,grid:{color:'rgba(42,56,84,0.45)'},ticks:{color:'#6b7fa3',font:{size:9}}},x:{grid:{display:false},ticks:{color:'#6b7fa3',font:{size:9}}}};
   if(wC)wC.destroy();
   wC=new Chart(document.getElementById('wChart').getContext('2d'),{type:'bar',data:{labels:wL,datasets:[{data:wT,backgroundColor:wT.map(v=>v>=0?'rgba(105,240,174,0.78)':'rgba(255,107,107,0.78)'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});
   if(mC)mC.destroy();
   mC=new Chart(document.getElementById('mChart').getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mT,fill:true,backgroundColor:'rgba(79,195,247,0.07)',borderColor:'rgba(79,195,247,0.9)',pointBackgroundColor:'rgba(79,195,247,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});
+  if(wRC)wRC.destroy();
+  wRC=new Chart(document.getElementById('wRChart').getContext('2d'),{type:'bar',data:{labels:wL,datasets:[{data:wRT,backgroundColor:'rgba(179,136,255,0.78)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});
+  if(mRC)mRC.destroy();
+  mRC=new Chart(document.getElementById('mRChart').getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mRT,fill:true,backgroundColor:'rgba(179,136,255,0.07)',borderColor:'rgba(179,136,255,0.9)',pointBackgroundColor:'rgba(179,136,255,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});
 }
 
 /* ── RENDER ALL ── */
@@ -614,8 +825,8 @@ function openSummary(){
   const wS=new Date(today);wS.setDate(today.getDate()-dfm);wS.setHours(0,0,0,0);
   const wE=new Date(today);wE.setHours(23,59,59,999);
   const dayMap={};let earned=0,redeemed=0;
-  for(let i=0;i<=dfm;i++){const d=new Date(wS);d.setDate(wS.getDate()+i);dayMap[d.toISOString().split('T')[0]]=0;}
-  (k.tokens||[]).forEach(ev=>{const d=new Date(ev.timestamp),ds=d.toISOString().split('T')[0],v=Number(ev.amount||0);if(d>=wS&&d<=wE){if(v>0){earned+=v;if(ds in dayMap)dayMap[ds]+=v;}else redeemed+=Math.abs(v);}});
+  for(let i=0;i<=dfm;i++){const d=new Date(wS);d.setDate(wS.getDate()+i);dayMap[dateStr(d)]=0;}
+  (k.tokens||[]).forEach(ev=>{const d=new Date(ev.timestamp),ds=dateStr(d),v=Number(ev.amount||0);if(d>=wS&&d<=wE){if(v>0){earned+=v;if(ds in dayMap)dayMap[ds]+=v;}else redeemed+=Math.abs(v);}});
   const best=Object.entries(dayMap).sort((a,b)=>b[1]-a[1])[0];
   const bLbl=best?new Date(best[0]+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+best[1]+')':'—';
   const streak=calcStreak(k);
@@ -667,8 +878,8 @@ document.getElementById('btnAddDaily').addEventListener('click',()=>{const k=kid
 
 document.getElementById('btnAddBonus').addEventListener('click',()=>{const k=kid();if(!k)return;k.bonus.push(mkChore('bonus'));save();renderAll();});
 document.getElementById('btnAddReward').addEventListener('click',()=>{const k=kid();if(!k)return;k.rewards.push(mkReward());save();renderAll();});
-document.getElementById('btnMAdd').addEventListener('click',()=>{const k=kid();if(!k)return;const v=Number(document.getElementById('mAmt').value||0);if(!v)return;const n=document.getElementById('mNote').value.trim();k.tokens.unshift({amount:v,note:n||'Manual add',timestamp:Date.now()});document.getElementById('mAmt').value='';document.getElementById('mNote').value='';save();renderAll();});
-document.getElementById('btnMRem').addEventListener('click',()=>{const k=kid();if(!k)return;const v=Number(document.getElementById('mAmt').value||0);if(!v)return;const n=document.getElementById('mNote').value.trim();k.tokens.unshift({amount:-v,note:n||'Manual subtract',timestamp:Date.now()});document.getElementById('mAmt').value='';document.getElementById('mNote').value='';save();renderAll();});
+document.getElementById('btnMAdd').addEventListener('click',()=>{const k=kid();if(!k)return;const v=Number(document.getElementById('mAmt').value||0);if(!v)return;const n=document.getElementById('mNote').value.trim();k.tokens.unshift({amount:v,note:n||'Manual add',manual:true,timestamp:Date.now()});document.getElementById('mAmt').value='';document.getElementById('mNote').value='';save();renderAll();});
+document.getElementById('btnMRem').addEventListener('click',()=>{const k=kid();if(!k)return;const v=Number(document.getElementById('mAmt').value||0);if(!v)return;const n=document.getElementById('mNote').value.trim();k.tokens.unshift({amount:-v,note:n||'Manual subtract',manual:true,timestamp:Date.now()});document.getElementById('mAmt').value='';document.getElementById('mNote').value='';save();renderAll();});
 document.getElementById('btnClearHist').addEventListener('click',()=>{const k=kid();if(!k)return;if(!confirm('Clear token history?'))return;k.tokens=[];save();renderAll();});
 document.getElementById('goalRewardPick').addEventListener('change',e=>{
   const k=kid();if(!k)return;
@@ -696,12 +907,52 @@ document.getElementById('goalTarget').addEventListener('input',e=>{
   document.getElementById('goalRewardPick').value='';
   save();renderRight();
 });
+document.getElementById('btnMUndo').addEventListener('click',()=>{
+  const k=kid();if(!k)return;
+  const b=document.getElementById('btnMUndo');
+  const idx=k.tokens.findIndex(e=>e.manual===true);
+  if(idx===-1){b.textContent='Nothing to undo';setTimeout(()=>b.textContent='↩ Undo',1500);return;}
+  k.tokens.splice(idx,1);save();renderAll();
+  b.textContent='Undone!';setTimeout(()=>b.textContent='↩ Undo',1200);
+});
 document.getElementById('btnSummary').addEventListener('click',openSummary);
 document.getElementById('btnSumClose').addEventListener('click',()=>document.getElementById('summaryOverlay').classList.remove('open'));
 document.getElementById('summaryOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
 document.getElementById('btnExport').addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
 document.getElementById('btnImport').addEventListener('click',()=>{const inp=document.createElement('input');inp.type='file';inp.accept='application/json';inp.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.addEventListener('load',ev=>{try{const data=JSON.parse(ev.target.result);if(data.daily&&!data.kids){const k=mkKid(data.childName||'Imported');k.daily=data.daily||[];k.monsat=data.monsat||[];k.bonus=data.bonus||[];k.rewards=data.rewards||[];k.tokens=data.tokens||[];S={kids:[k],activeId:k.id};}else{S={kids:data.kids||[],activeId:data.activeId||data.kids?.[0]?.id||null};}save();renderAll();}catch(err){alert('Invalid JSON file.');}});reader.readAsText(f);});inp.click();});
 document.getElementById('btnReset').addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();});
+
+
+/* ── DB MODAL EVENTS ── */
+function openDBModal(){
+  const connected=!!db;
+  document.getElementById('connectedBox').style.display=connected?'block':'none';
+  document.getElementById('setupForm').style.display=connected?'none':'block';
+  if(connected){document.getElementById('connectedHID').textContent=localStorage.getItem('cq_hid')||'';}
+  else{const raw=localStorage.getItem('cq_fbcfg');if(raw)document.getElementById('fbConfigInput').value=JSON.stringify(JSON.parse(raw),null,2);const hid=localStorage.getItem('cq_hid');if(hid)document.getElementById('householdInput').value=hid;}
+  document.getElementById('dbOverlay').classList.add('open');
+}
+document.getElementById('btnDB').addEventListener('click',openDBModal);
+document.getElementById('btnDBClose').addEventListener('click',()=>document.getElementById('dbOverlay').classList.remove('open'));
+document.getElementById('dbOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+document.getElementById('btnGenHID').addEventListener('click',()=>{document.getElementById('householdInput').value='cq-'+Math.random().toString(36).slice(2,7)+'-'+Math.random().toString(36).slice(2,7);});
+document.getElementById('btnConnectDB').addEventListener('click',()=>{
+  const raw=document.getElementById('fbConfigInput').value.trim();
+  const hid=document.getElementById('householdInput').value.trim();
+  const err=document.getElementById('cfgErr');err.classList.remove('show');
+  if(!hid){alert('Please enter or generate a Household ID.');return;}
+  let cfg;
+  try{
+    let c=raw.replace(/\/\/.*$/gm,'').replace(/,\s*([}\]])/g,'$1').replace(/([{,]\s*)(\w+)\s*:/g,'$1"$2":').replace(/'/g,'"');
+    cfg=JSON.parse(c.startsWith('{')?c:raw);
+    if(!cfg.apiKey||!cfg.projectId)throw new Error();
+  }catch(e){err.classList.add('show');return;}
+  if(connectFirebase(cfg,hid)){document.getElementById('dbOverlay').classList.remove('open');}
+  else{err.textContent='Connection failed — check config and try again.';err.classList.add('show');}
+});
+document.getElementById('btnSkipDB').addEventListener('click',()=>document.getElementById('dbOverlay').classList.remove('open'));
+document.getElementById('btnDisconnect').addEventListener('click',()=>{if(!confirm('Disconnect from cloud?'))return;disconnectFirebase();document.getElementById('dbOverlay').classList.remove('open');});
+document.getElementById('btnCopyHID').addEventListener('click',()=>{navigator.clipboard.writeText(localStorage.getItem('cq_hid')||'').then(()=>{const b=document.getElementById('btnCopyHID');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});});
 
 /* ── BOOT ── */
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
