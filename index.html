@@ -279,6 +279,11 @@ body{background-image:
 .copy-btn{background:var(--navy3);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:10px;font-weight:700;border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .copy-btn:hover{border-color:var(--blue);color:var(--blue)}
 
+.drag-handle{cursor:grab;color:var(--muted);font-size:13px;padding:0 2px;flex-shrink:0;user-select:none;line-height:1;}
+.drag-handle:active{cursor:grabbing;}
+.chore-card.drag-over{border-color:var(--blue);background:rgba(79,195,247,0.07);}
+.reward-row.drag-over{border-color:var(--blue);background:rgba(79,195,247,0.07);}
+.chore-card.dragging,.reward-row.dragging{opacity:.35;}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 @media(max-width:540px){.logo{font-size:19px}.stat-grid{grid-template-columns:repeat(2,1fr)}.hdr-btns .hbtn:not(.summary){display:none}}
 </style>
@@ -638,7 +643,20 @@ function buildChoreCard(grp,idx,item,k){
   const done=item.lastDone===today,sched=scheduledToday(item);
   const card=document.createElement('div');
   card.className='chore-card'+(done?' done-today':'')+(!sched&&!done?' off-day':'');
+  card.draggable=true;
+  card.addEventListener('dragstart',e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',idx);card.classList.add('dragging');});
+  card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+  card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
+  card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+  card.addEventListener('drop',e=>{
+    e.preventDefault();card.classList.remove('drag-over');
+    const from=Number(e.dataTransfer.getData('text/plain'));
+    const to=idx;if(from===to)return;
+    const arr=k[grp];const [moved]=arr.splice(from,1);arr.splice(to,0,moved);
+    save();renderAll();
+  });
   const row=document.createElement('div');row.className='chore-row';
+  const handle=document.createElement('div');handle.className='drag-handle';handle.textContent='⠿';handle.title='Drag to reorder';
   const icon=document.createElement('div');icon.className='c-icon';icon.textContent=GRP_ICON[grp]||'✅';
   const name=document.createElement('input');name.className='c-name'+(done?' struck':'');
   name.type='text';name.value=item.title;name.placeholder='Task name…';
@@ -670,7 +688,7 @@ function buildChoreCard(grp,idx,item,k){
   });
   const del=document.createElement('button');del.className='ic-btn del';del.title='Delete';del.textContent='🗑';
   del.addEventListener('click',()=>{k[grp].splice(idx,1);save();renderAll();});
-  row.appendChild(icon);row.appendChild(name);row.appendChild(tb);row.appendChild(chk);row.appendChild(undo);row.appendChild(del);
+  row.appendChild(handle);row.appendChild(icon);row.appendChild(name);row.appendChild(tb);row.appendChild(chk);row.appendChild(undo);row.appendChild(del);
   card.appendChild(row);
   const dp=document.createElement('div');dp.className='day-row';
   DAY_LABELS.forEach((lbl,d)=>{
@@ -692,6 +710,19 @@ function buildChoreCard(grp,idx,item,k){
 /* ── REWARD ROW ── */
 function buildRewardRow(idx,item,k){
   const row=document.createElement('div');row.className='reward-row';
+  row.draggable=true;
+  row.addEventListener('dragstart',e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',idx);row.classList.add('dragging');});
+  row.addEventListener('dragend',()=>row.classList.remove('dragging'));
+  row.addEventListener('dragover',e=>{e.preventDefault();row.classList.add('drag-over');});
+  row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+  row.addEventListener('drop',e=>{
+    e.preventDefault();row.classList.remove('drag-over');
+    const from=Number(e.dataTransfer.getData('text/plain'));
+    const to=idx;if(from===to)return;
+    const [moved]=k.rewards.splice(from,1);k.rewards.splice(to,0,moved);
+    save();renderAll();
+  });
+  const handle=document.createElement('div');handle.className='drag-handle';handle.textContent='⠿';handle.title='Drag to reorder';
   const icon=document.createElement('span');icon.style.fontSize='16px';icon.textContent='🎁';
   const name=document.createElement('input');name.className='r-name';name.type='text';name.value=item.title;name.placeholder='Reward name…';
   name.addEventListener('input',e=>{item.title=e.target.value;save();});
@@ -707,7 +738,7 @@ function buildRewardRow(idx,item,k){
   });
   const del=document.createElement('button');del.className='ic-btn del';del.title='Delete';del.textContent='🗑';
   del.addEventListener('click',()=>{k.rewards.splice(idx,1);save();renderAll();});
-  row.appendChild(icon);row.appendChild(name);row.appendChild(cb);row.appendChild(rdm);row.appendChild(del);
+  row.appendChild(handle);row.appendChild(icon);row.appendChild(name);row.appendChild(cb);row.appendChild(rdm);row.appendChild(del);
   return row;
 }
 
@@ -826,7 +857,7 @@ function openSummary(){
   const wE=new Date(today);wE.setHours(23,59,59,999);
   const dayMap={};let earned=0,redeemed=0;
   for(let i=0;i<=dfm;i++){const d=new Date(wS);d.setDate(wS.getDate()+i);dayMap[dateStr(d)]=0;}
-  (k.tokens||[]).forEach(ev=>{const d=new Date(ev.timestamp),ds=dateStr(d),v=Number(ev.amount||0);if(d>=wS&&d<=wE){if(v>0){earned+=v;if(ds in dayMap)dayMap[ds]+=v;}else redeemed+=Math.abs(v);}});
+  (k.tokens||[]).forEach(ev=>{const d=new Date(ev.timestamp),ds=dateStr(d),v=Number(ev.amount||0);if(d>=wS&&d<=wE){if(v>0){earned+=v;if(ds in dayMap)dayMap[ds]+=v;}else if((ev.note||'').startsWith('🎁'))redeemed+=Math.abs(v);}});
   const best=Object.entries(dayMap).sort((a,b)=>b[1]-a[1])[0];
   const bLbl=best?new Date(best[0]+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+best[1]+')':'—';
   const streak=calcStreak(k);
@@ -867,9 +898,20 @@ function openSummary(){
 }
 
 /* ── COLLAPSE ── */
-function toggleSection(id){
-  document.getElementById(id).classList.toggle('collapsed');
-}
+const ALL_SECTIONS=['secDaily','secBonus','secRewards','secHistory','secCharts','secRedemptions'];
+function toggleSection(id){document.getElementById(id).classList.toggle('collapsed');}
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  // if a modal is open, close it instead
+  const openModal=document.querySelector('.overlay.open');
+  if(openModal){openModal.classList.remove('open');return;}
+  const allCollapsed=ALL_SECTIONS.every(id=>document.getElementById(id)?.classList.contains('collapsed'));
+  ALL_SECTIONS.forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(allCollapsed)el.classList.remove('collapsed');
+    else el.classList.add('collapsed');
+  });
+});
 
 /* ── WIRE STATIC EVENTS ── */
 document.getElementById('btnAddKid').addEventListener('click',addKid);
