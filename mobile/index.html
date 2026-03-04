@@ -39,37 +39,83 @@ body{background:var(--navy);color:var(--text);font-family:var(--font);
 .hdr{position:fixed;top:0;left:0;right:0;z-index:200;padding-top:var(--safe-top);
   background:rgba(13,20,36,0.95);border-bottom:1px solid var(--border);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
-.hdr-inner{display:flex;align-items:center;gap:8px;padding:0 12px;height:var(--hdr-h)}
-.logo{font-family:var(--display);font-size:19px;color:var(--blue);white-space:nowrap;flex-shrink:0}
-.logo b{color:var(--yellow)}
-.kid-scroller{flex:1;overflow-x:auto;display:flex;gap:6px;align-items:center;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0;}
-.kid-scroller::-webkit-scrollbar{display:none}
-.kid-tab{display:flex;align-items:center;gap:4px;flex-shrink:0;background:var(--navy3);
-  border:1.5px solid var(--border);border-radius:20px;padding:5px 10px;cursor:pointer;transition:all .18s;}
-.kid-tab.active{background:rgba(79,195,247,0.12);border-color:var(--blue)}
-.kid-tab input{background:transparent;border:none;outline:none;color:var(--text);
-  font-family:var(--font);font-size:13px;font-weight:700;width:58px;}
-.kid-tab.active input{color:var(--blue)}
-.kid-tab button{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:10px;padding:0 1px;line-height:1;}
-.theme-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;transition:transform .15s;}
-.theme-dot:hover{transform:scale(1.25)}
-.btn-add-kid{flex-shrink:0;background:transparent;border:1.5px dashed var(--border);color:var(--muted);
-  font-family:var(--font);font-size:11px;font-weight:700;padding:5px 9px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+.hdr-inner{display:flex;align-items:center;gap:7px;padding:0 12px;height:var(--hdr-h)}
+
+/* Logo — star icon only */
+.logo-icon{font-size:22px;flex-shrink:0;line-height:1;cursor:default;user-select:none}
+
+/* Kid picker button */
+.kid-picker-btn{flex:1;min-width:0;display:flex;align-items:center;gap:7px;
+  background:var(--navy3);border:1.5px solid var(--border);border-radius:22px;
+  padding:6px 12px 6px 10px;cursor:pointer;transition:all .18s;overflow:hidden;}
+.kid-picker-btn.active{background:rgba(79,195,247,0.11);border-color:var(--blue)}
+.kpb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kpb-name{flex:1;min-width:0;font-family:var(--font);font-size:14px;font-weight:800;
+  color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kid-picker-btn.active .kpb-name{color:var(--blue)}
+.kpb-chevron{font-size:10px;color:var(--muted);flex-shrink:0;transition:transform .2s;line-height:1}
+.kid-picker-btn.open .kpb-chevron{transform:rotate(180deg)}
+
+/* Theme dot inside kid rows */
+.theme-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.18);
+  cursor:pointer;flex-shrink:0;transition:transform .15s;}
+.theme-dot:active{transform:scale(1.25)}
+
+/* Right side icons */
 .hdr-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.sync-pill{display:flex;align-items:center;gap:4px;background:var(--navy3);border:1px solid var(--border);
-  border-radius:8px;padding:4px 7px;font-size:9px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0;transition:all .3s;}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s}
-.sync-pill.synced{color:var(--green);border-color:rgba(105,240,174,0.3)}
-.sync-pill.synced .sync-dot{background:var(--green);box-shadow:0 0 5px var(--green)}
-.sync-pill.syncing{color:var(--yellow);border-color:rgba(255,215,64,0.3);animation:syncPulse 1.2s ease-in-out infinite}
-.sync-pill.syncing .sync-dot{background:var(--yellow)}
-.sync-pill.error{color:var(--red);border-color:rgba(255,107,107,0.3)}
-.sync-pill.error .sync-dot{background:var(--red)}
-.sync-pill.pending{color:var(--orange);border-color:rgba(255,183,77,0.3)}
-.sync-pill.pending .sync-dot{background:var(--orange)}
+
+/* Sync icon — dot + cloud only, no text */
+.sync-icon-btn{width:34px;height:34px;border-radius:10px;background:var(--navy3);
+  border:1px solid var(--border);cursor:default;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:border-color .3s;}
+.si-ring{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:border-color .3s;}
+.si-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);transition:all .3s;}
+.sync-icon-btn.synced{border-color:rgba(105,240,174,0.3)}
+.sync-icon-btn.synced .si-ring{border-color:var(--green)}
+.sync-icon-btn.synced .si-dot{background:var(--green);box-shadow:0 0 5px var(--green)}
+.sync-icon-btn.syncing{border-color:rgba(255,215,64,0.3);animation:syncPulse 1.2s ease-in-out infinite}
+.sync-icon-btn.syncing .si-ring{border-color:var(--yellow)}
+.sync-icon-btn.syncing .si-dot{background:var(--yellow)}
+.sync-icon-btn.error{border-color:rgba(255,107,107,0.3)}
+.sync-icon-btn.error .si-ring{border-color:var(--red)}
+.sync-icon-btn.error .si-dot{background:var(--red)}
+.sync-icon-btn.pending{border-color:rgba(255,183,77,0.3)}
+.sync-icon-btn.pending .si-ring{border-color:var(--orange)}
+.sync-icon-btn.pending .si-dot{background:var(--orange)}
 @keyframes syncPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
 .icon-btn{width:34px;height:34px;border-radius:10px;background:var(--navy3);border:1px solid var(--border);
   cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);flex-shrink:0;}
+
+/* ── KID DROPDOWN OVERLAY ── */
+.kid-dropdown{position:fixed;top:calc(var(--safe-top) + var(--hdr-h) + 6px);left:12px;right:12px;
+  z-index:500;background:var(--navy2);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  display:none;flex-direction:column;animation:dropIn .18s ease;}
+.kid-dropdown.open{display:flex}
+@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.kd-kid-row{display:flex;align-items:center;gap:9px;padding:11px 14px;
+  border-bottom:1px solid rgba(42,56,84,0.6);cursor:pointer;transition:background .12s;}
+.kd-kid-row:last-child{border-bottom:none}
+.kd-kid-row:active{background:rgba(79,195,247,0.06)}
+.kd-kid-row.active-kid{background:rgba(79,195,247,0.07)}
+.kd-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.kd-radio.checked{border-color:var(--blue);background:var(--blue)}
+.kd-radio.checked::after{content:'';width:7px;height:7px;border-radius:50%;background:#0a1a26}
+.kd-name-inp{flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:14px;font-weight:700;}
+.kd-name-inp::placeholder{color:var(--muted);font-weight:400}
+.kd-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.kd-theme-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.18);cursor:pointer;flex-shrink:0;}
+.kd-del{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:2px;line-height:1;}
+.kd-del:active{color:var(--red)}
+.kd-add-row{display:flex;align-items:center;gap:9px;padding:10px 14px;
+  cursor:pointer;color:var(--muted);font-size:13px;font-weight:700;transition:background .12s;
+  border-top:1px solid rgba(42,56,84,0.6);}
+.kd-add-row:active{background:rgba(105,240,174,0.05);color:var(--green)}
+.kd-add-row span:first-child{font-size:16px;width:18px;text-align:center;flex-shrink:0}
 
 /* ── LAYOUT ── */
 .content{position:fixed;top:calc(var(--safe-top) + var(--hdr-h));left:0;right:0;
@@ -373,16 +419,28 @@ body{background:var(--navy);color:var(--text);font-family:var(--font);
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-inner">
-    <div class="logo">&#x1F31F; Chore <b>Quest</b></div>
-    <div class="kid-scroller" id="kidScroller"></div>
-    <button class="btn-add-kid" id="btnAddKid">+ Add</button>
+    <div class="logo-icon">&#x1F31F;</div>
+    <button class="kid-picker-btn" id="kidPickerBtn" onclick="toggleKidDropdown()">
+      <div class="kpb-dot" id="kpbDot"></div>
+      <span class="kpb-name" id="kpbName">Select Kid</span>
+      <span class="kpb-chevron">&#x25BE;</span>
+    </button>
     <div class="hdr-right">
-      <div class="sync-pill" id="syncPill"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Local only</span></div>
+      <button class="icon-btn" id="btnAddSection" title="Add custom section" style="font-size:18px">&#x2795;</button>
+      <div class="sync-icon-btn" id="syncPill" title="Synced">
+        <div class="si-ring">
+          <div class="si-dot" id="syncDot"></div>
+        </div>
+      </div>
       <button class="icon-btn" id="btnDB" title="Cloud Database">&#x2601;</button>
       <button class="icon-btn" id="btnSettings" title="Settings">&#x2699;</button>
     </div>
   </div>
 </div>
+
+<!-- KID DROPDOWN -->
+<div class="kid-dropdown" id="kidDropdown"></div>
+<div id="kdBackdrop" style="display:none;position:fixed;inset:0;z-index:499" onclick="closeKidDropdown()"></div>
 
 <!-- CONTENT -->
 <div class="content" id="mainContent">
@@ -734,8 +792,14 @@ window.addEventListener('offline',()=>{
 function setSyncUI(cls,label){
   const p=document.getElementById('syncPill');
   if(!p)return;
-  p.className='sync-pill'+(cls?' '+cls:'');
-  document.getElementById('syncLabel').textContent=label;
+  // PWA uses icon-btn style, desktop uses pill style — detect by class
+  if(p.classList.contains('sync-pill')){
+    p.className='sync-pill'+(cls?' '+cls:'');
+    const lbl=document.getElementById('syncLabel');if(lbl)lbl.textContent=label;
+  } else {
+    p.className='sync-icon-btn'+(cls?' '+cls:'');
+    p.title=label;
+  }
 }
 function connectFirebase(cfg,hid){
   try{
@@ -1116,24 +1180,71 @@ function renderCharts(k){
   if(mrc){if(mRC)mRC.destroy();mRC=new Chart(mrc.getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mRT,fill:true,backgroundColor:'rgba(179,136,255,0.07)',borderColor:'rgba(179,136,255,0.9)',pointBackgroundColor:'rgba(179,136,255,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
 }
 
-/* ── KID TABS ── */
+/* ── KID PICKER ── */
 function renderTabs(){
-  const ct=document.getElementById('kidScroller')||document.getElementById('kidTabs');if(!ct)return;ct.innerHTML='';
-  S.kids.forEach(k=>{
-    const tab=document.createElement('div');tab.className='kid-tab'+(k.id===S.activeId?' active':'');
-    const inp=document.createElement('input');inp.type='text';inp.value=k.name||'';inp.placeholder='Name\u2026';
+  const k=kid();
+  // Update picker button
+  const btn=document.getElementById('kidPickerBtn');
+  const dot=document.getElementById('kpbDot');
+  const name=document.getElementById('kpbName');
+  if(btn&&k){
+    const t=THEMES[k.theme||'galaxy']||THEMES.galaxy;
+    if(dot){dot.style.background=t.accent;dot.style.boxShadow='0 0 5px '+t.accent;}
+    if(name)name.textContent=k.name||'Kid';
+    btn.className='kid-picker-btn active';
+  } else if(btn){
+    if(dot){dot.style.background='var(--muted)';dot.style.boxShadow='none';}
+    if(name)name.textContent='Select Kid';
+    btn.className='kid-picker-btn';
+  }
+  // Rebuild dropdown content
+  const dd=document.getElementById('kidDropdown');
+  if(!dd)return;
+  dd.innerHTML='';
+  S.kids.forEach(kk=>{
+    const row=document.createElement('div');row.className='kd-kid-row'+(kk.id===S.activeId?' active-kid':'');
+    const radio=document.createElement('div');radio.className='kd-radio'+(kk.id===S.activeId?' checked':'');
+    const kt=THEMES[kk.theme||'galaxy']||THEMES.galaxy;
+    const inp=document.createElement('input');inp.className='kd-name-inp';inp.type='text';
+    inp.value=kk.name||'';inp.placeholder='Kid name\u2026';
+    inp.addEventListener('pointerdown',e=>e.stopPropagation());
     inp.addEventListener('click',e=>e.stopPropagation());
-    inp.addEventListener('input',e=>{k.name=e.target.value;save();renderRight();});
-    const kt=THEMES[k.theme||'galaxy']||THEMES.galaxy;
-    const themeDot=document.createElement('div');themeDot.className='theme-dot';
-    themeDot.style.background=kt.accent;themeDot.title='Change theme';
-    themeDot.addEventListener('click',e=>{e.stopPropagation();S.activeId=k.id;save();renderTabs();openThemePicker();});
-    const del=document.createElement('button');del.textContent='\u2715';del.title='Remove kid';
-    del.addEventListener('click',e=>{e.stopPropagation();removeKid(k.id);});
-    tab.appendChild(inp);tab.appendChild(themeDot);tab.appendChild(del);
-    tab.addEventListener('click',()=>{S.activeId=k.id;save();renderAll();});
-    ct.appendChild(tab);
+    inp.addEventListener('input',e=>{kk.name=e.target.value;save();if(kk.id===S.activeId)renderTabs();});
+    const acts=document.createElement('div');acts.className='kd-actions';
+    const tdot=document.createElement('div');tdot.className='kd-theme-dot';
+    tdot.style.background=kt.accent;tdot.title='Change theme';
+    tdot.addEventListener('click',e=>{
+      e.stopPropagation();S.activeId=kk.id;save();renderAll();closeKidDropdown();
+      setTimeout(openThemePicker,80);
+    });
+    const del=document.createElement('button');del.className='kd-del';del.textContent='\u2715';del.title='Remove';
+    del.addEventListener('click',e=>{e.stopPropagation();closeKidDropdown();setTimeout(()=>removeKid(kk.id),100);});
+    acts.appendChild(tdot);acts.appendChild(del);
+    row.appendChild(radio);row.appendChild(inp);row.appendChild(acts);
+    row.addEventListener('click',()=>{S.activeId=kk.id;save();renderAll();closeKidDropdown();});
+    dd.appendChild(row);
   });
+  const addRow=document.createElement('div');addRow.className='kd-add-row';
+  addRow.innerHTML='<span>\u2795</span><span>Add Kid</span>';
+  addRow.addEventListener('click',()=>{closeKidDropdown();addKid();});
+  dd.appendChild(addRow);
+}
+function toggleKidDropdown(){
+  const dd=document.getElementById('kidDropdown');
+  const bd=document.getElementById('kdBackdrop');
+  const btn=document.getElementById('kidPickerBtn');
+  if(!dd)return;
+  const isOpen=dd.classList.contains('open');
+  if(isOpen){closeKidDropdown();}
+  else{dd.classList.add('open');if(bd)bd.style.display='block';if(btn)btn.classList.add('open');}
+}
+function closeKidDropdown(){
+  const dd=document.getElementById('kidDropdown');
+  const bd=document.getElementById('kdBackdrop');
+  const btn=document.getElementById('kidPickerBtn');
+  if(dd)dd.classList.remove('open');
+  if(bd)bd.style.display='none';
+  if(btn)btn.classList.remove('open');
 }
 function addKid(){const k=mkKid('Kid '+(S.kids.length+1));S.kids.push(k);S.activeId=k.id;save();renderAll();}
 function removeKid(id){
