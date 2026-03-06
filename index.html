@@ -297,6 +297,78 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
   display:grid;grid-template-columns:repeat(8,1fr);gap:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:260px;}
 .emoji-popup button{background:transparent;border:none;font-size:20px;cursor:pointer;padding:3px;border-radius:6px;line-height:1;transition:background .12s;}
 .emoji-popup button:hover{background:var(--navy3)}
+
+/* ══════════════════════════════════════════════
+   KIDS MODE — DESKTOP
+══════════════════════════════════════════════ */
+.km-hdr-badge{display:none;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(105,240,174,0.15),rgba(79,195,247,0.1));
+  border:1px solid rgba(105,240,174,0.35);border-radius:20px;padding:5px 12px;
+  font-size:11px;font-weight:800;color:var(--green);white-space:nowrap;cursor:pointer;}
+.km-hdr-badge .km-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:kmPulse 2s ease-in-out infinite;}
+@keyframes kmPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.km-hdr-badge:hover{filter:brightness(1.15)}
+
+/* PIN overlay */
+.pin-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.82);
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.pin-overlay.open{display:flex}
+.pin-box{background:var(--navy2);border:1px solid var(--border);border-radius:20px;
+  width:min(320px,90vw);padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;
+  animation:mIn .22s ease;}
+.pin-title{font-family:var(--display);font-size:20px;text-align:center;}
+.pin-sub{font-size:12px;color:var(--muted);text-align:center;margin-top:-8px}
+.pin-dots{display:flex;gap:10px;justify-content:center;margin:4px 0}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);transition:all .15s}
+.pin-dot.filled{background:var(--blue);border-color:var(--blue);box-shadow:0 0 8px var(--blue)}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.pin-key{height:52px;border-radius:12px;border:1px solid var(--border);background:var(--navy3);
+  color:var(--text);font-family:var(--display);font-size:20px;cursor:pointer;transition:all .12s;}
+.pin-key:hover{background:rgba(79,195,247,0.08);border-color:var(--blue)}
+.pin-key:active{transform:scale(.95)}
+.pin-key.del-key{font-size:16px;color:var(--muted)}
+.pin-key.action-key{background:linear-gradient(135deg,var(--blue),#0288d1);border-color:transparent;color:#fff;font-size:14px;font-weight:800;}
+.pin-err{font-size:12px;color:var(--red);font-weight:700;min-height:16px;text-align:center}
+.pin-cancel{background:transparent;border:none;color:var(--muted);font-family:var(--font);
+  font-size:12px;cursor:pointer;text-decoration:underline;padding:4px}
+
+/* Kids mode hides all parent controls */
+body.kids-mode .btn-add,
+body.kids-mode .btn-add-kid,
+body.kids-mode #btnAddSection,
+body.kids-mode .ic-btn.del,
+body.kids-mode .drag-handle,
+body.kids-mode .manual-row,
+body.kids-mode .m-hint,
+body.kids-mode #btnClearHist,
+body.kids-mode .sec-tip,
+body.kids-mode .day-row,
+body.kids-mode #btnDB,
+body.kids-mode #btnSetPin,
+body.kids-mode #btnSummary,
+body.kids-mode #btnExport,
+body.kids-mode #btnImport,
+body.kids-mode #btnReset { display:none!important }
+
+body.kids-mode .km-hdr-badge { display:flex!important }
+
+body.kids-mode .c-name,
+body.kids-mode .tok-badge input,
+body.kids-mode .r-name,
+body.kids-mode .cost-badge input,
+body.kids-mode .custom-sec-title { pointer-events:none!important }
+
+body.kids-mode .ic-btn.undo { opacity:.35;pointer-events:none!important }
+body.kids-mode .check-btn { pointer-events:none!important;cursor:default!important }
+body.kids-mode .redeem-btn { opacity:.35;pointer-events:none!important;cursor:default!important }
+body.kids-mode .check-btn { width:32px;height:32px;font-size:14px }
+
+/* Desktop kids mode also hides the kid renaming/deleting in tabs */
+body.kids-mode .kid-tab button { display:none!important }
+body.kids-mode .kid-tab input { pointer-events:none!important }
+body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
+
 </style>
 </head>
 <body>
@@ -308,8 +380,11 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
     <button class="btn-add-kid" id="btnAddKid">+ Add Kid</button>
     <button class="btn-add-kid" id="btnAddSection" style="border-color:rgba(255,183,77,0.5);color:var(--orange)">+ Section</button>
     <div class="hdr-btns">
+      <button class="km-hdr-badge" id="kmHdrBadge" title="Kids Mode — click to unlock" style="display:none"><div class="km-dot"></div>Kids Mode 🔒</button>
       <div class="sync-pill" id="syncPill"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Local only</span></div>
       <button class="hbtn db-btn" id="btnDB">&#x2601; Database</button>
+      <button class="hbtn" id="btnKidsMode">&#x1F512; Kids Mode</button>
+      <button class="hbtn" id="btnSetPin" title="Set a PIN to protect Kids Mode">&#x1F511; Set PIN</button>
       <button class="hbtn" id="btnSummary">&#x1F4CA; Summary</button>
       <button class="hbtn" id="btnExport">&#x2B07; Export</button>
       <button class="hbtn" id="btnImport">&#x2B06; Import</button>
@@ -1094,6 +1169,61 @@ function openEmojiPicker(anchor,sec){
   setTimeout(()=>{document.addEventListener('click',()=>{if(_emojiPopup){_emojiPopup.remove();_emojiPopup=null;}},{once:true});},10);
 }
 
+
+/* ══════════════════════════════════════════════
+   KIDS MODE
+══════════════════════════════════════════════ */
+let kidsMode = localStorage.getItem('cq_kids_mode') === '1';
+
+function applyKidsMode(){
+  if(kidsMode){ document.body.classList.add('kids-mode'); }
+  else { document.body.classList.remove('kids-mode'); }
+  const badge = document.getElementById('kmHdrBadge');
+  if(badge) badge.style.display = kidsMode ? 'flex' : 'none';
+  const btn = document.getElementById('btnKidsMode');
+  if(btn) btn.textContent = kidsMode ? '\uD83D\uDD13 Unlock' : '\uD83D\uDD12 Kids Mode';
+}
+function enterKidsMode(){
+  kidsMode=true; localStorage.setItem('cq_kids_mode','1'); applyKidsMode();
+}
+function exitKidsMode(){
+  kidsMode=false; localStorage.setItem('cq_kids_mode','0'); applyKidsMode();
+}
+
+/* PIN */
+let _pinBuf='',_pinMode='',_pinTemp='';
+function openPinOverlay(mode,subtitle){
+  _pinBuf='';_pinMode=mode;if(mode!=='confirm')_pinTemp='';
+  document.getElementById('pinTitle').textContent=mode==='set'?(S.parentPin?'\uD83D\uDD11 Change PIN':'\uD83D\uDD11 Set Parent PIN'):mode==='confirm'?'\uD83D\uDD11 Confirm New PIN':'\uD83D\uDD12 Parent PIN';
+  document.getElementById('pinSub').textContent=subtitle||(mode==='set'?(S.parentPin?'Enter a new 4-digit PIN (replaces current)':'Choose a 4-digit PIN'):mode==='confirm'?'Enter the same PIN again to confirm':'Enter PIN to unlock');
+  document.getElementById('pinErr').textContent='';
+  updatePinDots();
+  document.getElementById('pinOverlay').classList.add('open');
+}
+function closePinOverlay(){ document.getElementById('pinOverlay').classList.remove('open'); _pinBuf=''; }
+function updatePinDots(){ for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);if(d)d.className='pin-dot'+(i<_pinBuf.length?' filled':'');} }
+function pinKey(k){ if(_pinBuf.length>=4)return; _pinBuf+=k; updatePinDots(); document.getElementById('pinErr').textContent=''; if(_pinBuf.length===4)setTimeout(pinAction,120); }
+function pinDel(){ _pinBuf=_pinBuf.slice(0,-1); updatePinDots(); document.getElementById('pinErr').textContent=''; }
+function pinAction(){
+  if(_pinBuf.length<4){document.getElementById('pinErr').textContent='Enter all 4 digits';return;}
+  const stored=S.parentPin||'';
+  if(_pinMode==='unlock'){
+    if(!stored||_pinBuf===stored){closePinOverlay();exitKidsMode();}
+    else{pinError('Wrong PIN');}
+  } else if(_pinMode==='set'){
+    _pinTemp=_pinBuf;_pinBuf='';updatePinDots();
+    openPinOverlay('confirm','Enter PIN again to confirm');
+  } else if(_pinMode==='confirm'){
+    if(_pinBuf===_pinTemp){S.parentPin=_pinBuf;save();closePinOverlay();alert('PIN set! Kids Mode is now synced across all devices.');}
+    else{pinError('PINs do not match');_pinTemp='';_pinBuf='';updatePinDots();_pinMode='set';document.getElementById('pinTitle').textContent='\uD83D\uDD11 Set Parent PIN';document.getElementById('pinSub').textContent='Choose a 4-digit PIN';}
+  }
+}
+function pinError(msg){
+  document.getElementById('pinErr').textContent=msg;
+  for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);if(d)d.classList.add('error');}
+  setTimeout(()=>{for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);if(d)d.classList.remove('error');}  _pinBuf='';updatePinDots();},600);
+}
+
 /* ── COMMON EVENT LISTENERS ── */
 function setupCommonEvents(){
   const b=document.getElementById('btnAddKid');if(b)b.addEventListener('click',addKid);
@@ -1165,6 +1295,12 @@ function setupCommonEvents(){
   const btnExp=document.getElementById('btnExport');if(btnExp)btnExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
   const btnImp=document.getElementById('btnImport');if(btnImp)btnImp.addEventListener('click',doImport);
   const btnRst=document.getElementById('btnReset');if(btnRst)btnRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();});
+  const btnKM=document.getElementById('btnKidsMode');if(btnKM)btnKM.addEventListener('click',()=>{
+    if(kidsMode){ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} }
+    else{ enterKidsMode(); }
+  });
+  const kmBadge=document.getElementById('kmHdrBadge');if(kmBadge)kmBadge.addEventListener('click',()=>{ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} });
+  const btnSP=document.getElementById('btnSetPin');if(btnSP)btnSP.addEventListener('click',()=>openPinOverlay('set'));
   // Settings (PWA)
   const btnSet=document.getElementById('btnSettings');if(btnSet)btnSet.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.add('open'));
   const btnSetClose=document.getElementById('btnSettingsClose');if(btnSetClose)btnSetClose.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.remove('open'));
@@ -1215,9 +1351,43 @@ if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
 // Migrate old kids without customSections
 S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null};});
+// Migrate PIN from localStorage into S if present
+(()=>{const lp=localStorage.getItem('cq_parent_pin');if(lp&&!S.parentPin){S.parentPin=lp;localStorage.removeItem('cq_parent_pin');save();}})();
 setupCommonEvents();
+applyKidsMode();
 renderAll();
 
 </script>
+
+<!-- PIN OVERLAY -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-title" id="pinTitle">&#x1F511; Enter PIN</div>
+    <div class="pin-sub" id="pinSub">Enter your parent PIN</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del-key" onclick="pinDel()">&#x232B;</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key action-key" onclick="pinAction()">OK</button>
+    </div>
+    <button class="pin-cancel" onclick="closePinOverlay()">Cancel</button>
+  </div>
+</div>
+
 </body>
 </html>
