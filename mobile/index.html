@@ -545,6 +545,17 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 /* Sheet handle visible on mobile */
 .sheet-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
 
+/* ── SETTINGS ROWS ── */
+.setting-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.setting-row:last-child{border-bottom:none}
+.setting-row:active{background:rgba(79,195,247,0.04)}
+.setting-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.setting-info{flex:1}
+.setting-label{font-size:14px;font-weight:700}
+.setting-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.setting-row.danger .setting-label{color:var(--red)}
+.km-status-badge{display:inline-block;font-size:9px;font-weight:800;padding:2px 6px;border-radius:20px;margin-left:6px;background:rgba(105,240,174,0.12);color:var(--green);border:1px solid rgba(105,240,174,0.3);vertical-align:middle;letter-spacing:.3px;text-transform:uppercase}
+
 /* Install banner */
 .install-banner{position:fixed;bottom:calc(var(--safe-bot) + var(--tab-h) + 8px);left:11px;right:11px;
   background:var(--navy2);border:1px solid rgba(79,195,247,0.3);border-radius:12px;
@@ -793,6 +804,36 @@ body.kids-mode .km-badge { display:flex!important }
   <div class="sheet"><div class="sheet-handle"></div>
     <div class="sheet-hdr"><div class="sheet-title">&#x1F3A8; Theme</div><button class="sheet-close" id="btnThemeClose">&#x2715;</button></div>
     <div class="sheet-body"><p style="font-size:12px;color:var(--muted);margin-bottom:12px" id="themeKidName"></p><div class="theme-grid" id="themeGrid"></div></div>
+  </div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-title" id="pinTitle">&#x1F512; Parent PIN</div>
+    <div class="pin-sub" id="pinSub">Enter PIN to unlock</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del-key" onclick="pinDel()">&#x232B;</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key action-key" onclick="pinAction()">OK</button>
+    </div>
+    <button class="pin-cancel" onclick="closePinOverlay()">Cancel</button>
   </div>
 </div>
 
