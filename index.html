@@ -346,6 +346,8 @@ body.kids-mode .sec-tip,
 body.kids-mode .day-row,
 body.kids-mode #btnDB,
 body.kids-mode #btnSetPin,
+body.kids-mode #btnTemplates,
+body.kids-mode .btn-save-tpl,
 body.kids-mode #btnSummary,
 body.kids-mode #btnExport,
 body.kids-mode #btnImport,
@@ -368,6 +370,83 @@ body.kids-mode .check-btn { width:32px;height:32px;font-size:14px }
 body.kids-mode .kid-tab button { display:none!important }
 body.kids-mode .kid-tab input { pointer-events:none!important }
 body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
+
+
+/* ══════════════════════════════════════════════
+   ACHIEVEMENTS / BADGES
+══════════════════════════════════════════════ */
+.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}
+.badge-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;
+  border-radius:12px;border:1px solid var(--border);background:var(--navy3);
+  text-align:center;cursor:default;transition:transform .15s;}
+.badge-card.earned{border-color:rgba(255,215,64,0.4);background:linear-gradient(135deg,rgba(255,215,64,0.07),rgba(255,183,77,0.04));}
+.badge-card.earned:hover{transform:translateY(-2px)}
+.badge-emoji{font-size:26px;line-height:1;filter:grayscale(1);opacity:.3;transition:all .3s}
+.badge-card.earned .badge-emoji{filter:none;opacity:1}
+.badge-name{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.3px;line-height:1.3;text-transform:uppercase}
+.badge-card.earned .badge-name{color:var(--yellow)}
+.badge-date{font-size:8px;color:var(--muted);margin-top:1px}
+
+/* Badge unlock toast */
+.badge-toast{position:fixed;bottom:calc(var(--safe-bot) + var(--tab-h,0px) + 72px);left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:linear-gradient(135deg,var(--navy2),var(--navy3));
+  border:1px solid rgba(255,215,64,0.5);border-radius:16px;
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(255,215,64,0.2);
+  z-index:4000;opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+.badge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.bt-emoji{font-size:28px;line-height:1;animation:badgePop .5s ease}
+@keyframes badgePop{0%{transform:scale(0.5)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.bt-text{display:flex;flex-direction:column;gap:1px}
+.bt-title{font-size:10px;font-weight:800;color:var(--yellow);letter-spacing:.5px;text-transform:uppercase}
+.bt-name{font-size:14px;font-weight:800;color:var(--text);font-family:var(--display)}
+
+/* ══════════════════════════════════════════════
+   CHORE TEMPLATES
+══════════════════════════════════════════════ */
+.tpl-grid{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+.tpl-card{background:var(--navy3);border:1px solid var(--border);border-radius:13px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.tpl-card:hover{border-color:var(--blue)}
+.tpl-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px 10px}
+.tpl-emoji{font-size:24px;flex-shrink:0;line-height:1}
+.tpl-info{flex:1;min-width:0}
+.tpl-name{font-family:var(--display);font-size:15px;line-height:1.2}
+.tpl-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.tpl-count{font-size:10px;font-weight:800;color:var(--muted);flex-shrink:0}
+.tpl-chores{padding:0 14px 12px;display:flex;flex-direction:column;gap:4px}
+.tpl-chore-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.tpl-chore-row span:first-child{font-size:13px}
+.tpl-chore-name{flex:1}
+.tpl-chore-tok{font-weight:800;color:var(--yellow);font-size:11px}
+.tpl-footer{display:flex;gap:8px;padding:0 14px 12px}
+.tpl-add-btn{flex:1;background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff;
+  border:none;border-radius:9px;padding:9px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;}
+.tpl-add-btn:hover{filter:brightness(1.08)}
+.tpl-add-btn.bonus{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#1a1000}
+
+
+/* ── CUSTOM TEMPLATE CARDS ── */
+.tpl-card.custom-tpl{border-color:rgba(105,240,174,0.3);background:linear-gradient(135deg,rgba(105,240,174,0.04),var(--navy3));}
+.tpl-card.custom-tpl .tpl-name{color:var(--green)}
+.tpl-del-btn{background:transparent;border:none;cursor:pointer;color:var(--muted);
+  font-size:14px;padding:2px 4px;line-height:1;flex-shrink:0;transition:color .15s;}
+.tpl-del-btn:hover{color:var(--red)}
+.btn-save-tpl{background:transparent;border:1.5px solid rgba(105,240,174,0.35);color:var(--green);
+  font-family:var(--font);font-size:11px;font-weight:700;padding:4px 9px;border-radius:7px;
+  cursor:pointer;white-space:nowrap;}
+.btn-save-tpl:hover{border-color:var(--green);background:rgba(105,240,174,0.07)}
+.tpl-name-modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;
+  width:min(340px,92vw);padding:26px 22px;display:flex;flex-direction:column;gap:14px;animation:mIn .22s ease;}
+.tpl-name-modal h3{font-family:var(--display);font-size:18px;text-align:center}
+.tpl-name-modal p{font-size:11px;color:var(--muted);text-align:center;margin-top:-6px}
+.tpl-name-inp{width:100%;background:var(--navy3);border:1.5px solid var(--border);color:var(--text);
+  font-family:var(--font);font-size:14px;font-weight:700;border-radius:10px;padding:10px 12px;outline:none;}
+.tpl-name-inp:focus{border-color:var(--green)}
+.tpl-name-actions{display:flex;gap:8px}
+.tpl-name-actions button{flex:1;padding:10px;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;border:none;}
+.tpl-save-confirm{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#0a2a1a;}
+.tpl-save-cancel{background:var(--navy3);border:1px solid var(--border)!important;color:var(--muted);}
 
 </style>
 </head>
@@ -412,7 +491,7 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
       <div class="section" id="secDaily">
         <div class="sec-hdr" onclick="toggleSection('secDaily')">
           <div class="sec-title"><div class="dot" style="background:var(--blue);box-shadow:0 0 7px var(--blue)"></div>&#x2600;&#xFE0F; Daily Tasks</div>
-          <div class="sec-hdr-acts"><button class="btn-add" id="btnAddDaily" onclick="event.stopPropagation()">+ Add</button></div>
+          <button class="btn-save-tpl" onclick="event.stopPropagation();openSaveTemplateModal('daily')" title="Save daily as template">&#x1F4BE; Save</button><div class="sec-hdr-acts"><button class="btn-add" id="btnTemplates" onclick="event.stopPropagation();openTemplates()" style="border-color:rgba(79,195,247,0.4);color:var(--blue)">&#x1F4CB; Templates</button><button class="btn-add" id="btnAddDaily" onclick="event.stopPropagation()">+ Add</button></div>
         </div>
         <div class="sec-body" id="listDaily"></div>
         <div class="sec-tip">Tap day buttons to set schedule. Greyed = not today.</div>
@@ -421,7 +500,7 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
       <div class="section" id="secBonus">
         <div class="sec-hdr" onclick="toggleSection('secBonus')">
           <div class="sec-title"><div class="dot" style="background:var(--yellow);box-shadow:0 0 7px var(--yellow)"></div>&#x26A1; Bonus Chores</div>
-          <div class="sec-hdr-acts"><button class="btn-add" id="btnAddBonus" onclick="event.stopPropagation()">+ Add</button></div>
+          <div class="sec-hdr-acts"><button class="btn-save-tpl" onclick="event.stopPropagation();openSaveTemplateModal('bonus')" title="Save bonus as template">&#x1F4BE; Save</button><button class="btn-add" id="btnAddBonus" onclick="event.stopPropagation()">+ Add</button></div>
         </div>
         <div class="sec-body" id="listBonus"></div>
       </div>
@@ -475,7 +554,13 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
           <div class="m-hint">Manual adjustments are logged in history.</div>
         </div>
       </div>
-      <div class="section" id="secHistory">
+      <div class="section" id="secBadges">
+        <div class="sec-hdr" onclick="toggleSection('secBadges')">
+          <div class="sec-title">&#x1F3C5; Achievements</div>
+        </div>
+        <div id="badgesGrid" class="badges-grid"></div>
+      </div>
+<div class="section" id="secHistory">
         <div class="sec-hdr" onclick="toggleSection('secHistory')">
           <div class="sec-title">&#x1F4DC; History</div>
           <button class="clear-btn" id="btnClearHist" onclick="event.stopPropagation()">Clear</button>
@@ -954,7 +1039,9 @@ function renderCustomSections(k){
       e.stopPropagation();if(!confirm('Delete section "'+(sec.title||'Custom')+'"?'))return;
       k.customSections=k.customSections.filter(s=>s.id!==sec.id);save();renderAll();
     });
-    acts.appendChild(addB);acts.appendChild(delB);
+    const saveB=document.createElement('button');saveB.className='btn-save-tpl';saveB.title='Save as template';saveB.textContent='\uD83D\uDCBE';
+    saveB.addEventListener('click',e=>{e.stopPropagation();openSaveTemplateModal(sec.id);});
+    acts.appendChild(saveB);acts.appendChild(addB);acts.appendChild(delB);
     hdr.appendChild(titleWrap);hdr.appendChild(acts);
     const body=document.createElement('div');body.className='sec-body';body.id='listCustom_'+sec.id;
     makeBodyDropZone(body,k,'custom',sec.id);
@@ -1080,7 +1167,7 @@ function renderAll(){
   const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
-  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();}
+  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);}
 }
 
 /* ── TOGGLE SECTION ── */
@@ -1224,6 +1311,287 @@ function pinError(msg){
   setTimeout(()=>{for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);if(d)d.classList.remove('error');}  _pinBuf='';updatePinDots();},600);
 }
 
+
+/* ══════════════════════════════════════════════
+   ACHIEVEMENTS / BADGES ENGINE
+══════════════════════════════════════════════ */
+const BADGES=[
+  {id:'first_chore',  emoji:'🌟', name:'First Steps',      desc:'Complete your first chore'},
+  {id:'chore_10',     emoji:'🏃', name:'Getting Going',    desc:'Complete 10 chores total'},
+  {id:'chore_50',     emoji:'🏆', name:'Chore Champion',   desc:'Complete 50 chores'},
+  {id:'chore_100',    emoji:'🚀', name:'Chore Legend',     desc:'Complete 100 chores'},
+  {id:'streak_3',     emoji:'🔥', name:'On Fire',          desc:'Reach a 3-day streak'},
+  {id:'streak_7',     emoji:'⚡', name:'Week Warrior',     desc:'7-day streak'},
+  {id:'streak_14',    emoji:'💫', name:'Fortnight Force',  desc:'14-day streak'},
+  {id:'streak_30',    emoji:'👑', name:'Unstoppable',      desc:'30-day streak'},
+  {id:'tokens_50',    emoji:'💰', name:'Token Collector',  desc:'Earn 50 tokens'},
+  {id:'tokens_250',   emoji:'💎', name:'Token Hoarder',    desc:'Earn 250 tokens'},
+  {id:'tokens_1000',  emoji:'🏦', name:'Token Millionaire',desc:'Earn 1000 tokens'},
+  {id:'first_redeem', emoji:'🎁', name:'Treat Time',       desc:'Redeem your first reward'},
+  {id:'perfect_day',  emoji:'✨', name:'Perfect Day',      desc:'Complete every scheduled chore in a day'},
+  {id:'goal_set',     emoji:'🎯', name:'Goal Getter',      desc:'Set a savings goal'},
+];
+
+function badgeTotalCompletions(k){
+  let c=0;
+  const proc=arr=>(arr||[]).forEach(ch=>{c+=(ch.completions||[]).length;});
+  proc(k.daily);proc(k.bonus);(k.customSections||[]).forEach(s=>proc(s.chores));
+  return c;
+}
+function badgeTotalEarned(k){
+  return (k.tokens||[]).filter(e=>Number(e.amount||0)>0).reduce((s,e)=>s+Number(e.amount),0);
+}
+function badgeHasPerfectDay(k){
+  // Check if any day had 100% completion of scheduled chores
+  const days=new Set();
+  const proc=arr=>(arr||[]).forEach(ch=>(ch.completions||[]).forEach(d=>days.add(d)));
+  proc(k.daily);proc(k.bonus);(k.customSections||[]).forEach(s=>proc(s.chores));
+  for(const day of days){
+    const dow=new Date(day+'T12:00').getDay();
+    let total=0,done=0;
+    const check=arr=>(arr||[]).forEach(ch=>{if((ch.days||[]).includes(dow)){total++;if((ch.completions||[]).includes(day))done++;}});
+    check(k.daily);check(k.bonus);(k.customSections||[]).forEach(s=>check(s.chores));
+    if(total>0&&done===total)return true;
+  }
+  return false;
+}
+function badgeCheck(badge,k){
+  const c=badgeTotalCompletions(k),e=badgeTotalEarned(k),best=k.bestStreak||0;
+  switch(badge.id){
+    case 'first_chore':  return c>=1;
+    case 'chore_10':     return c>=10;
+    case 'chore_50':     return c>=50;
+    case 'chore_100':    return c>=100;
+    case 'streak_3':     return best>=3;
+    case 'streak_7':     return best>=7;
+    case 'streak_14':    return best>=14;
+    case 'streak_30':    return best>=30;
+    case 'tokens_50':    return e>=50;
+    case 'tokens_250':   return e>=250;
+    case 'tokens_1000':  return e>=1000;
+    case 'first_redeem': return (k.tokens||[]).some(ev=>(ev.note||'').startsWith('\uD83C\uDF81'));
+    case 'perfect_day':  return badgeHasPerfectDay(k);
+    case 'goal_set':     return !!(k.goal&&(k.goal.name||k.goal.rewardId));
+    default: return false;
+  }
+}
+
+let _badgeToastTimer=null;
+function showBadgeToast(badge){
+  let toast=document.getElementById('badgeToast');
+  if(!toast){toast=document.createElement('div');toast.id='badgeToast';toast.className='badge-toast';document.body.appendChild(toast);}
+  toast.innerHTML=`<div class="bt-emoji">${badge.emoji}</div><div class="bt-text"><div class="bt-title">🏅 Badge Unlocked!</div><div class="bt-name">${badge.name}</div></div>`;
+  toast.classList.add('show');
+  clearTimeout(_badgeToastTimer);
+  _badgeToastTimer=setTimeout(()=>toast.classList.remove('show'),3200);
+}
+
+function checkAchievements(k){
+  if(!k)return;
+  if(!k.badges)k.badges=[];
+  const earned=new Set(k.badges.map(b=>b.id));
+  let newlyEarned=[];
+  BADGES.forEach(badge=>{
+    if(!earned.has(badge.id)&&badgeCheck(badge,k)){
+      k.badges.push({id:badge.id,earnedAt:Date.now()});
+      newlyEarned.push(badge);
+    }
+  });
+  if(newlyEarned.length>0){
+    save();
+    // Show toasts sequentially
+    let delay=0;
+    newlyEarned.forEach(b=>{setTimeout(()=>showBadgeToast(b),delay);delay+=1000;});
+  }
+}
+
+function renderBadges(k){
+  const ct=document.getElementById('badgesGrid');if(!ct)return;
+  ct.innerHTML='';
+  const earned=new Set((k?.badges||[]).map(b=>b.id));
+  const earnedMap=Object.fromEntries((k?.badges||[]).map(b=>[b.id,b.earnedAt]));
+  BADGES.forEach(badge=>{
+    const isEarned=earned.has(badge.id);
+    const card=document.createElement('div');card.className='badge-card'+(isEarned?' earned':'');
+    card.title=badge.desc+(isEarned?'\nEarned '+new Date(earnedMap[badge.id]).toLocaleDateString():'');
+    const em=document.createElement('div');em.className='badge-emoji';em.textContent=badge.emoji;
+    const nm=document.createElement('div');nm.className='badge-name';nm.textContent=badge.name;
+    card.appendChild(em);card.appendChild(nm);
+    if(isEarned){const dt=document.createElement('div');dt.className='badge-date';dt.textContent=new Date(earnedMap[badge.id]).toLocaleDateString(undefined,{month:'short',day:'numeric'});card.appendChild(dt);}
+    ct.appendChild(card);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   CHORE TEMPLATES
+══════════════════════════════════════════════ */
+const CHORE_TEMPLATES=[
+  {id:'morning',emoji:'☀️',name:'Morning Routine',desc:'Start every day right',chores:[
+    {title:'Make bed',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Brush teeth',tokens:1,days:[0,1,2,3,4,5,6]},
+    {title:'Get dressed',tokens:1,days:[0,1,2,3,4,5,6]},
+    {title:'Eat breakfast',tokens:1,days:[0,1,2,3,4,5,6]},
+    {title:'Pack school bag',tokens:2,days:[1,2,3,4,5]},
+  ]},
+  {id:'bedroom',emoji:'🛏️',name:'Bedroom Tidy',desc:'Keep your space clean',chores:[
+    {title:'Make bed',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Put clothes away',tokens:3,days:[1,3,5]},
+    {title:'Tidy desk',tokens:2,days:[1,4]},
+    {title:'Vacuum bedroom',tokens:5,days:[6]},
+  ]},
+  {id:'kitchen',emoji:'🍽️',name:'Kitchen Helper',desc:'Pitch in at mealtimes',chores:[
+    {title:'Set the table',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Clear the table',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Load dishwasher',tokens:3,days:[0,1,2,3,4,5,6]},
+    {title:'Wipe down counters',tokens:3,days:[1,3,5,0]},
+  ]},
+  {id:'weekend',emoji:'🏡',name:'Weekend Chores',desc:'Bigger tasks for the weekend',chores:[
+    {title:'Vacuum living room',tokens:5,days:[6]},
+    {title:'Mop kitchen floor',tokens:5,days:[6]},
+    {title:'Clean bathroom sink',tokens:4,days:[0,6]},
+    {title:'Take out trash',tokens:4,days:[0]},
+    {title:'Wipe mirrors',tokens:3,days:[6]},
+  ]},
+  {id:'school',emoji:'📚',name:'School Day',desc:'Homework & study habits',chores:[
+    {title:'Do homework',tokens:5,days:[1,2,3,4,5]},
+    {title:'Read for 20 min',tokens:3,days:[1,2,3,4,5]},
+    {title:'Tidy backpack',tokens:2,days:[1,2,3,4,5]},
+    {title:'Lay out tomorrow\'s clothes',tokens:2,days:[1,2,3,4,5]},
+  ]},
+  {id:'pets',emoji:'🐾',name:'Pet Care',desc:'Look after your furry friends',chores:[
+    {title:'Feed pet',tokens:3,days:[0,1,2,3,4,5,6]},
+    {title:'Fresh water for pet',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Walk the dog',tokens:5,days:[0,1,2,3,4,5,6]},
+    {title:'Clean pet area',tokens:4,days:[0,3,6]},
+  ]},
+  {id:'garden',emoji:'🌿',name:'Garden & Outdoors',desc:'Keep the yard looking great',chores:[
+    {title:'Water plants',tokens:3,days:[1,3,5]},
+    {title:'Pull weeds',tokens:5,days:[6]},
+    {title:'Sweep porch',tokens:4,days:[0,6]},
+    {title:'Rake leaves',tokens:5,days:[6]},
+  ]},
+  {id:'evening',emoji:'🌙',name:'Evening Wind-Down',desc:'End the day clean & calm',chores:[
+    {title:'Brush teeth',tokens:1,days:[0,1,2,3,4,5,6]},
+    {title:'Put dirty clothes in hamper',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Tidy bedroom',tokens:2,days:[0,1,2,3,4,5,6]},
+    {title:'Charge devices',tokens:1,days:[0,1,2,3,4,5,6]},
+    {title:'Lights off by bedtime',tokens:2,days:[0,1,2,3,4,5,6]},
+  ]},
+];
+
+const DAY_SHORT=['Su','Mo','Tu','We','Th','Fr','Sa'];
+function daysLabel(days){
+  if(!days||days.length===7)return'Every day';
+  if(JSON.stringify(days)===JSON.stringify([1,2,3,4,5]))return'Weekdays';
+  if(JSON.stringify(days)===JSON.stringify([0,6]))return'Weekends';
+  return days.map(d=>DAY_SHORT[d]).join(' ');
+}
+
+function openTemplates(){
+  const ov=document.getElementById('templatesOverlay');if(ov)ov.classList.add('open');
+  renderTemplates();
+}
+function renderTemplates(){
+  const ct=document.getElementById('tplGrid');if(!ct)return;
+  ct.innerHTML='';
+  const k=kid();
+  const customTpls=S.customTemplates||[];
+  if(customTpls.length){
+    const sec=document.createElement('div');sec.innerHTML='<div style="font-size:10px;font-weight:800;color:var(--green);letter-spacing:.5px;text-transform:uppercase;padding:2px 0 8px">My Saved Templates</div>';ct.appendChild(sec);
+    customTpls.forEach(tpl=>{
+      const card=document.createElement('div');card.className='tpl-card custom-tpl';
+      const hdr=document.createElement('div');hdr.className='tpl-hdr';
+      hdr.innerHTML='<div class="tpl-emoji">'+tpl.emoji+'</div><div class="tpl-info"><div class="tpl-name">'+tpl.name+'</div><div class="tpl-desc">'+tpl.chores.length+' chores</div></div>';
+      const delBtn=document.createElement('button');delBtn.className='tpl-del-btn';delBtn.title='Delete template';delBtn.textContent='\uD83D\uDDD1';
+      delBtn.addEventListener('click',e=>{e.stopPropagation();deleteCustomTemplate(tpl.id);});
+      hdr.appendChild(delBtn);
+      const chorelist=document.createElement('div');chorelist.className='tpl-chores';
+      tpl.chores.slice(0,4).forEach(c=>{const row=document.createElement('div');row.className='tpl-chore-row';row.innerHTML='<span>\u2713</span><span class="tpl-chore-name">'+c.title+'</span><span class="tpl-chore-tok">'+c.tokens+'\u2605</span><span style="font-size:9px;color:var(--muted);flex-shrink:0">'+daysLabel(c.days)+'</span>';chorelist.appendChild(row);});
+      if(tpl.chores.length>4){const more=document.createElement('div');more.className='tpl-chore-row';more.style.justifyContent='center';more.innerHTML='<span style="font-size:10px;color:var(--muted)">+'+( tpl.chores.length-4)+' more\u2026</span>';chorelist.appendChild(more);}
+      const footer=document.createElement('div');footer.className='tpl-footer';
+      const addDaily=document.createElement('button');addDaily.className='tpl-add-btn';addDaily.textContent='+ Add to Daily';
+      addDaily.addEventListener('click',e=>{e.stopPropagation();if(!k)return;tpl.chores.forEach(c=>{const ch=mkChore(c.days);ch.title=c.title;ch.tokens=c.tokens;k.daily.push(ch);});save();renderAll();addDaily.textContent='\u2713 Added!';setTimeout(()=>addDaily.textContent='+ Add to Daily',1500);});
+      const addBonus=document.createElement('button');addBonus.className='tpl-add-btn bonus';addBonus.textContent='+ Bonus';
+      addBonus.addEventListener('click',e=>{e.stopPropagation();if(!k)return;tpl.chores.forEach(c=>{const ch=mkChore(c.days);ch.title=c.title;ch.tokens=c.tokens;k.bonus.push(ch);});save();renderAll();addBonus.textContent='\u2713 Added!';setTimeout(()=>addBonus.textContent='+ Bonus',1500);});
+      footer.appendChild(addDaily);footer.appendChild(addBonus);
+      card.appendChild(hdr);card.appendChild(chorelist);card.appendChild(footer);ct.appendChild(card);
+    });
+    const divider=document.createElement('div');divider.style.cssText='height:1px;background:var(--border);margin:8px 0 12px';ct.appendChild(divider);
+    const builtinLabel=document.createElement('div');builtinLabel.innerHTML='<div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;padding:2px 0 8px">Built-in Templates</div>';ct.appendChild(builtinLabel);
+  }
+  CHORE_TEMPLATES.forEach(tpl=>{
+    const card=document.createElement('div');card.className='tpl-card';
+    const hdr=document.createElement('div');hdr.className='tpl-hdr';
+    hdr.innerHTML=`<div class="tpl-emoji">${tpl.emoji}</div><div class="tpl-info"><div class="tpl-name">${tpl.name}</div><div class="tpl-desc">${tpl.desc}</div></div><div class="tpl-count">${tpl.chores.length} chores</div>`;
+    const chorelist=document.createElement('div');chorelist.className='tpl-chores';
+    tpl.chores.slice(0,4).forEach(c=>{
+      const row=document.createElement('div');row.className='tpl-chore-row';
+      row.innerHTML=`<span>✓</span><span class="tpl-chore-name">${c.title}</span><span class="tpl-chore-tok">${c.tokens}★</span><span style="font-size:9px;color:var(--muted);flex-shrink:0">${daysLabel(c.days)}</span>`;
+      chorelist.appendChild(row);
+    });
+    if(tpl.chores.length>4){const more=document.createElement('div');more.className='tpl-chore-row';more.style.justifyContent='center';more.style.paddingTop='2px';more.innerHTML=`<span style="font-size:10px;color:var(--muted)">+${tpl.chores.length-4} more…</span>`;chorelist.appendChild(more);}
+    const footer=document.createElement('div');footer.className='tpl-footer';
+    const addDaily=document.createElement('button');addDaily.className='tpl-add-btn';addDaily.textContent='+ Add to Daily';
+    addDaily.addEventListener('click',e=>{
+      e.stopPropagation();if(!k)return;
+      tpl.chores.forEach(c=>{const ch=mkChore(c.days);ch.title=c.title;ch.tokens=c.tokens;k.daily.push(ch);});
+      save();renderAll();
+      addDaily.textContent='✓ Added!';setTimeout(()=>addDaily.textContent='+ Add to Daily',1500);
+    });
+    const addBonus=document.createElement('button');addBonus.className='tpl-add-btn bonus';addBonus.textContent='+ Bonus';
+    addBonus.addEventListener('click',e=>{
+      e.stopPropagation();if(!k)return;
+      tpl.chores.forEach(c=>{const ch=mkChore(c.days);ch.title=c.title;ch.tokens=c.tokens;k.bonus.push(ch);});
+      save();renderAll();
+      addBonus.textContent='✓ Added!';setTimeout(()=>addBonus.textContent='+ Bonus',1500);
+    });
+    footer.appendChild(addDaily);footer.appendChild(addBonus);
+    card.appendChild(hdr);card.appendChild(chorelist);card.appendChild(footer);
+    ct.appendChild(card);
+  });
+}
+
+
+/* ══════════════════════════════════════════════
+   CUSTOM TEMPLATES
+══════════════════════════════════════════════ */
+function mkCustomTemplate(name,emoji,chores){
+  return {id:uid(),name:name,emoji:emoji||'\uD83D\uDCDD',desc:'My saved template',
+    chores:chores.map(c=>({title:c.title||'',tokens:Number(c.tokens||1),days:[...(c.days||[0,1,2,3,4,5,6])]}))};
+}
+
+function openSaveTemplateModal(grp){
+  const k=kid();if(!k)return;
+  let chores=[],srcLabel='';
+  if(grp==='daily'){chores=k.daily||[];srcLabel='Daily Tasks';}
+  else if(grp==='bonus'){chores=k.bonus||[];srcLabel='Bonus Chores';}
+  else{const sec=(k.customSections||[]).find(s=>s.id===grp);chores=sec?sec.chores:[];srcLabel=sec?sec.title:'Section';}
+  const filled=chores.filter(c=>c.title&&c.title.trim());
+  if(!filled.length){alert('Add some named chores first before saving as a template.');return;}
+  let ov=document.getElementById('tplNameOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='tplNameOverlay';ov.className='overlay';ov.style.zIndex='4500';document.body.appendChild(ov);}
+  const suggestedName=(k.name?k.name+"'s ":'')+srcLabel;
+  ov.innerHTML='<div class="tpl-name-modal"><h3>\uD83D\uDCBE Save Template</h3><p>Saving '+filled.length+' chores from <strong>'+srcLabel+'</strong></p><input class="tpl-name-inp" id="tplNameInp" type="text" placeholder="Template name\u2026" value="'+suggestedName+'" maxlength="40"/><div class="tpl-name-actions"><button class="tpl-save-cancel" id="tplNameCancel">Cancel</button><button class="tpl-save-confirm" id="tplNameConfirm">\uD83D\uDCBE Save</button></div></div>';
+  ov.classList.add('open');
+  const inp=document.getElementById('tplNameInp');
+  inp.focus();inp.select();
+  document.getElementById('tplNameCancel').addEventListener('click',()=>ov.classList.remove('open'));
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});
+  document.getElementById('tplNameConfirm').addEventListener('click',()=>{
+    const name=inp.value.trim();if(!name){inp.focus();return;}
+    if(!S.customTemplates)S.customTemplates=[];
+    S.customTemplates.unshift(mkCustomTemplate(name,'\uD83D\uDCDD',filled));
+    save();ov.classList.remove('open');openTemplates();
+  });
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('tplNameConfirm').click();});
+}
+
+function deleteCustomTemplate(id){
+  if(!confirm('Delete this template?'))return;
+  S.customTemplates=(S.customTemplates||[]).filter(t=>t.id!==id);
+  save();renderTemplates();
+}
+
 /* ── COMMON EVENT LISTENERS ── */
 function setupCommonEvents(){
   const b=document.getElementById('btnAddKid');if(b)b.addEventListener('click',addKid);
@@ -1308,6 +1676,11 @@ function setupCommonEvents(){
   const setExp=document.getElementById('setExport');if(setExp)setExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');});
+  // Templates
+  const btnTplClose=document.getElementById('btnTplClose');
+  if(btnTplClose)btnTplClose.addEventListener('click',()=>document.getElementById('templatesOverlay').classList.remove('open'));
+  const tplOv=document.getElementById('templatesOverlay');
+  if(tplOv)tplOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   const setDB=document.getElementById('setDB');if(setDB)setDB.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openDBModal();});
 }
 
@@ -1349,8 +1722,9 @@ document.addEventListener('keydown',e=>{
 /* ── BOOT ── */
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
+if(!S.customTemplates)S.customTemplates=[];
 // Migrate old kids without customSections
-S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null};});
+S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null};if(!k.badges)k.badges=[];});
 // Migrate PIN from localStorage into S if present
 (()=>{const lp=localStorage.getItem('cq_parent_pin');if(lp&&!S.parentPin){S.parentPin=lp;localStorage.removeItem('cq_parent_pin');save();}})();
 setupCommonEvents();
@@ -1387,6 +1761,22 @@ renderAll();
     </div>
     <button class="pin-cancel" onclick="closePinOverlay()">Cancel</button>
   </div>
+</div>
+
+
+<!-- TEMPLATES OVERLAY -->
+<div class="overlay" id="templatesOverlay">
+  <div class="modal" style="max-width:520px">
+    <div class="m-hdr">
+      <div class="m-title">&#x1F4CB; Chore Templates</div>
+      <button class="m-close" id="btnTplClose" onclick="document.getElementById('templatesOverlay').classList.remove('open')">&#x2715;</button>
+    </div>
+    <div class="m-body" style="padding:12px 14px 18px;max-height:76vh;overflow-y:auto">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Choose a pack to fill your chore list. You can edit everything after adding.</p>
+      <div class="tpl-grid" id="tplGrid"></div>
+    </div>
+  </div>
+</div>
 </div>
 
 </body>
