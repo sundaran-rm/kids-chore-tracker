@@ -26,19 +26,20 @@
   --yellow:#ffd740;--purple:#b388ff;--orange:#ffb74d;--red:#ff6b6b;
   --text:#e8edf8;--muted:#6b7fa3;
   --font:'Nunito',sans-serif;--display:'Fredoka One',cursive;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+  --hdr-h:56px;--tab-h:62px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%;background:var(--navy);color:var(--text);font-family:var(--font)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{background:var(--navy);color:var(--text);font-family:var(--font)}
 body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247,0.05) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(179,136,255,0.06) 0%,transparent 60%);}
-.app{max-width:1300px;margin:0 auto;padding:16px 16px 48px}
 
-/* ── HEADER ── */
-.hdr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 18px;margin-bottom:20px;
-  background:var(--navy2);border:1px solid var(--border);border-radius:16px;position:relative;overflow:hidden;}
-.hdr::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(79,195,247,0.04),transparent 50%);pointer-events:none}
-.logo{font-family:var(--display);font-size:22px;color:var(--blue);white-space:nowrap;flex-shrink:0}
-.logo b{color:var(--yellow)}
-.kid-tabs{display:flex;gap:5px;align-items:center;flex-wrap:wrap;flex:1;min-width:0}
+/* ── HEADER (PWA fixed bar) ── */
+.hdr{position:fixed;top:0;left:0;right:0;z-index:200;padding-top:var(--safe-top);
+  background:rgba(13,20,36,0.95);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
+.hdr-inner{display:flex;align-items:center;gap:7px;padding:0 12px;height:var(--hdr-h)}
+.hdr-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
 
 .kid-tab:hover{border-color:var(--blue)}
 
@@ -286,8 +287,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 @keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
 .confetti{position:fixed;width:7px;height:7px;border-radius:2px;animation:burst .55s ease forwards;pointer-events:none;z-index:9999}
 
-@media(max-width:900px){}
-.stat-grid{grid-template-columns:repeat(2,1fr)}.hdr-btns .hbtn:not(.hbtn.db-btn){display:none}}
+@media(max-width:480px){.badges-grid{grid-template-columns:repeat(3,1fr)}}
 
 
 /* ── REWARDS SECTION DISTINCT ── */
@@ -481,7 +481,6 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .manual-card{background:var(--navy2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .manual-label{padding:10px 13px 6px;font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
 
-/* ── PWA HEADER ── */
 .logo-icon{font-size:22px;flex-shrink:0;line-height:1;cursor:default;user-select:none}
 .kid-picker-btn{flex:1;min-width:0;display:flex;align-items:center;gap:7px;
   background:var(--navy3);border:1.5px solid var(--border);border-radius:22px;
@@ -1406,8 +1405,13 @@ let kidsMode = localStorage.getItem('cq_kids_mode') === '1';
 function applyKidsMode(){
   if(kidsMode){ document.body.classList.add('kids-mode'); }
   else { document.body.classList.remove('kids-mode'); }
-  const badge = document.getElementById('kmHdrBadge');
+  // PWA: kmBadge + btnKidsLock; Desktop: kmHdrBadge + btnKidsMode
+  const badge = document.getElementById('kmBadge') || document.getElementById('kmHdrBadge');
   if(badge) badge.style.display = kidsMode ? 'flex' : 'none';
+  const lockBtn = document.getElementById('btnKidsLock');
+  if(lockBtn) lockBtn.style.display = kidsMode ? 'flex' : 'none';
+  const statusBadge = document.getElementById('kmStatusBadge');
+  if(statusBadge) statusBadge.textContent = kidsMode ? 'On' : 'Off';
   const btn = document.getElementById('btnKidsMode');
   if(btn) btn.textContent = kidsMode ? '\uD83D\uDD13 Unlock' : '\uD83D\uDD12 Kids Mode';
 }
@@ -1811,6 +1815,15 @@ function setupCommonEvents(){
   const kmBadge=document.getElementById('kmHdrBadge');if(kmBadge)kmBadge.addEventListener('click',()=>{ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} });
   const btnSP=document.getElementById('btnSetPin');if(btnSP)btnSP.addEventListener('click',()=>openPinOverlay('set'));
   // Settings (PWA)
+  // Kids mode settings row (PWA)
+  const setKM=document.getElementById('setKidsMode');if(setKM)setKM.addEventListener('click',()=>{
+    if(kidsMode){ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} }
+    else{ const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open'); enterKidsMode(); }
+  });
+  // Kids lock button in header (PWA)
+  const btnKL=document.getElementById('btnKidsLock');if(btnKL)btnKL.addEventListener('click',()=>{ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} });
+  // Set PIN row (PWA settings)
+  const setPinRow=document.getElementById('setPin');if(setPinRow)setPinRow.addEventListener('click',()=>openPinOverlay('set'));
   const btnSet=document.getElementById('btnSettings');if(btnSet)btnSet.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.add('open'));
   const btnSetClose=document.getElementById('btnSettingsClose');if(btnSetClose)btnSetClose.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.remove('open'));
   const setOv=document.getElementById('settingsOverlay');if(setOv)setOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
