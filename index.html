@@ -783,7 +783,11 @@ function startListener(hid){
       if(d._writeToken&&d._writeToken===pendingWriteToken){setSyncUI('synced','Synced \u2713');return;}
       const remote=d.data;
       if(remote&&JSON.stringify(remote)!==JSON.stringify(S)){
-        S=remote;if(!S.kids)S.kids=[];saveLocal();renderAll();
+        S=remote;
+        if(!S.kids)S.kids=[];
+        if(!S.customTemplates)S.customTemplates=[];
+        S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null};if(!k.badges)k.badges=[];});
+        saveLocal();renderAll();
       }
     }else{save();}
     setSyncUI('synced','Synced \u2713');
