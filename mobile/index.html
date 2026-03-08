@@ -958,12 +958,17 @@ window.addEventListener('offline',()=>{
 });
 
 function setSyncUI(cls,label){
-  // PWA: use sync-icon-btn; Desktop: use sync-pill
-
   const p=document.getElementById('syncPill');
   if(!p)return;
-  p.className='sync-pill'+(cls?' '+cls:'');
-  document.getElementById('syncLabel').textContent=label;
+  // PWA uses sync-icon-btn with si-dot; Desktop uses sync-pill with syncLabel text
+  const isPWA=!!p.querySelector('.si-dot');
+  if(isPWA){
+    p.className='sync-icon-btn'+(cls?' '+cls:'');
+  } else {
+    p.className='sync-pill'+(cls?' '+cls:'');
+    const lbl=document.getElementById('syncLabel');
+    if(lbl)lbl.textContent=label;
+  }
 }
 function connectFirebase(cfg,hid){
   try{
