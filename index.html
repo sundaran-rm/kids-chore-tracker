@@ -354,6 +354,18 @@ body.kids-mode #btnImport,
 body.kids-mode #btnReset { display:none!important }
 
 body.kids-mode .km-hdr-badge { display:flex!important }
+/* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
+body.kids-mode #setDB,
+body.kids-mode #setExport,
+body.kids-mode #setImport,
+body.kids-mode #setPin,
+body.kids-mode #setReset { display:none!important }
+/* Dim the settings gear so it's clear it's restricted */
+body.kids-mode #btnSettings { opacity:.5 }
+body.kids-mode .settings-km-hint { display:block!important }
+.settings-km-hint { display:none;font-size:11px;color:var(--muted);
+  padding:10px 0 4px;text-align:center;font-style:italic }
+
 
 body.kids-mode .c-name,
 body.kids-mode .tok-badge input,
@@ -558,7 +570,7 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
         <div class="sec-hdr" onclick="toggleSection('secBadges')">
           <div class="sec-title">&#x1F3C5; Achievements</div>
         </div>
-        <div id="badgesGrid" class="badges-grid"></div>
+        <div class="sec-body" style="padding:6px 6px 8px"><div id="badgesGrid" class="badges-grid"></div></div>
       </div>
 <div class="section" id="secHistory">
         <div class="sec-hdr" onclick="toggleSection('secHistory')">
@@ -1174,7 +1186,7 @@ function renderAll(){
 function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
 function getAllSectionIds(){
   const k=kid();
-  const base=['secDaily','secBonus','secRewards','secHistory','secCharts','secRedemptions'];
+  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCharts','secRedemptions'];
   if(k)(k.customSections||[]).forEach(s=>base.push('secCustom_'+s.id));
   return base;
 }

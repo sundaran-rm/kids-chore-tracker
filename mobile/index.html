@@ -574,6 +574,18 @@ body.kids-mode .kd-del,
 body.kids-mode .kd-theme-dot { display:none!important }
 body.kids-mode #btnKidsLock { display:flex!important }
 body.kids-mode .km-badge { display:flex!important }
+/* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
+body.kids-mode #setDB,
+body.kids-mode #setExport,
+body.kids-mode #setImport,
+body.kids-mode #setPin,
+body.kids-mode #setReset { display:none!important }
+/* Dim the settings gear so it's clear it's restricted */
+body.kids-mode #btnSettings { opacity:.5 }
+body.kids-mode .settings-km-hint { display:block!important }
+.settings-km-hint { display:none;font-size:11px;color:var(--muted);
+  padding:10px 0 4px;text-align:center;font-style:italic }
+
 
 /* Kids mode badge (PWA) */
 .km-badge{display:none;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(105,240,174,0.15),rgba(79,195,247,0.1));
@@ -710,7 +722,7 @@ body.kids-mode .km-badge { display:flex!important }
       <div class="sec-hdr" onclick="toggleSection('secBadges')">
         <div class="sec-title">&#x1F3C5; Achievements</div>
       </div>
-      <div id="badgesGrid" class="badges-grid"></div>
+      <div class="sec-body" style="padding:6px 6px 8px"><div id="badgesGrid" class="badges-grid"></div></div>
     </div>
     <div class="section" id="secCharts">
       <div class="sec-hdr" onclick="toggleSection('secCharts')">
@@ -766,10 +778,12 @@ body.kids-mode .km-badge { display:flex!important }
   <div class="sheet"><div class="sheet-handle"></div>
     <div class="sheet-hdr"><div class="sheet-title">&#x2699;&#xFE0F; Settings</div><button class="sheet-close" id="btnSettingsClose">&#x2715;</button></div>
     <div class="sheet-body">
+      <div class="settings-km-hint">&#x1F512; Kids Mode is on — limited options shown</div>
       <div class="setting-row" id="setDB"><span class="setting-icon">&#x2601;</span><div class="setting-info"><div class="setting-label">Cloud Database</div><div class="setting-desc">Sync across devices with Firebase</div></div></div>
       <div class="setting-row" id="setExport"><span class="setting-icon">&#x2B07;</span><div class="setting-info"><div class="setting-label">Export Data</div><div class="setting-desc">Download all data as JSON</div></div></div>
       <div class="setting-row" id="setImport"><span class="setting-icon">&#x2B06;</span><div class="setting-info"><div class="setting-label">Import Data</div><div class="setting-desc">Load data from JSON file</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing — kids can view chores &amp; rewards</div></div></div>
+      <div class="setting-row" id="setTheme"><span class="setting-icon">&#x1F3A8;</span><div class="setting-info"><div class="setting-label">Change Theme</div><div class="setting-desc">Personalise with Galaxy, Dino, Princess &amp; more</div></div></div>
       <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">Parent PIN</div><div class="setting-desc">Set a 4-digit PIN to protect parent mode</div></div></div>
       <div class="setting-row danger" id="setReset"><span class="setting-icon">&#x267B;</span><div class="setting-info"><div class="setting-label">Reset Everything</div><div class="setting-desc">Delete all kids and data</div></div></div>
     </div>
@@ -1355,7 +1369,7 @@ function renderAll(){
 function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
 function getAllSectionIds(){
   const k=kid();
-  const base=['secDaily','secBonus','secRewards','secHistory','secCharts','secRedemptions'];
+  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCharts','secRedemptions'];
   if(k)(k.customSections||[]).forEach(s=>base.push('secCustom_'+s.id));
   return base;
 }
@@ -1876,6 +1890,7 @@ function setupCommonEvents(){
   if(btnTplClose)btnTplClose.addEventListener('click',()=>document.getElementById('templatesOverlay').classList.remove('open'));
   const tplOv=document.getElementById('templatesOverlay');
   if(tplOv)tplOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+  const setTheme=document.getElementById('setTheme');if(setTheme)setTheme.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openThemePicker();});
   const setDB=document.getElementById('setDB');if(setDB)setDB.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openDBModal();});
 }
 
