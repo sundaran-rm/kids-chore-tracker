@@ -30,8 +30,8 @@
   --hdr-h:56px;--tab-h:62px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overscroll-behavior:none}
-body{background:var(--navy);color:var(--text);font-family:var(--font)}
+html{height:100%;height:-webkit-fill-available}
+body{height:100%;height:-webkit-fill-available;overscroll-behavior:none;overflow:hidden;background:var(--navy);color:var(--text);font-family:var(--font)}
 body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247,0.05) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 90% 80%,rgba(179,136,255,0.06) 0%,transparent 60%);}
 
 /* ── HEADER (PWA fixed bar) ── */
@@ -217,7 +217,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 /* ── OVERLAY / MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
 .overlay.open{display:flex}
-.modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:560px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:560px;max-height:min(88vh,88svh);overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
 @keyframes mIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
 .m-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
 .m-title{font-family:var(--display);font-size:19px}
@@ -226,7 +226,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .m-body{padding:18px;overflow-y:auto;flex:1}
 
 /* SHEET (used by theme picker on desktop too) */
-.sheet{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:480px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
+.sheet{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:480px;max-height:min(88vh,88svh);overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
 
 .sheet-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sheet-title{font-family:var(--display);font-size:19px}
@@ -234,7 +234,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .sheet-body{padding:16px 18px 18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:0}
 
 /* DB SETUP */
-.setup-modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:640px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
+.setup-modal{background:var(--navy2);border:1px solid var(--border);border-radius:18px;width:100%;max-width:640px;max-height:min(90vh,90svh);overflow:hidden;display:flex;flex-direction:column;animation:mIn .22s ease;}
 .setup-body{padding:22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
 .setup-step{background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
 .step-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
@@ -451,12 +451,24 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .tpl-name-actions button{flex:1;padding:10px;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;border:none;}
 .tpl-save-confirm{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#0a2a1a;}
 .tpl-save-cancel{background:var(--navy3);border:1px solid var(--border)!important;color:var(--muted);}
-
+/* ── HELP SHEET ── */
+.help-section{margin-bottom:20px}
+.help-section:last-child{margin-bottom:0}
+.help-section-title{font-family:var(--display);font-size:15px;color:var(--blue);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.help-item{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start}
+.help-item-icon{font-size:15px;flex-shrink:0;margin-top:1px;width:20px;text-align:center}
+.help-item-text{flex:1;min-width:0}
+.help-item-title{font-size:12px;font-weight:800;color:var(--text);margin-bottom:2px}
+.help-item-desc{font-size:11px;color:var(--muted);line-height:1.6}
+.help-tip{background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.18);border-radius:10px;
+  padding:10px 13px;margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6}
+.help-tip strong{color:var(--blue)}
 
 /* ── LAYOUT (PWA overrides) ── */
 .content{position:fixed;top:calc(var(--safe-top) + var(--hdr-h));left:0;right:0;
   bottom:calc(var(--safe-bot) + var(--tab-h));overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;}
+  -webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
 .tab-pane{display:none;padding:10px 11px 20px;flex-direction:column;gap:10px}
 .tab-pane.active{display:flex}
 
@@ -594,6 +606,15 @@ body.kids-mode .settings-km-hint { display:block!important }
 .km-badge .km-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:kmPulse 2s ease-in-out infinite;}
 #btnKidsLock{display:none}
 
+
+/* ── iOS INPUT ZOOM FIX ── */
+/* iOS Safari auto-zooms on any input with font-size < 16px.
+   This overrides only on iOS without affecting other devices. */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -615,6 +636,7 @@ body.kids-mode .settings-km-hint { display:block!important }
       </div>
       <button class="icon-btn" id="btnDB" title="Cloud Database">&#x2601;</button>
       <button class="icon-btn" id="btnSettings" title="Settings">&#x2699;</button>
+      <button class="icon-btn" id="btnHelp" title="Help" style="color:var(--blue)">&#x2753;</button>
       <button class="icon-btn" id="btnKidsLock" title="Exit Kids Mode" style="color:var(--yellow)">&#x1F512;</button>
     </div>
   </div>
@@ -848,6 +870,66 @@ body.kids-mode .settings-km-hint { display:block!important }
       <button class="pin-key action-key" onclick="pinAction()">OK</button>
     </div>
     <button class="pin-cancel" onclick="closePinOverlay()">Cancel</button>
+  </div>
+</div>
+
+<!-- HELP OVERLAY -->
+<div class="overlay" id="helpOverlay">
+  <div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">&#x2753; How to Use Chore Quest</div><button class="sheet-close" id="btnHelpClose">&#x2715;</button></div>
+    <div class="sheet-body" style="padding:14px 16px 22px">
+
+      <div class="help-section">
+        <div class="help-section-title">&#x1F9D2; Managing Kids</div>
+        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a kid</div><div class="help-item-desc">Tap the kid picker (top bar) &rarr; <strong>+ Add Kid</strong>. Each kid gets their own chores, tokens, streak, and rewards.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3A8;</div><div class="help-item-text"><div class="help-item-title">Switch theme</div><div class="help-item-desc">Tap the kid picker &rarr; tap the coloured dot next to a name to pick Galaxy, Dino, Princess, Ocean, or Unicorn.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Rename a kid</div><div class="help-item-desc">Tap the kid picker, then tap the name text and type a new one. Saves automatically.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x2600;&#xFE0F; Chores Tab</div>
+        <div class="help-item"><div class="help-item-icon">&#x2714;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Tick off a chore</div><div class="help-item-desc">Tap the circle button on any chore to mark it done. Tokens are added instantly. Tap again to undo.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a chore</div><div class="help-item-desc">Tap <strong>+ Add</strong> in any section. Type a name and set token value with the &#x2605; badge.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4C5;</div><div class="help-item-text"><div class="help-item-title">Scheduling</div><div class="help-item-desc">Tap the day buttons (S M T W T F S) under a chore to set which days it appears. Greyed = not today.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4CB;</div><div class="help-item-text"><div class="help-item-title">Templates</div><div class="help-item-desc">Tap the &#x1F4CB; button in the Daily Tasks header to load a ready-made chore pack. Save your own with &#x1F4BE; Save.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2728;</div><div class="help-item-text"><div class="help-item-title">Custom sections</div><div class="help-item-desc">Tap &#x2795; in the header to add a named chore group (e.g. "Homework"). Drag &#x2630; to reorder.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x1F381; Rewards Tab</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F381;</div><div class="help-item-text"><div class="help-item-title">Add rewards</div><div class="help-item-desc">Tap <strong>+ Add</strong> in the Rewards section. Set a name and token cost. Tap <strong>Redeem</strong> to spend tokens.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x1F4B0; Wallet Tab</div>
+        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Token balance</div><div class="help-item-desc">The gold coin shows total tokens. Earn them by ticking chores; spend them by redeeming rewards.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Manual adjustments</div><div class="help-item-desc">Tap <strong>+ Add</strong> or <strong>− Remove</strong> to give bonus tokens or make corrections. Add a note for the history.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3AF;</div><div class="help-item-text"><div class="help-item-title">Goals</div><div class="help-item-desc">Set a savings goal and link it to a reward to show a progress bar towards something the kid is working towards.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x1F4CA; Stats Tab</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks</div><div class="help-item-desc">Increases each day at least one chore is completed. Miss a day and it resets to zero.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements</div><div class="help-item-desc">14 badges to unlock across chores, streaks, and tokens. Greyed = still locked. Earned ones show the date.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">Charts</div><div class="help-item-desc">Weekly and monthly charts show token earnings and reward redemptions over time.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x1F512; Kids Mode &amp; PIN</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F512;</div><div class="help-item-text"><div class="help-item-title">Enable Kids Mode</div><div class="help-item-desc">Go to Settings &rarr; Kids Mode. Editing controls hide — kids can only view and tick chores.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F511;</div><div class="help-item-text"><div class="help-item-title">Set a PIN</div><div class="help-item-desc">Settings &rarr; Parent PIN. A 4-digit PIN protects Kids Mode from being turned off. Syncs across all devices.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F513;</div><div class="help-item-text"><div class="help-item-title">Unlock</div><div class="help-item-desc">Tap the green <strong>Kids</strong> badge in the top bar, enter your PIN, and parent controls return.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x2601; Cloud Sync</div>
+        <div class="help-item"><div class="help-item-icon">&#x2601;</div><div class="help-item-text"><div class="help-item-title">Connect Firebase</div><div class="help-item-desc">Settings &rarr; Cloud Database. Follow the 4-step guide to link a free Firebase project (~5 mins).</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4F1;</div><div class="help-item-text"><div class="help-item-title">Link devices</div><div class="help-item-desc">Use the same <strong>Household ID</strong> on every device. Chores, tokens, templates, and PIN sync in real time.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F7E2;</div><div class="help-item-text"><div class="help-item-title">Sync status</div><div class="help-item-desc">The dot icon in the top bar shows status: green = synced, yellow = saving, orange = offline, red = error.</div></div></div>
+      </div>
+
+      <div class="help-tip"><strong>Tip:</strong> Drag the &#x2630; handle on any chore or reward to reorder it. Tap a section header to collapse it and save screen space.</div>
+    </div>
   </div>
 </div>
 
@@ -1895,6 +1977,9 @@ function setupCommonEvents(){
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');});
   // Templates
+  const btnHelp=document.getElementById('btnHelp');if(btnHelp)btnHelp.addEventListener('click',()=>document.getElementById('helpOverlay').classList.add('open'));
+  const btnHelpClose=document.getElementById('btnHelpClose');if(btnHelpClose)btnHelpClose.addEventListener('click',()=>document.getElementById('helpOverlay').classList.remove('open'));
+  const helpOv=document.getElementById('helpOverlay');if(helpOv)helpOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   const btnTplClose=document.getElementById('btnTplClose');
   if(btnTplClose)btnTplClose.addEventListener('click',()=>document.getElementById('templatesOverlay').classList.remove('open'));
   const tplOv=document.getElementById('templatesOverlay');
