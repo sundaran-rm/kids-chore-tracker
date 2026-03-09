@@ -973,7 +973,26 @@ body.kids-mode .settings-km-hint { display:block!important }
       <div class="help-section">
         <div class="help-section-title">&#x1F4CA; Stats Tab</div>
         <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks</div><div class="help-item-desc">Increases each day at least one chore is completed. Miss a day and it resets to zero.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements</div><div class="help-item-desc">14 badges to unlock across chores, streaks, and tokens. Greyed = still locked. Earned ones show the date.</div></div></div>
+        
+        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">14 badges to unlock. Greyed out = still locked. Earned badges show the date they were unlocked.</div></div></div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
+          <div style="display:grid;grid-template-columns:26px 1fr;gap:6px 10px;align-items:start">
+            <span style="font-size:18px;line-height:1.3">&#x1F31F;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">First Steps</span> <span style="font-size:10px;color:var(--muted)">— Complete your very first chore</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3C3;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Getting Going</span> <span style="font-size:10px;color:var(--muted)">— Complete 10 chores in total</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3C6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Champion</span> <span style="font-size:10px;color:var(--muted)">— Complete 50 chores in total</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F680;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Legend</span> <span style="font-size:10px;color:var(--muted)">— Complete 100 chores in total</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F525;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">On Fire</span> <span style="font-size:10px;color:var(--muted)">— Reach a 3-day streak</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x26A1;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Week Warrior</span> <span style="font-size:10px;color:var(--muted)">— Keep a 7-day streak going</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F4AB;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Fortnight Force</span> <span style="font-size:10px;color:var(--muted)">— Reach a 14-day streak</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F451;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Unstoppable</span> <span style="font-size:10px;color:var(--muted)">— Achieve a 30-day streak</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F4B0;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Collector</span> <span style="font-size:10px;color:var(--muted)">— Earn 50 tokens across all time</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F48E;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Hoarder</span> <span style="font-size:10px;color:var(--muted)">— Earn 250 tokens across all time</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3E6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Millionaire</span> <span style="font-size:10px;color:var(--muted)">— Earn 1,000 tokens across all time</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F381;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Treat Time</span> <span style="font-size:10px;color:var(--muted)">— Redeem your first reward</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x2728;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Perfect Day</span> <span style="font-size:10px;color:var(--muted)">— Complete every scheduled chore in a single day</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3AF;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Goal Getter</span> <span style="font-size:10px;color:var(--muted)">— Set a savings goal in the Wallet tab</span></div>
+          </div>
+        </div>
         <div class="help-item"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">Charts</div><div class="help-item-desc">Weekly and monthly charts show token earnings and reward redemptions over time.</div></div></div>
       </div>
 
@@ -1473,23 +1492,58 @@ function renderRight(){
 Chart.defaults.color='#6b7fa3';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.font.weight='700';
 let wC,mC,wRC,mRC;
 function renderCharts(k){
-  const wL=[],wT=[],wRT=[],today=new Date();
-  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);wL.push(d.toLocaleDateString(undefined,{weekday:'short'}));wT.push(0);wRT.push(0);}
-  const wS=new Date();wS.setDate(today.getDate()-6);wS.setHours(0,0,0,0);
+  /* ── helpers ── */
+  function evDayKey(ts){const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+  /* ── weekly: last 7 days ── */
+  const wL=[],wT=[],wRT=[];
+  const wKeys=[];
+  const refDay=new Date();
+  for(let i=6;i>=0;i--){
+    const d=new Date(refDay);d.setDate(refDay.getDate()-i);
+    wL.push(d.toLocaleDateString(undefined,{weekday:'short'}));
+    wT.push(0);wRT.push(0);
+    wKeys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  }
+
+  /* ── monthly: last 12 months ── */
+  const mL=[],mT=[],mRT=[],months=[];
+  const now=new Date();
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    mL.push(d.toLocaleDateString(undefined,{month:'short'}));
+    months.push({y:d.getFullYear(),m:d.getMonth()});
+    mT.push(0);mRT.push(0);
+  }
+
+  /* ── accumulate ──
+     Earned chart : all non-redemption events (chore ticks, undos, manual add/sub)
+     Redemption chart : only 🎁 events (reward redemptions)
+  */
   if(k)(k.tokens||[]).forEach(ev=>{
-    const t=Number(ev.amount||0),ts=new Date(ev.timestamp);if(ts<wS)return;
-    const diff=Math.floor((new Date(ev.timestamp).setHours(0,0,0,0)-wS.getTime())/86400000);
-    if(diff<0||diff>=7)return;
-    if((ev.note||'').startsWith('\ud83c\udf81'))wRT[diff]+=Math.abs(t);else if(t>0)wT[diff]+=t;
+    const t=Number(ev.amount||0);if(t===0)return;
+    const isRedeem=(ev.note||'').startsWith('\ud83c\udf81');
+    const evDate=new Date(ev.timestamp);
+    const dk=evDayKey(ev.timestamp);
+
+    /* weekly — string key lookup avoids all ms/DST arithmetic */
+    const wi=wKeys.indexOf(dk);
+    if(wi!==-1){
+      if(isRedeem) wRT[wi]+=Math.abs(t);
+      else wT[wi]=Math.max(0,(wT[wi]||0)+t);
+    }
+
+    /* monthly */
+    for(let i=0;i<months.length;i++){
+      if(evDate.getFullYear()===months[i].y&&evDate.getMonth()===months[i].m){
+        if(isRedeem) mRT[i]+=Math.abs(t);
+        else mT[i]=Math.max(0,(mT[i]||0)+t);
+        break;
+      }
+    }
   });
-  const mL=[],mT=[],mRT=[],months=[],now=new Date();
-  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);mL.push(d.toLocaleDateString(undefined,{month:'short'}));months.push({y:d.getFullYear(),m:d.getMonth()});mT.push(0);mRT.push(0);}
-  if(k)(k.tokens||[]).forEach(ev=>{
-    const t=Number(ev.amount||0),d=new Date(ev.timestamp);
-    for(let i=0;i<months.length;i++){if(d.getFullYear()===months[i].y&&d.getMonth()===months[i].m){
-      if((ev.note||'').startsWith('\ud83c\udf81'))mRT[i]+=Math.abs(t);else if(t>0)mT[i]+=t;break;
-    }}
-  });
+
+  /* ── draw ── */
   const tt={backgroundColor:'#141c2e',borderColor:'#2a3854',borderWidth:1,callbacks:{label:t=>` ${t.formattedValue} \u2605`}};
   const scl={y:{beginAtZero:true,grid:{color:'rgba(42,56,84,0.45)'},ticks:{color:'#6b7fa3',font:{size:9}}},x:{grid:{display:false},ticks:{color:'#6b7fa3',font:{size:9}}}};
   const wcc=document.getElementById('wChart');const mcc=document.getElementById('mChart');
@@ -2141,9 +2195,9 @@ function renderCalendar(containerId){
 
   el.innerHTML=`
     <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="calPrev(${JSON.stringify(containerId)})">&#x2039;</button>
+      <button class="cal-nav-btn" onclick="calPrev('${containerId}')">&#x2039;</button>
       <div class="cal-month-label">${monthLabel}</div>
-      <button class="cal-nav-btn" onclick="calNext(${JSON.stringify(containerId)})">&#x203A;</button>
+      <button class="cal-nav-btn" onclick="calNext('${containerId}')">&#x203A;</button>
     </div>
     <div class="cal-grid">
       <div class="cal-dow">Su</div><div class="cal-dow">Mo</div><div class="cal-dow">Tu</div>
