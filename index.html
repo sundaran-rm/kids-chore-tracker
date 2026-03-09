@@ -485,6 +485,61 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .tpl-save-confirm{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#0a2a1a;}
 .tpl-save-cancel{background:var(--navy3);border:1px solid var(--border)!important;color:var(--muted);}
 
+
+/* ══════════════════════════════════════════════
+   CALENDAR VIEW
+══════════════════════════════════════════════ */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px}
+.cal-month-label{font-family:var(--display);font-size:16px;color:var(--text)}
+.cal-nav-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;display:flex;
+  align-items:center;justify-content:center;transition:all .14s;}
+.cal-nav-btn:hover{border-color:var(--blue);color:var(--blue)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 10px 12px}
+.cal-dow{font-size:9px;font-weight:800;color:var(--muted);text-align:center;padding:3px 0;
+  letter-spacing:.4px;text-transform:uppercase}
+.cal-day{position:relative;aspect-ratio:1;border-radius:7px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:transform .12s,border-color .12s;border:1px solid transparent;}
+.cal-day:hover{transform:scale(1.08);border-color:rgba(255,255,255,0.15)}
+.cal-day.empty{cursor:default;pointer-events:none}
+.cal-day.today{border-color:var(--blue)!important;box-shadow:0 0 0 1px rgba(79,195,247,0.3)}
+.cal-day.future{opacity:.35;cursor:default;pointer-events:none}
+.cal-dn{font-size:10px;font-weight:800;line-height:1;color:var(--text);z-index:1}
+.cal-day.today .cal-dn{color:var(--blue)}
+.cal-pip{width:4px;height:4px;border-radius:50%;margin-top:2px;z-index:1}
+/* heat levels */
+.cal-day.heat-0{background:var(--navy3)}
+.cal-day.heat-0 .cal-dn{color:var(--muted)}
+.cal-day.heat-1{background:rgba(79,195,247,0.12)}
+.cal-day.heat-2{background:rgba(79,195,247,0.22)}
+.cal-day.heat-3{background:rgba(105,240,174,0.18)}
+.cal-day.heat-4{background:rgba(105,240,174,0.32)}
+.cal-day.heat-5{background:linear-gradient(135deg,rgba(105,240,174,0.4),rgba(79,195,247,0.3));border-color:rgba(105,240,174,0.4)!important}
+.cal-day.heat-5 .cal-dn{color:var(--green)}
+/* streak ring */
+.cal-day.streak-day::after{content:'';position:absolute;inset:-1px;border-radius:8px;
+  border:2px solid rgba(255,183,77,0.55);pointer-events:none}
+/* day detail popover */
+.cal-pop{position:fixed;z-index:3500;background:var(--navy2);border:1px solid var(--border);
+  border-radius:14px;padding:12px 14px;min-width:200px;max-width:260px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);animation:mIn .18s ease;pointer-events:auto}
+.cal-pop-date{font-family:var(--display);font-size:14px;margin-bottom:8px;color:var(--text)}
+.cal-pop-empty{font-size:11px;color:var(--muted);font-style:italic}
+.cal-chore-row{display:flex;align-items:center;gap:7px;padding:3px 0;
+  border-bottom:1px solid rgba(42,56,84,0.4)}
+.cal-chore-row:last-child{border-bottom:none}
+.cal-chore-done{width:14px;height:14px;border-radius:50%;background:var(--green);
+  display:flex;align-items:center;justify-content:center;font-size:8px;color:#0a2a1a;flex-shrink:0}
+.cal-chore-miss{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0}
+.cal-chore-name{font-size:11px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-chore-tok{font-size:10px;font-weight:800;color:var(--yellow)}
+.cal-pop-close{position:absolute;top:8px;right:8px;background:transparent;border:none;
+  color:var(--muted);cursor:pointer;font-size:13px;padding:2px;line-height:1}
+.cal-legend{display:flex;align-items:center;gap:8px;padding:0 12px 10px;flex-wrap:wrap}
+.cal-legend-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-right:2px}
+.cal-leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -594,7 +649,13 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
         </div>
         <div class="sec-body" style="padding:6px 6px 8px"><div id="badgesGrid" class="badges-grid"></div></div>
       </div>
-<div class="section" id="secHistory">
+<div class="section" id="secCalendar">
+        <div class="sec-hdr" onclick="toggleSection('secCalendar')">
+          <div class="sec-title">&#x1F4C5; Calendar</div>
+        </div>
+        <div class="sec-body" style="padding:0" id="calBody"></div>
+      </div>
+      <div class="section" id="secHistory">
         <div class="sec-hdr" onclick="toggleSection('secHistory')">
           <div class="sec-title">&#x1F4DC; History</div>
           <button class="clear-btn" id="btnClearHist" onclick="event.stopPropagation()">Clear</button>
@@ -1278,14 +1339,14 @@ function renderAll(){
   const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
-  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);}
+  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);renderCalendar('calBody');}
 }
 
 /* ── TOGGLE SECTION ── */
 function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
 function getAllSectionIds(){
   const k=kid();
-  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCharts','secRedemptions'];
+  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCalendar','secCharts','secRedemptions'];
   if(k)(k.customSections||[]).forEach(s=>base.push('secCustom_'+s.id));
   return base;
 }
@@ -1838,6 +1899,164 @@ document.addEventListener('keydown',e=>{
   const allCollapsed=ids.every(id=>document.getElementById(id)?.classList.contains('collapsed'));
   ids.forEach(id=>{const el=document.getElementById(id);if(!el)return;if(allCollapsed)el.classList.remove('collapsed');else el.classList.add('collapsed');});
 });
+
+
+/* ══════════════════════════════════════════════
+   CALENDAR VIEW
+══════════════════════════════════════════════ */
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let calPopEl=null;
+
+function getAllChores(k){
+  const all=[];
+  (k.daily||[]).forEach(c=>all.push({...c,grp:'Daily'}));
+  (k.bonus||[]).forEach(c=>all.push({...c,grp:'Bonus'}));
+  (k.customSections||[]).forEach(s=>(s.chores||[]).forEach(c=>all.push({...c,grp:s.title||'Custom'})));
+  return all;
+}
+
+function renderCalendar(containerId){
+  const k=kid(); if(!k) return;
+  const el=document.getElementById(containerId); if(!el) return;
+
+  const today=new Date(); const todayDs=dateStr(today);
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const startDow=firstDay.getDay(); // 0=Sun
+  const daysInMonth=lastDay.getDate();
+  const allChores=getAllChores(k);
+  const streakSet=new Set(k.streakDates||[]);
+  const monthLabel=firstDay.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  // Build completion map: date -> Set of chore IDs done
+  const doneMap={};
+  allChores.forEach(c=>{
+    (c.completions||[]).forEach(ds=>{
+      if(!doneMap[ds])doneMap[ds]=new Set();
+      doneMap[ds].add(c.id);
+    });
+  });
+
+  // For each day, count how many chores were scheduled & done
+  function getHeat(ds){
+    const d=new Date(ds+'T12:00:00');
+    const dow=d.getDay();
+    const scheduled=allChores.filter(c=>(c.days||ALL_DAYS).includes(dow));
+    if(!scheduled.length) return doneMap[ds]?.size>0 ? 2 : 0;
+    const done=(doneMap[ds]?.size||0);
+    const pct=done/scheduled.length;
+    if(pct===0) return 0;
+    if(pct<=0.25) return 1;
+    if(pct<=0.5) return 2;
+    if(pct<=0.75) return 3;
+    if(pct<1) return 4;
+    return 5;
+  }
+
+  el.innerHTML=`
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev(${JSON.stringify(containerId)})">&#x2039;</button>
+      <div class="cal-month-label">${monthLabel}</div>
+      <button class="cal-nav-btn" onclick="calNext(${JSON.stringify(containerId)})">&#x203A;</button>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-dow">Su</div><div class="cal-dow">Mo</div><div class="cal-dow">Tu</div>
+      <div class="cal-dow">We</div><div class="cal-dow">Th</div><div class="cal-dow">Fr</div>
+      <div class="cal-dow">Sa</div>
+      ${Array.from({length:startDow},()=>'<div class="cal-day empty"></div>').join('')}
+      ${Array.from({length:daysInMonth},(_,i)=>{
+        const day=i+1;
+        const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+        const isFuture=ds>todayDs;
+        const isToday=ds===todayDs;
+        const heat=isFuture?0:getHeat(ds);
+        const isStreak=streakSet.has(ds);
+        const hasDone=(doneMap[ds]?.size||0)>0;
+        let cls='cal-day heat-'+heat;
+        if(isToday)cls+=' today';
+        if(isFuture)cls+=' future';
+        if(isStreak&&!isFuture)cls+=' streak-day';
+        const pip=hasDone&&!isFuture?`<div class="cal-pip" style="background:${heat>=5?'var(--green)':heat>=3?'rgba(105,240,174,0.7)':'rgba(79,195,247,0.6)'}"></div>`:'';
+        return `<div class="${cls}" data-ds="${ds}" onclick="showCalPop(event,'${ds}','${containerId}')">
+          <div class="cal-dn">${day}</div>${pip}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="cal-legend">
+      <span class="cal-legend-label">Completion:</span>
+      <div class="cal-leg-dot" style="background:var(--navy3);border:1px solid var(--border)"></div><span style="font-size:9px;color:var(--muted)">0%</span>
+      <div class="cal-leg-dot" style="background:rgba(79,195,247,0.22)"></div><span style="font-size:9px;color:var(--muted)">25%</span>
+      <div class="cal-leg-dot" style="background:rgba(105,240,174,0.32)"></div><span style="font-size:9px;color:var(--muted)">75%</span>
+      <div class="cal-leg-dot" style="background:rgba(105,240,174,0.4);border:1px solid rgba(105,240,174,0.4)"></div><span style="font-size:9px;color:var(--muted)">100%</span>
+      <div style="width:12px;height:12px;border-radius:3px;border:2px solid rgba(255,183,77,0.55);flex-shrink:0"></div><span style="font-size:9px;color:var(--muted)">streak</span>
+    </div>`;
+}
+
+function calPrev(id){calMonth--;if(calMonth<0){calMonth=11;calYear--;}closeCalPop();renderCalendar(id);}
+function calNext(id){calMonth++;if(calMonth>11){calMonth=0;calYear++;}closeCalPop();renderCalendar(id);}
+
+function showCalPop(e,ds,containerId){
+  e.stopPropagation();
+  closeCalPop();
+  const k=kid(); if(!k) return;
+  const d=new Date(ds+'T12:00:00');
+  const dow=d.getDay();
+  const allChores=getAllChores(k);
+  const scheduled=allChores.filter(c=>(c.days||ALL_DAYS).includes(dow));
+  const doneSet=new Set();
+  allChores.forEach(c=>{if((c.completions||[]).includes(ds))doneSet.add(c.id);});
+
+  const dateLabel=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+  let rows='';
+  if(!scheduled.length && !doneSet.size){
+    rows='<div class="cal-pop-empty">No chores scheduled</div>';
+  } else {
+    // Show scheduled chores first, then any bonus done that day not in scheduled
+    const shown=new Set();
+    scheduled.forEach(c=>{
+      shown.add(c.id);
+      const done=doneSet.has(c.id);
+      rows+=`<div class="cal-chore-row">
+        <div class="${done?'cal-chore-done':'cal-chore-miss'}">${done?'✓':''}</div>
+        <div class="cal-chore-name">${c.title||'(unnamed)'}</div>
+        ${done?`<div class="cal-chore-tok">+${c.tokens||1}★</div>`:''}
+      </div>`;
+    });
+    // Extra bonus chores done that weren't scheduled this day
+    allChores.filter(c=>doneSet.has(c.id)&&!shown.has(c.id)).forEach(c=>{
+      rows+=`<div class="cal-chore-row">
+        <div class="cal-chore-done">✓</div>
+        <div class="cal-chore-name">${c.title||'(unnamed)'}</div>
+        <div class="cal-chore-tok">+${c.tokens||1}★</div>
+      </div>`;
+    });
+  }
+
+  const pop=document.createElement('div');
+  pop.className='cal-pop';
+  pop.id='calPop';
+  pop.innerHTML=`<button class="cal-pop-close" onclick="closeCalPop()">✕</button>
+    <div class="cal-pop-date">${dateLabel}</div>${rows}`;
+  document.body.appendChild(pop);
+  calPopEl=pop;
+
+  // Position near clicked cell, keep on screen
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pw=260,ph=pop.scrollHeight||180;
+  let left=rect.left+rect.width/2-pw/2;
+  let top=rect.bottom+8;
+  if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
+  if(left<8)left=8;
+  if(top+ph>window.innerHeight-8)top=rect.top-ph-8;
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+
+  setTimeout(()=>document.addEventListener('click',closeCalPop,{once:true}),10);
+}
+function closeCalPop(){
+  if(calPopEl){calPopEl.remove();calPopEl=null;}
+}
 
 /* ── BOOT ── */
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
