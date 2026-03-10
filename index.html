@@ -417,6 +417,8 @@ body.kids-mode #setExport,
 body.kids-mode #setImport,
 body.kids-mode #setPin,
 body.kids-mode #setAddSection,
+body.kids-mode #setAchievements,
+body.kids-mode #setShopItems,
 body.kids-mode #setReset { display:none!important }
 /* Dim the settings gear so it's clear it's restricted */
 body.kids-mode #btnSettings { opacity:.5 }
@@ -627,6 +629,53 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .xp-bar-wrap{width:100%;background:var(--navy4);border-radius:999px;height:5px;overflow:hidden;}
 .xp-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--purple),var(--blue));transition:width .5s ease;}
 .xp-label{font-size:9px;color:var(--muted);text-align:center}
+
+/* ── XP HEADER BAR ── */
+.xp-header-bar{background:linear-gradient(135deg,rgba(179,136,255,0.09),rgba(79,195,247,0.06));
+  border:1px solid rgba(179,136,255,0.2);border-radius:12px;padding:9px 15px;
+  display:none;align-items:center;gap:10px;margin-bottom:8px;
+  grid-column:1/-1;}
+.xp-hb-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;
+  white-space:nowrap;flex-shrink:0;}
+.xp-hb-track{flex:1;height:7px;background:var(--navy4);border-radius:999px;overflow:hidden;min-width:0}
+.xp-hb-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--purple),var(--blue));transition:width .5s ease;}
+.xp-hb-label{font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap;flex-shrink:0}
+
+/* ── ACHIEVEMENT MANAGER MODAL ── */
+.am-section{margin-bottom:14px}
+.am-section-title{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.am-badge-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid rgba(42,56,84,0.35);}
+.am-badge-row:last-child{border-bottom:none}
+.am-badge-emoji{font-size:18px;flex-shrink:0}
+.am-badge-info{flex:1;min-width:0}
+.am-badge-name{font-size:12px;font-weight:700;color:var(--text)}
+.am-badge-desc{font-size:10px;color:var(--muted)}
+.am-thresh-inp{width:58px;background:var(--navy4);border:1px solid var(--border);color:var(--yellow);font-family:var(--font);font-size:12px;font-weight:800;border-radius:6px;padding:4px 6px;text-align:center;outline:none;flex-shrink:0;}
+.am-thresh-inp:focus{border-color:var(--yellow)}
+.am-thresh-label{font-size:10px;color:var(--muted);flex-shrink:0}
+.am-del-btn{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px;flex-shrink:0;transition:color .12s;}
+.am-del-btn:hover{color:var(--red)}
+.am-edit-btn{background:transparent;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:2px 4px;flex-shrink:0;transition:color .12s;}
+.am-edit-btn:hover{color:var(--yellow)}
+.am-add-btn{width:100%;background:transparent;border:1.5px dashed var(--border);color:var(--muted);font-family:var(--font);font-size:11px;font-weight:700;padding:7px;border-radius:8px;cursor:pointer;margin-top:6px;transition:all .15s;}
+.am-add-btn:hover{border-color:var(--purple);color:var(--purple)}
+.am-save-all-btn{width:100%;background:var(--green);color:#0a2a1a;font-family:var(--font);font-size:13px;font-weight:800;border:none;border-radius:10px;padding:10px;cursor:pointer;margin-top:10px;transition:filter .14s;}
+.am-save-all-btn:hover{filter:brightness(1.1)}
+
+/* ── SHOP ITEMS MANAGER ── */
+.sim-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,56,84,0.35);}
+.sim-row:last-child{border-bottom:none}
+.sim-icon-inp{width:38px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:16px;border-radius:6px;padding:3px;text-align:center;outline:none;flex-shrink:0;}
+.sim-name-inp{flex:1;min-width:0;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;padding:5px 7px;outline:none;}
+.sim-name-inp:focus,.sim-icon-inp:focus{border-color:var(--blue)}
+.sim-cost-inp{width:52px;background:var(--navy4);border:1px solid var(--border);color:var(--yellow);font-family:var(--font);font-size:12px;font-weight:800;border-radius:6px;padding:5px 6px;text-align:center;outline:none;flex-shrink:0;}
+.sim-cost-inp:focus{border-color:var(--yellow)}
+.sim-default-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(42,56,84,0.25);}
+.sim-default-row:last-child{border-bottom:none}
+.sim-def-icon{font-size:16px;flex-shrink:0}
+.sim-def-name{flex:1;font-size:11px;font-weight:600;color:var(--muted)}
+.sim-def-cost{width:52px;background:var(--navy4);border:1px solid var(--border);color:var(--yellow);font-family:var(--font);font-size:12px;font-weight:800;border-radius:6px;padding:4px 6px;text-align:center;outline:none;flex-shrink:0;}
+.sim-def-cost:focus{border-color:var(--yellow)}
 .savings-lock-row{display:flex;align-items:center;gap:9px;padding:8px 10px 2px;}
 .s-lock-toggle{appearance:none;-webkit-appearance:none;width:34px;height:18px;border-radius:999px;background:var(--border);cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;}
 .s-lock-toggle:checked{background:var(--yellow)}
@@ -705,6 +754,12 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
   </div>
 
   <div class="grid" id="mainGrid" style="display:none">
+    <!-- XP HEADER BAR -->
+    <div class="xp-header-bar" id="xpHeaderBar" style="display:none">
+      <div class="xp-hb-badge" id="xpHbBadge">🌱 Rookie</div>
+      <div class="xp-hb-track"><div class="xp-hb-fill" id="xpHbFill" style="width:0%"></div></div>
+      <div class="xp-hb-label" id="xpHbLabel">0 / 50 XP</div>
+    </div>
     <!-- LEFT COL -->
     <div class="col">
       <!-- Points Banner -->
@@ -850,6 +905,8 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
       <div class="setting-row" id="setDB"><span class="setting-icon">&#x2601;</span><div class="setting-info"><div class="setting-label">Cloud Database</div><div class="setting-desc">Connect Firebase to sync across devices</div></div></div>
       <div class="setting-row" id="setTheme"><span class="setting-icon">&#x1F3A8;</span><div class="setting-info"><div class="setting-label">Change Theme</div><div class="setting-desc">Personalise with Galaxy, Dino, Princess &amp; more</div></div></div>
       <div class="setting-row" id="setAddSection"><span class="setting-icon">&#x2728;</span><div class="setting-info"><div class="setting-label">Add Custom Section</div><div class="setting-desc">Create a named chore group (e.g. Homework, Pet Care)</div></div></div>
+      <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
+      <div class="setting-row" id="setShopItems"><span class="setting-icon">&#x1F6CD;</span><div class="setting-info"><div class="setting-label">Reward Shop Items</div><div class="setting-desc">Edit default costs and add custom shop items</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing &mdash; kids can view chores &amp; check off tasks</div></div></div>
       <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">Parent PIN</div><div class="setting-desc">Set a 4-digit PIN to protect parent mode</div></div></div>
       <div class="setting-row" id="setExport"><span class="setting-icon">&#x2B07;</span><div class="setting-info"><div class="setting-label">Export Data</div><div class="setting-desc">Download all data as a JSON backup file</div></div></div>
@@ -1061,7 +1118,7 @@ function openThemePicker(){
 /* ── DATA MODEL ── */
 let _uidc=0;
 function uid(){return Date.now()+'_'+(++_uidc)+'_'+Math.random().toString(36).slice(2,5);}
-function mkKid(name){return{id:uid(),name:name||'Kid',daily:[],bonus:[],customSections:[],rewards:[],tokens:[],streakDates:[],bestStreak:0,goal:{name:'',target:100,rewardId:null,savingsLock:false},allowance:{amount:0,day:1,lastPaid:null,lastWeekPaid:null},theme:'galaxy'};}
+function mkKid(name){return{id:uid(),name:name||'Kid',daily:[],bonus:[],customSections:[],rewards:[],tokens:[],streakDates:[],bestStreak:0,goal:{name:'',target:100,rewardId:null,savingsLock:false},allowance:{amount:0,day:1,lastPaid:null,lastWeekPaid:null},theme:'galaxy',badges:[],badgeThresholds:{},customBadges:[],customShopItems:[]};}
 function mkChore(daysOrGrp){const days=Array.isArray(daysOrGrp)?[...daysOrGrp]:[...ALL_DAYS];return{id:uid(),title:'',tokens:1,difficulty:'easy',notes:'',lastDone:null,completions:[],days};}
 function mkCustomSection(title){return{id:uid(),title:title||'Custom',chores:[],emoji:'✨'};}
 function mkReward(){return{id:uid(),title:'',cost:5};}
@@ -1601,7 +1658,19 @@ function renderAll(){
   const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
-  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);renderCalendar('calBody');}
+  if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);renderCalendar('calBody');renderXPHeaderBar(k);}
+}
+
+function renderXPHeaderBar(k){
+  const el=document.getElementById('xpHeaderBar');if(!el)return;
+  if(!k){el.style.display='none';return;}
+  const xp=getXP(k);const lv=getLevel(xp);const next=getNextLevel(xp);
+  const pct=next?Math.min(100,Math.round((xp-lv.min)/(next.min-lv.min)*100)):100;
+  el.style.display='flex';
+  const badge=document.getElementById('xpHbBadge');if(badge)badge.textContent=lv.emoji+' '+lv.name;
+  const fill=document.getElementById('xpHbFill');if(fill)fill.style.width=pct+'%';
+  const label=document.getElementById('xpHbLabel');
+  if(label)label.textContent=next?(xp+' / '+next.min+' XP'):(xp+' XP \uD83D\uDD25 MAX');
 }
 
 /* ── TOGGLE SECTION ── */
@@ -1795,19 +1864,28 @@ function badgeCheck(badge,k){
   const c=badgeTotalCompletions(k),e=badgeTotalEarned(k),best=k.bestStreak||0;
   switch(badge.id){
     case 'first_chore':  return c>=1;
-    case 'chore_10':     return c>=10;
-    case 'chore_50':     return c>=50;
-    case 'chore_100':    return c>=100;
-    case 'streak_3':     return best>=3;
-    case 'streak_7':     return best>=7;
-    case 'streak_14':    return best>=14;
-    case 'streak_30':    return best>=30;
-    case 'tokens_50':    return e>=50;
-    case 'tokens_250':   return e>=250;
-    case 'tokens_1000':  return e>=1000;
+    case 'chore_10':     return c>=getThreshold(k,'chore_10',10);
+    case 'chore_50':     return c>=getThreshold(k,'chore_50',50);
+    case 'chore_100':    return c>=getThreshold(k,'chore_100',100);
+    case 'streak_3':     return best>=getThreshold(k,'streak_3',3);
+    case 'streak_7':     return best>=getThreshold(k,'streak_7',7);
+    case 'streak_14':    return best>=getThreshold(k,'streak_14',14);
+    case 'streak_30':    return best>=getThreshold(k,'streak_30',30);
+    case 'tokens_50':    return e>=getThreshold(k,'tokens_50',50);
+    case 'tokens_250':   return e>=getThreshold(k,'tokens_250',250);
+    case 'tokens_1000':  return e>=getThreshold(k,'tokens_1000',1000);
     case 'first_redeem': return (k.tokens||[]).some(ev=>(ev.note||'').startsWith('\uD83C\uDF81'));
     case 'perfect_day':  return badgeHasPerfectDay(k);
     case 'goal_set':     return !!(k.goal&&(k.goal.name||k.goal.rewardId));
+    default: return false;
+  }
+}
+function customBadgeCheck(badge,k){
+  const c=badgeTotalCompletions(k),e=badgeTotalEarned(k),best=k.bestStreak||0;
+  switch(badge.type){
+    case 'chores_total': return c>=(badge.threshold||1);
+    case 'streak_days':  return best>=(badge.threshold||1);
+    case 'tokens_earned':return e>=(badge.threshold||1);
     default: return false;
   }
 }
@@ -1825,17 +1903,25 @@ function showBadgeToast(badge){
 function checkAchievements(k){
   if(!k)return;
   if(!k.badges)k.badges=[];
+  if(!k.customBadges)k.customBadges=[];
   const earned=new Set(k.badges.map(b=>b.id));
   let newlyEarned=[];
+  // Default badges
   BADGES.forEach(badge=>{
     if(!earned.has(badge.id)&&badgeCheck(badge,k)){
       k.badges.push({id:badge.id,earnedAt:Date.now()});
       newlyEarned.push(badge);
     }
   });
+  // Custom badges
+  k.customBadges.forEach(badge=>{
+    if(!earned.has(badge.id)&&customBadgeCheck(badge,k)){
+      k.badges.push({id:badge.id,earnedAt:Date.now()});
+      newlyEarned.push(badge);
+    }
+  });
   if(newlyEarned.length>0){
     save();
-    // Show toasts sequentially
     let delay=0;
     newlyEarned.forEach(b=>{setTimeout(()=>showBadgeToast(b),delay);delay+=1000;});
   }
@@ -1846,7 +1932,8 @@ function renderBadges(k){
   ct.innerHTML='';
   const earned=new Set((k?.badges||[]).map(b=>b.id));
   const earnedMap=Object.fromEntries((k?.badges||[]).map(b=>[b.id,b.earnedAt]));
-  BADGES.forEach(badge=>{
+  const allBadges=[...BADGES,...(k?.customBadges||[])];
+  allBadges.forEach(badge=>{
     const isEarned=earned.has(badge.id);
     const card=document.createElement('div');card.className='badge-card'+(isEarned?' earned':'');
     card.title=badge.desc+(isEarned?'\nEarned '+new Date(earnedMap[badge.id]).toLocaleDateString():'');
@@ -2124,6 +2211,8 @@ function setupCommonEvents(){
   const setPinRow=document.getElementById('setPin');if(setPinRow)setPinRow.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openPinOverlay('set');});
   const setExp=document.getElementById('setExport');if(setExp)setExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
+  const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openAchievementManager();});
+  const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openShopItemsManager();});
   const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();document.getElementById('settingsOverlay').classList.remove('open');});
   // Templates
   const btnTplClose=document.getElementById('btnTplClose');
@@ -2445,7 +2534,15 @@ const LEVELS=[
   {name:'Legend',  min:800,  emoji:'\u{1F451}',cls:'legend'},
   {name:'Master',  min:1500, emoji:'\u{1F52E}',cls:'master'},
 ];
-function getXP(k){return (k.tokens||[]).reduce((s,e)=>s+Math.max(0,Number(e.amount||0)),0);}
+function getXP(k){
+  // XP = all earned amounts + undo reversals, but NOT redemptions (spending tokens doesn't reduce XP)
+  return Math.max(0,(k.tokens||[]).reduce((s,e)=>{
+    const n=e.note||'';
+    const isRedeem=n.startsWith('\uD83C\uDF81');
+    return isRedeem?s:s+Number(e.amount||0);
+  },0));
+}
+function getThreshold(k,badgeId,def){return(k.badgeThresholds&&k.badgeThresholds[badgeId]!=null)?Number(k.badgeThresholds[badgeId]):def;}
 function getLevel(xp){let lv=LEVELS[0];for(const l of LEVELS){if(xp>=l.min)lv=l;else break;}return lv;}
 function getNextLevel(xp){for(const l of LEVELS){if(xp<l.min)return l;}return null;}
 function renderLevelBox(k,containerId){
@@ -2591,12 +2688,279 @@ function renderShop(){
   });
 }
 
+/* ══════════════════════════════════════════════
+   ACHIEVEMENT MANAGER
+══════════════════════════════════════════════ */
+const BADGE_THRESHOLDS={chore_10:10,chore_50:50,chore_100:100,streak_3:3,streak_7:7,streak_14:14,streak_30:30,tokens_50:50,tokens_250:250,tokens_1000:1000};
+const BADGE_THRESH_LABEL={chore_10:'chores',chore_50:'chores',chore_100:'chores',streak_3:'days',streak_7:'days',streak_14:'days',streak_30:'days',tokens_50:'tokens',tokens_250:'tokens',tokens_1000:'tokens'};
+
+function openAchievementManager(){
+  const k=kid();if(!k){alert('Select a kid first.');return;}
+  if(!k.badgeThresholds)k.badgeThresholds={};
+  if(!k.customBadges)k.customBadges=[];
+  let ov=document.getElementById('achievementManagerOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='achievementManagerOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:480px">
+    <div class="m-hdr"><div class="m-title">🏅 Achievements &amp; Badges</div><button class="m-close" onclick="closeAchievementManager()">✕</button></div>
+    <div class="m-body" style="padding:14px 16px 18px;overflow-y:auto;max-height:76vh">
+      <div class="am-section">
+        <div class="am-section-title">Default Badges — edit thresholds</div>
+        <div id="amDefaultList"></div>
+      </div>
+      <div class="am-section">
+        <div class="am-section-title">Custom Achievements</div>
+        <div id="amCustomList"></div>
+        <button class="am-add-btn" onclick="openCreateBadgeModal()">+ Create Achievement</button>
+      </div>
+      <button class="am-save-all-btn" id="amSaveBtn">✓ Save All Changes</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeAchievementManager();});
+  renderAMDefaults(k);
+  renderAMCustom(k);
+  document.getElementById('amSaveBtn').addEventListener('click',()=>{
+    // Collect threshold inputs
+    BADGES.forEach(badge=>{
+      const inp=document.getElementById('amThresh_'+badge.id);
+      if(inp){const v=parseInt(inp.value,10);if(!isNaN(v)&&v>0)k.badgeThresholds[badge.id]=v;else delete k.badgeThresholds[badge.id];}
+    });
+    save();renderAll();closeAchievementManager();
+  });
+  ov.classList.add('open');
+}
+function closeAchievementManager(){const ov=document.getElementById('achievementManagerOverlay');if(ov)ov.remove();}
+
+function renderAMDefaults(k){
+  const ct=document.getElementById('amDefaultList');if(!ct)return;ct.innerHTML='';
+  BADGES.forEach(badge=>{
+    const row=document.createElement('div');row.className='am-badge-row';
+    const em=document.createElement('div');em.className='am-badge-emoji';em.textContent=badge.emoji;
+    const info=document.createElement('div');info.className='am-badge-info';
+    const nm=document.createElement('div');nm.className='am-badge-name';nm.textContent=badge.name;
+    const desc=document.createElement('div');desc.className='am-badge-desc';desc.textContent=badge.desc;
+    info.appendChild(nm);info.appendChild(desc);
+    row.appendChild(em);row.appendChild(info);
+    if(BADGE_THRESHOLDS[badge.id]!=null){
+      const inp=document.createElement('input');inp.type='number';inp.className='am-thresh-inp';
+      inp.id='amThresh_'+badge.id;inp.min=1;
+      inp.value=getThreshold(k,badge.id,BADGE_THRESHOLDS[badge.id]);
+      inp.title='Required to earn badge';
+      const lbl=document.createElement('span');lbl.className='am-thresh-label';lbl.textContent=BADGE_THRESH_LABEL[badge.id]||'';
+      row.appendChild(inp);row.appendChild(lbl);
+    }
+    ct.appendChild(row);
+  });
+}
+function renderAMCustom(k){
+  const ct=document.getElementById('amCustomList');if(!ct)return;ct.innerHTML='';
+  if(!k.customBadges||k.customBadges.length===0){
+    ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom achievements yet.</div>';return;
+  }
+  k.customBadges.forEach(badge=>{
+    const row=document.createElement('div');row.className='am-badge-row';
+    const em=document.createElement('div');em.className='am-badge-emoji';em.textContent=badge.emoji;
+    const info=document.createElement('div');info.className='am-badge-info';
+    const nm=document.createElement('div');nm.className='am-badge-name';nm.textContent=badge.name;
+    const typeMap={chores_total:'chores total',streak_days:'day streak',tokens_earned:'tokens earned'};
+    const desc=document.createElement('div');desc.className='am-badge-desc';desc.textContent=(badge.threshold||'?')+' '+(typeMap[badge.type]||badge.type);
+    info.appendChild(nm);info.appendChild(desc);
+    const editBtn=document.createElement('button');editBtn.className='am-edit-btn';editBtn.textContent='✏️';editBtn.title='Edit';
+    editBtn.addEventListener('click',()=>openCreateBadgeModal(badge));
+    const delBtn=document.createElement('button');delBtn.className='am-del-btn';delBtn.textContent='🗑';delBtn.title='Delete';
+    delBtn.addEventListener('click',()=>{
+      if(!confirm('Delete "'+badge.name+'"?'))return;
+      k.customBadges=k.customBadges.filter(b=>b.id!==badge.id);
+      k.badges=k.badges.filter(b=>b.id!==badge.id);
+      save();renderAll();renderAMCustom(k);
+    });
+    row.appendChild(em);row.appendChild(info);row.appendChild(editBtn);row.appendChild(delBtn);
+    ct.appendChild(row);
+  });
+}
+
+function openCreateBadgeModal(existing){
+  const k=kid();if(!k)return;
+  let ov=document.getElementById('createBadgeOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='createBadgeOverlay';ov.className='overlay';
+  const isEdit=!!(existing&&existing.id);
+  ov.innerHTML=`<div class="modal" style="max-width:360px">
+    <div class="m-hdr"><div class="m-title">${isEdit?'✏️ Edit':'✨ Create'} Achievement</div><button class="m-close" onclick="closeCreateBadgeModal()">✕</button></div>
+    <div class="m-body ced-body">
+      <div class="ced-label">Emoji</div>
+      <input class="ced-inp" id="cbEmoji" maxlength="4" placeholder="🏅" style="font-size:20px;text-align:center">
+      <div class="ced-label">Name</div>
+      <input class="ced-inp" id="cbName" type="text" placeholder="Achievement name…">
+      <div class="ced-label">Description</div>
+      <input class="ced-inp" id="cbDesc" type="text" placeholder="Short description…">
+      <div class="ced-label">Type</div>
+      <select class="ced-inp" id="cbType" style="cursor:pointer">
+        <option value="chores_total">Total Chores Completed</option>
+        <option value="streak_days">Streak Days (best)</option>
+        <option value="tokens_earned">Tokens Earned (total)</option>
+      </select>
+      <div class="ced-label">Required Amount</div>
+      <input class="ced-inp" id="cbThresh" type="number" min="1" placeholder="e.g. 25">
+      <div class="ced-actions">
+        <button class="ced-save-btn" id="cbSaveBtn">${isEdit?'✓ Save':'✓ Create'}</button>
+        ${isEdit?'<button class="ced-del-btn" id="cbDelBtn">🗑 Delete</button>':''}
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeCreateBadgeModal();});
+  if(isEdit){
+    document.getElementById('cbEmoji').value=existing.emoji||'🏅';
+    document.getElementById('cbName').value=existing.name||'';
+    document.getElementById('cbDesc').value=existing.desc||'';
+    document.getElementById('cbType').value=existing.type||'chores_total';
+    document.getElementById('cbThresh').value=existing.threshold||1;
+    const delBtn=document.getElementById('cbDelBtn');
+    if(delBtn)delBtn.addEventListener('click',()=>{
+      if(!confirm('Delete "'+existing.name+'"?'))return;
+      k.customBadges=k.customBadges.filter(b=>b.id!==existing.id);
+      k.badges=k.badges.filter(b=>b.id!==existing.id);
+      save();renderAll();closeCreateBadgeModal();renderAMCustom(k);
+    });
+  }
+  document.getElementById('cbSaveBtn').addEventListener('click',()=>{
+    const emoji=document.getElementById('cbEmoji').value.trim()||'🏅';
+    const name=document.getElementById('cbName').value.trim();
+    const desc=document.getElementById('cbDesc').value.trim();
+    const type=document.getElementById('cbType').value;
+    const threshold=Math.max(1,parseInt(document.getElementById('cbThresh').value,10)||1);
+    if(!name){alert('Please enter a name.');return;}
+    if(isEdit){
+      const b=k.customBadges.find(b=>b.id===existing.id);
+      if(b){b.emoji=emoji;b.name=name;b.desc=desc;b.type=type;b.threshold=threshold;}
+    } else {
+      k.customBadges.push({id:uid(),emoji,name,desc,type,threshold});
+    }
+    save();renderAll();closeCreateBadgeModal();
+    // Re-render custom list if manager is open
+    if(document.getElementById('achievementManagerOverlay'))renderAMCustom(k);
+  });
+  ov.classList.add('open');
+  document.getElementById('cbEmoji').focus();
+}
+function closeCreateBadgeModal(){const ov=document.getElementById('createBadgeOverlay');if(ov)ov.remove();}
+
+/* ══════════════════════════════════════════════
+   SHOP ITEMS MANAGER
+══════════════════════════════════════════════ */
+function openShopItemsManager(){
+  const k=kid();if(!k){alert('Select a kid first.');return;}
+  if(!k.customShopItems)k.customShopItems=[];
+  if(!k.shopCostEdits)k.shopCostEdits={};
+  let ov=document.getElementById('shopItemsManagerOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='shopItemsManagerOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:480px">
+    <div class="m-hdr"><div class="m-title">🛍️ Reward Shop Items</div><button class="m-close" onclick="closeShopItemsManager()">✕</button></div>
+    <div class="m-body" style="padding:14px 16px 18px;overflow-y:auto;max-height:76vh">
+      <div class="am-section">
+        <div class="am-section-title">Default Items — edit cost ⭐</div>
+        <div id="simDefaultList"></div>
+      </div>
+      <div class="am-section">
+        <div class="am-section-title">Custom Shop Items</div>
+        <div id="simCustomList"></div>
+        <button class="am-add-btn" id="simAddBtn">+ Add Custom Item</button>
+      </div>
+      <button class="am-save-all-btn" id="simSaveBtn">✓ Save All Changes</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeShopItemsManager();});
+  renderSIMDefaults(k);
+  renderSIMCustom(k);
+  document.getElementById('simAddBtn').addEventListener('click',()=>{
+    k.customShopItems.push({id:uid(),icon:'🎁',name:'',cost:10,cat:'Custom'});
+    renderSIMCustom(k);
+  });
+  document.getElementById('simSaveBtn').addEventListener('click',()=>{
+    // Save default cost edits
+    REWARD_SHOP.forEach(cat=>cat.items.forEach((item,i)=>{
+      const inp=document.getElementById('simDef_'+cat.cat+'_'+i);
+      if(inp){const v=parseInt(inp.value,10);if(!isNaN(v)&&v>0){if(!k.shopCostEdits)k.shopCostEdits={};k.shopCostEdits[cat.cat+'_'+i]=v;}}
+    }));
+    // Save custom items from inputs
+    k.customShopItems.forEach(item=>{
+      const icon=document.getElementById('simIcon_'+item.id);const name=document.getElementById('simName_'+item.id);const cost=document.getElementById('simCost_'+item.id);
+      if(icon)item.icon=icon.value||'🎁';if(name)item.name=name.value||'';if(cost)item.cost=Math.max(1,parseInt(cost.value,10)||1);
+    });
+    // Remove blank custom items
+    k.customShopItems=k.customShopItems.filter(i=>i.name.trim());
+    save();renderAll();closeShopItemsManager();
+  });
+  ov.classList.add('open');
+}
+function closeShopItemsManager(){const ov=document.getElementById('shopItemsManagerOverlay');if(ov)ov.remove();}
+
+function renderSIMDefaults(k){
+  const ct=document.getElementById('simDefaultList');if(!ct)return;ct.innerHTML='';
+  if(!k.shopCostEdits)k.shopCostEdits={};
+  REWARD_SHOP.forEach(cat=>{
+    const catLbl=document.createElement('div');catLbl.style.cssText='font-size:10px;font-weight:800;color:var(--purple);text-transform:uppercase;padding:6px 0 3px';catLbl.textContent=cat.cat;ct.appendChild(catLbl);
+    cat.items.forEach((item,i)=>{
+      const row=document.createElement('div');row.className='sim-default-row';
+      const icon=document.createElement('div');icon.className='sim-def-icon';icon.textContent=item.icon;
+      const name=document.createElement('div');name.className='sim-def-name';name.textContent=item.name;
+      const cost=document.createElement('input');cost.type='number';cost.className='sim-def-cost';cost.id='simDef_'+cat.cat+'_'+i;cost.min=1;
+      cost.value=k.shopCostEdits[cat.cat+'_'+i]||item.cost;
+      row.appendChild(icon);row.appendChild(name);row.appendChild(cost);ct.appendChild(row);
+    });
+  });
+}
+function renderSIMCustom(k){
+  const ct=document.getElementById('simCustomList');if(!ct)return;ct.innerHTML='';
+  if(!k.customShopItems||k.customShopItems.length===0){ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom items yet.</div>';return;}
+  k.customShopItems.forEach(item=>{
+    const row=document.createElement('div');row.className='sim-row';
+    const iconI=document.createElement('input');iconI.className='sim-icon-inp';iconI.id='simIcon_'+item.id;iconI.maxLength=4;iconI.value=item.icon||'🎁';
+    const nameI=document.createElement('input');nameI.className='sim-name-inp';nameI.id='simName_'+item.id;nameI.type='text';nameI.placeholder='Item name…';nameI.value=item.name||'';
+    const costI=document.createElement('input');costI.className='sim-cost-inp';costI.id='simCost_'+item.id;costI.type='number';costI.min=1;costI.value=item.cost||10;
+    const star=document.createElement('span');star.textContent='⭐';star.style.cssText='font-size:11px;flex-shrink:0';
+    const del=document.createElement('button');del.className='am-del-btn';del.textContent='🗑';del.title='Remove';
+    del.addEventListener('click',()=>{k.customShopItems=k.customShopItems.filter(ci=>ci.id!==item.id);renderSIMCustom(k);});
+    row.appendChild(iconI);row.appendChild(nameI);row.appendChild(costI);row.appendChild(star);row.appendChild(del);ct.appendChild(row);
+  });
+}
+
+// Update renderShop to show custom items and per-kid cost edits
+function renderShop(){
+  const grid=document.getElementById('shopGrid');if(!grid)return;
+  const k=kid();grid.innerHTML='';
+  if(!k.shopCostEdits)k.shopCostEdits={};
+  REWARD_SHOP.forEach((cat,ci)=>{
+    const lbl=document.createElement('div');lbl.className='shop-cat-label';lbl.textContent=cat.cat;grid.appendChild(lbl);
+    cat.items.forEach((item,i)=>{
+      const cost=k.shopCostEdits[cat.cat+'_'+i]||item.cost;
+      const row=document.createElement('div');row.className='shop-item';
+      row.innerHTML='<div class="shop-item-icon">'+item.icon+'</div><div class="shop-item-info"><div class="shop-item-name">'+item.name+'</div><div class="shop-item-cost">'+cost+' \u2605 suggested</div></div>';
+      const btn=document.createElement('button');btn.className='shop-item-add';btn.textContent='+ Add';
+      btn.addEventListener('click',()=>{if(!k)return;const r=mkReward();r.title=item.name;r.cost=cost;k.rewards.push(r);save();renderAll();btn.textContent='\u2713 Added!';btn.classList.add('added');setTimeout(()=>{btn.textContent='+ Add';btn.classList.remove('added');},1500);});
+      row.appendChild(btn);grid.appendChild(row);
+    });
+  });
+  // Custom shop items
+  if(k.customShopItems&&k.customShopItems.length>0){
+    const lbl=document.createElement('div');lbl.className='shop-cat-label';lbl.textContent='Custom';grid.appendChild(lbl);
+    k.customShopItems.filter(i=>i.name.trim()).forEach(item=>{
+      const row=document.createElement('div');row.className='shop-item';
+      row.innerHTML='<div class="shop-item-icon">'+item.icon+'</div><div class="shop-item-info"><div class="shop-item-name">'+item.name+'</div><div class="shop-item-cost">'+item.cost+' \u2605 suggested</div></div>';
+      const btn=document.createElement('button');btn.className='shop-item-add';btn.textContent='+ Add';
+      btn.addEventListener('click',()=>{if(!k)return;const r=mkReward();r.title=item.name;r.cost=item.cost;k.rewards.push(r);save();renderAll();btn.textContent='\u2713 Added!';btn.classList.add('added');setTimeout(()=>{btn.textContent='+ Add';btn.classList.remove('added');},1500);});
+      row.appendChild(btn);grid.appendChild(row);
+    });
+  }
+}
+
 /* ── BOOT ── */
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
 if(!S.customTemplates)S.customTemplates=[];
 // Migrate old kids without customSections
-S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
+S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.customShopItems)k.customShopItems=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
 // Migrate PIN from localStorage into S if present
 (()=>{const lp=localStorage.getItem('cq_parent_pin');if(lp&&!S.parentPin){S.parentPin=lp;localStorage.removeItem('cq_parent_pin');save();}})();
 setupCommonEvents();
