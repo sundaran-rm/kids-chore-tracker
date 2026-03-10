@@ -1010,6 +1010,17 @@ body.kids-mode .settings-km-hint { display:block!important }
         <div class="chart-wrap"><canvas id="mRChart"></canvas></div>
       </div>
     </div>
+    <div class="section" id="secMischief">
+      <div class="sec-hdr" onclick="toggleSection('secMischief')">
+        <div class="sec-title">&#x1F608; Mischief</div>
+      </div>
+      <div class="charts-body sec-body">
+        <div class="chart-lbl">Last 7 Days</div>
+        <div class="chart-wrap"><canvas id="wMChart"></canvas></div>
+        <div class="chart-lbl">Last 12 Months</div>
+        <div class="chart-wrap"><canvas id="mMChart"></canvas></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1296,7 +1307,7 @@ function openThemePicker(){
 /* ── DATA MODEL ── */
 let _uidc=0;
 function uid(){return Date.now()+'_'+(++_uidc)+'_'+Math.random().toString(36).slice(2,5);}
-function mkKid(name){return{id:uid(),name:name||'Kid',daily:[],bonus:[],customSections:[],rewards:[],tokens:[],streakDates:[],bestStreak:0,goal:{name:'',target:100,rewardId:null,savingsLock:false},allowance:{amount:0,day:1,lastPaid:null,lastWeekPaid:null},theme:'galaxy',badges:[],badgeThresholds:{},customBadges:[],customShopItems:[]};}
+function mkKid(name){return{id:uid(),name:name||'Kid',daily:[],bonus:[],customSections:[],rewards:[],tokens:[],streakDates:[],bestStreak:0,goal:{name:'',target:100,rewardId:null,savingsLock:false},allowance:{amount:0,day:1,lastPaid:null,lastWeekPaid:null},theme:'galaxy',badges:[],badgeThresholds:{},customBadges:[]};}
 function mkChore(daysOrGrp){const days=Array.isArray(daysOrGrp)?[...daysOrGrp]:[...ALL_DAYS];return{id:uid(),title:'',tokens:1,difficulty:'easy',notes:'',lastDone:null,completions:[],days};}
 function mkCustomSection(title){return{id:uid(),title:title||'Custom',chores:[],emoji:'✨'};}
 function mkReward(){return{id:uid(),title:'',cost:5};}
@@ -1712,54 +1723,58 @@ function renderRight(){
 
 /* ── CHARTS ── */
 Chart.defaults.color='#6b7fa3';Chart.defaults.font.family="'Nunito',sans-serif";Chart.defaults.font.weight='700';
-let wC,mC,wRC,mRC;
+let wC,mC,wRC,mRC,wMC,mMC;
 function renderCharts(k){
   /* ── helpers ── */
   function evDayKey(ts){const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
   /* ── weekly: last 7 days ── */
-  const wL=[],wT=[],wRT=[];
+  const wL=[],wT=[],wRT=[],wMT=[];
   const wKeys=[];
   const refDay=new Date();
   for(let i=6;i>=0;i--){
     const d=new Date(refDay);d.setDate(refDay.getDate()-i);
     wL.push(d.toLocaleDateString(undefined,{weekday:'short'}));
-    wT.push(0);wRT.push(0);
+    wT.push(0);wRT.push(0);wMT.push(0);
     wKeys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
   }
 
   /* ── monthly: last 12 months ── */
-  const mL=[],mT=[],mRT=[],months=[];
+  const mL=[],mT=[],mRT=[],mMT=[],months=[];
   const now=new Date();
   for(let i=11;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     mL.push(d.toLocaleDateString(undefined,{month:'short'}));
     months.push({y:d.getFullYear(),m:d.getMonth()});
-    mT.push(0);mRT.push(0);
+    mT.push(0);mRT.push(0);mMT.push(0);
   }
 
   /* ── accumulate ──
-     Earned chart : all non-redemption events (chore ticks, undos, manual add/sub)
-     Redemption chart : only 🎁 events (reward redemptions)
+     Earned chart    : positive non-redemption events (chore ticks, manual add)
+     Redemption chart: only 🎁 reward events
+     Mischief chart  : negative manual entries only (note starts 'Manual' but NOT 'Undo:')
   */
   if(k)(k.tokens||[]).forEach(ev=>{
     const t=Number(ev.amount||0);if(t===0)return;
-    const isRedeem=(ev.note||'').startsWith('\ud83c\udf81');
+    const note=ev.note||'';
+    const isRedeem=note.startsWith('\ud83c\udf81');
+    const isUndo=note.startsWith('Undo:');
+    const isMischief=!isRedeem&&!isUndo&&t<0&&ev.manual;
     const evDate=new Date(ev.timestamp);
     const dk=evDayKey(ev.timestamp);
 
-    /* weekly — string key lookup avoids all ms/DST arithmetic */
     const wi=wKeys.indexOf(dk);
     if(wi!==-1){
       if(isRedeem) wRT[wi]+=Math.abs(t);
-      else wT[wi]=Math.max(0,(wT[wi]||0)+t);
+      else if(isMischief) wMT[wi]+=Math.abs(t);
+      else if(!isUndo) wT[wi]=Math.max(0,(wT[wi]||0)+t);
     }
 
-    /* monthly */
     for(let i=0;i<months.length;i++){
       if(evDate.getFullYear()===months[i].y&&evDate.getMonth()===months[i].m){
         if(isRedeem) mRT[i]+=Math.abs(t);
-        else mT[i]=Math.max(0,(mT[i]||0)+t);
+        else if(isMischief) mMT[i]+=Math.abs(t);
+        else if(!isUndo) mT[i]=Math.max(0,(mT[i]||0)+t);
         break;
       }
     }
@@ -1770,10 +1785,13 @@ function renderCharts(k){
   const scl={y:{beginAtZero:true,grid:{color:'rgba(42,56,84,0.45)'},ticks:{color:'#6b7fa3',font:{size:9}}},x:{grid:{display:false},ticks:{color:'#6b7fa3',font:{size:9}}}};
   const wcc=document.getElementById('wChart');const mcc=document.getElementById('mChart');
   const wrc=document.getElementById('wRChart');const mrc=document.getElementById('mRChart');
+  const wmc=document.getElementById('wMChart');const mmc=document.getElementById('mMChart');
   if(wcc){if(wC)wC.destroy();wC=new Chart(wcc.getContext('2d'),{type:'bar',data:{labels:wL,datasets:[{data:wT,backgroundColor:'rgba(105,240,174,0.78)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
   if(mcc){if(mC)mC.destroy();mC=new Chart(mcc.getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mT,fill:true,backgroundColor:'rgba(79,195,247,0.07)',borderColor:'rgba(79,195,247,0.9)',pointBackgroundColor:'rgba(79,195,247,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
   if(wrc){if(wRC)wRC.destroy();wRC=new Chart(wrc.getContext('2d'),{type:'bar',data:{labels:wL,datasets:[{data:wRT,backgroundColor:'rgba(179,136,255,0.78)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
   if(mrc){if(mRC)mRC.destroy();mRC=new Chart(mrc.getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mRT,fill:true,backgroundColor:'rgba(179,136,255,0.07)',borderColor:'rgba(179,136,255,0.9)',pointBackgroundColor:'rgba(179,136,255,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
+  if(wmc){if(wMC)wMC.destroy();wMC=new Chart(wmc.getContext('2d'),{type:'bar',data:{labels:wL,datasets:[{data:wMT,backgroundColor:'rgba(255,107,107,0.78)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
+  if(mmc){if(mMC)mMC.destroy();mMC=new Chart(mmc.getContext('2d'),{type:'line',data:{labels:mL,datasets:[{data:mMT,fill:true,backgroundColor:'rgba(255,107,107,0.07)',borderColor:'rgba(255,107,107,0.9)',pointBackgroundColor:'rgba(255,107,107,1)',tension:0.4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:scl}});}
   /* streak history */
   const shc=document.getElementById('streakHistChart');
   if(shc&&k){
@@ -1784,6 +1802,32 @@ function renderCharts(k){
   }
 }
 
+
+function openResetConfirm(){
+  const kidNames=(S.kids||[]).map(k=>k.name).join(', ')||'no kids';
+  let ov=document.getElementById('resetConfirmOverlay');
+  if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='resetConfirmOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:380px;text-align:center">
+    <div class="m-hdr"><div class="m-title" style="color:var(--red)">&#x26A0;&#xFE0F; Reset Everything?</div></div>
+    <div class="m-body" style="padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:13px;color:var(--text);line-height:1.6">This will permanently delete <strong>all kids, chores, tokens, badges and history</strong> for:<br><span style="color:var(--yellow);font-weight:700">${kidNames}</span><br><br>This <strong>cannot be undone.</strong></p>
+      <p style="font-size:12px;color:var(--red);font-weight:700">Are you absolutely sure?</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="setup-btn ghost" onclick="document.getElementById('resetConfirmOverlay').remove()">Cancel</button>
+        <button class="setup-btn danger" onclick="doResetEverything()">Yes, Delete Everything</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.classList.add('open');
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+}
+function doResetEverything(){
+  S={kids:[],activeId:null,customShopItems:[]};
+  save();renderAll();
+  const ov=document.getElementById('resetConfirmOverlay');if(ov)ov.remove();
+}
 
 function addKid(){const k=mkKid('Kid '+(S.kids.length+1));S.kids.push(k);S.activeId=k.id;save();renderAll();}
 function removeKid(id){
@@ -1819,7 +1863,7 @@ function renderXPHeaderBar(k){
 function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
 function getAllSectionIds(){
   const k=kid();
-  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCalendar','secCharts','secRedemptions'];
+  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCalendar','secCharts','secRedemptions','secMischief'];
   if(k)(k.customSections||[]).forEach(s=>base.push('secCustom_'+s.id));
   return base;
 }
@@ -2049,8 +2093,7 @@ function showBadgeToast(badge){
 function checkAchievements(k){
   if(!k)return;
   if(!k.badges)k.badges=[];
-  if(!k.customBadges)k.customBadges=[];
-  const earned=new Set(k.badges.map(b=>b.id));
+    const earned=new Set(k.badges.map(b=>b.id));
   let newlyEarned=[];
   BADGES.forEach(badge=>{
     if(!earned.has(badge.id)&&badgeCheck(badge,k)){
@@ -2058,7 +2101,8 @@ function checkAchievements(k){
       newlyEarned.push(badge);
     }
   });
-  k.customBadges.forEach(badge=>{
+  // Custom badges (per-kid)
+  (k.customBadges||[]).forEach(badge=>{
     if(!earned.has(badge.id)&&customBadgeCheck(badge,k)){
       k.badges.push({id:badge.id,earnedAt:Date.now()});
       newlyEarned.push(badge);
@@ -2369,7 +2413,7 @@ function setupCommonEvents(){
   // DB export/import (desktop)
   const btnExp=document.getElementById('btnExport');if(btnExp)btnExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
   const btnImp=document.getElementById('btnImport');if(btnImp)btnImp.addEventListener('click',doImport);
-  const btnRst=document.getElementById('btnReset');if(btnRst)btnRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();});
+  const btnRst=document.getElementById('btnReset');if(btnRst)btnRst.addEventListener('click',()=>openResetConfirm());
   const btnKM=document.getElementById('btnKidsMode');if(btnKM)btnKM.addEventListener('click',()=>{
     if(kidsMode){ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} }
     else{ enterKidsMode(); }
@@ -2393,7 +2437,7 @@ function setupCommonEvents(){
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openAchievementManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openShopItemsManager();});
-  const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{if(!confirm('Reset everything?'))return;S={kids:[],activeId:null};save();renderAll();const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');});
+  const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openResetConfirm();});
   // Templates
   const btnHelp=document.getElementById('btnHelp');if(btnHelp)btnHelp.addEventListener('click',()=>document.getElementById('helpOverlay').classList.add('open'));
   const btnRpt=document.getElementById('btnReport');if(btnRpt)btnRpt.addEventListener('click',openReportCard);
@@ -2869,9 +2913,9 @@ function renderShop(){
       row.appendChild(btn);grid.appendChild(row);
     });
   });
-  if(k.customShopItems&&k.customShopItems.length>0){
+  if(S.customShopItems&&S.customShopItems.length>0){
     const lbl=document.createElement('div');lbl.className='shop-cat-label';lbl.textContent='Custom';grid.appendChild(lbl);
-    k.customShopItems.filter(i=>i.name.trim()).forEach(item=>{
+    S.customShopItems.filter(i=>i.name.trim()).forEach(item=>{
       const row=document.createElement('div');row.className='shop-item';
       row.innerHTML='<div class="shop-item-icon">'+item.icon+'</div><div class="shop-item-info"><div class="shop-item-name">'+item.name+'</div><div class="shop-item-cost">'+item.cost+' \u2605 suggested</div></div>';
       const btn=document.createElement('button');btn.className='shop-item-add';btn.textContent='+ Add';
@@ -3041,8 +3085,7 @@ function closeCreateBadgeModal(){const ov=document.getElementById('createBadgeOv
 ══════════════════════════════════════════════ */
 function openShopItemsManager(){
   const k=kid();if(!k){alert('Select a kid first.');return;}
-  if(!k.customShopItems)k.customShopItems=[];
-  if(!k.shopCostEdits)k.shopCostEdits={};
+    if(!k.shopCostEdits)k.shopCostEdits={};
   let ov=document.getElementById('shopItemsManagerOverlay');if(ov)ov.remove();
   ov=document.createElement('div');ov.id='shopItemsManagerOverlay';ov.className='overlay';
   ov.innerHTML=`<div class="modal" style="max-width:480px">
@@ -3063,17 +3106,17 @@ function openShopItemsManager(){
   document.body.appendChild(ov);
   ov.addEventListener('click',e=>{if(e.target===ov)closeShopItemsManager();});
   renderSIMDefaults(k);renderSIMCustom(k);
-  document.getElementById('simAddBtn').addEventListener('click',()=>{k.customShopItems.push({id:uid(),icon:'🎁',name:'',cost:10,cat:'Custom'});renderSIMCustom(k);});
+  document.getElementById('simAddBtn').addEventListener('click',()=>{S.customShopItems.push({id:uid(),icon:'🎁',name:'',cost:10,cat:'Custom'});renderSIMCustom(k);});
   document.getElementById('simSaveBtn').addEventListener('click',()=>{
     REWARD_SHOP.forEach(cat=>cat.items.forEach((item,i)=>{
       const inp=document.getElementById('simDef_'+cat.cat+'_'+i);
       if(inp){const v=parseInt(inp.value,10);if(!isNaN(v)&&v>0){if(!k.shopCostEdits)k.shopCostEdits={};k.shopCostEdits[cat.cat+'_'+i]=v;}}
     }));
-    k.customShopItems.forEach(item=>{
+    S.customShopItems.forEach(item=>{
       const icon=document.getElementById('simIcon_'+item.id);const name=document.getElementById('simName_'+item.id);const cost=document.getElementById('simCost_'+item.id);
       if(icon)item.icon=icon.value||'🎁';if(name)item.name=name.value||'';if(cost)item.cost=Math.max(1,parseInt(cost.value,10)||1);
     });
-    k.customShopItems=k.customShopItems.filter(i=>i.name.trim());
+    S.customShopItems=S.customShopItems.filter(i=>i.name.trim());
     save();renderAll();closeShopItemsManager();
   });
   ov.classList.add('open');
@@ -3096,15 +3139,15 @@ function renderSIMDefaults(k){
 }
 function renderSIMCustom(k){
   const ct=document.getElementById('simCustomList');if(!ct)return;ct.innerHTML='';
-  if(!k.customShopItems||k.customShopItems.length===0){ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom items yet.</div>';return;}
-  k.customShopItems.forEach(item=>{
+  if(!S.customShopItems||S.customShopItems.length===0){ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom items yet.</div>';return;}
+  S.customShopItems.forEach(item=>{
     const row=document.createElement('div');row.className='sim-row';
     const iconI=document.createElement('input');iconI.className='sim-icon-inp';iconI.id='simIcon_'+item.id;iconI.maxLength=4;iconI.value=item.icon||'🎁';
     const nameI=document.createElement('input');nameI.className='sim-name-inp';nameI.id='simName_'+item.id;nameI.type='text';nameI.placeholder='Item name…';nameI.value=item.name||'';
     const costI=document.createElement('input');costI.className='sim-cost-inp';costI.id='simCost_'+item.id;costI.type='number';costI.min=1;costI.value=item.cost||10;
     const star=document.createElement('span');star.textContent='⭐';star.style.cssText='font-size:11px;flex-shrink:0';
     const del=document.createElement('button');del.className='am-del-btn';del.textContent='🗑';
-    del.addEventListener('click',()=>{k.customShopItems=k.customShopItems.filter(ci=>ci.id!==item.id);renderSIMCustom(k);});
+    del.addEventListener('click',()=>{S.customShopItems=S.customShopItems.filter(ci=>ci.id!==item.id);renderSIMCustom(k);});
     row.appendChild(iconI);row.appendChild(nameI);row.appendChild(costI);row.appendChild(star);row.appendChild(del);ct.appendChild(row);
   });
 }
@@ -3113,8 +3156,17 @@ function renderSIMCustom(k){
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
 if(!S.customTemplates)S.customTemplates=[];
-// Migrate old kids without customSections
-S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.customShopItems)k.customShopItems=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
+// Custom shop items are shared across kids (live on S)
+if(!S.customShopItems)S.customShopItems=[];
+// Migrate old per-kid customShopItems up to S (merge, dedup by id)
+S.kids.forEach(k=>{
+  if(k.customShopItems&&k.customShopItems.length){
+    k.customShopItems.forEach(i=>{if(!S.customShopItems.find(x=>x.id===i.id))S.customShopItems.push(i);});
+    delete k.customShopItems;
+  }
+});
+// Migrate old kids without new fields
+S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
 // Migrate PIN from localStorage into S if present
 (()=>{const lp=localStorage.getItem('cq_parent_pin');if(lp&&!S.parentPin){S.parentPin=lp;localStorage.removeItem('cq_parent_pin');save();}})();
 setupCommonEvents();
