@@ -2375,6 +2375,7 @@ function calNext(id){calMonth++;if(calMonth>11){calMonth=0;calYear++;}closeCalPo
 
 function giveCalCredit(choreId,ds,containerId){
   const k=kid();if(!k)return;
+  if(kidsMode)return;
   let c=null;
   for(const ch of k.daily)if(ch.id===choreId){c=ch;break;}
   if(!c)for(const ch of k.bonus)if(ch.id===choreId){c=ch;break;}
@@ -2410,7 +2411,7 @@ function showCalPop(e,ds,containerId){
     scheduled.forEach(c=>{
       shown.add(c.id);
       const done=doneSet.has(c.id);
-      const creditBtn=isPast&&!done?`<button class="cal-credit-btn" onclick="giveCalCredit('${c.id}','${ds}','${containerId}')">+</button>`:'';
+      const creditBtn=isPast&&!done&&!kidsMode?`<button class="cal-credit-btn" onclick="giveCalCredit('${c.id}','${ds}','${containerId}')">+</button>`:'';
       rows+=`<div class="cal-chore-row">
         <div class="${done?'cal-chore-done':'cal-chore-miss'}">${done?'✓':''}</div>
         <div class="cal-chore-name">${c.title||'(unnamed)'}</div>
@@ -2425,7 +2426,7 @@ function showCalPop(e,ds,containerId){
       </div>`;
     });
   }
-  const hasCreditable=isPast&&scheduled.some(c=>!doneSet.has(c.id));
+  const hasCreditable=isPast&&!kidsMode&&scheduled.some(c=>!doneSet.has(c.id));
   const hint=hasCreditable?'<div class="cal-pop-retro-hint">Tap + to give credit for missed chores</div>':'';
 
   const pop=document.createElement('div');
