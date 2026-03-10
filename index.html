@@ -135,9 +135,10 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .drag-handle{cursor:grab;color:var(--muted);font-size:13px;padding:0 2px;flex-shrink:0;user-select:none;line-height:1;}
 .drag-handle:active{cursor:grabbing}
 .c-icon{font-size:15px;flex-shrink:0}
-.c-name{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;}
+.c-name{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;}
 .c-name::placeholder{color:var(--muted);font-weight:400}
 .c-name.struck{text-decoration:line-through;opacity:.5}
+.tok-badge .tok-val{color:var(--yellow);font-size:12px;font-weight:800;}
 
 /* ── TOKEN BADGE (uniform width matching cost-badge) ── */
 .tok-badge{display:flex;align-items:center;gap:2px;background:rgba(255,215,64,0.09);border:1px solid rgba(255,215,64,0.18);border-radius:6px;padding:2px 5px;flex-shrink:0;min-width:66px;justify-content:center;}
@@ -153,6 +154,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .ic-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);transition:all .14s;}
 .ic-btn.del:hover{background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.4);color:var(--red)}
 .ic-btn.undo:hover{background:rgba(79,195,247,0.08);border-color:rgba(79,195,247,0.3);color:var(--blue)}
+.ic-btn.edit:hover{background:rgba(255,215,64,0.1);border-color:rgba(255,215,64,0.4);color:var(--yellow)}
 
 /* ── DAY ROW ── */
 .day-row{display:flex;gap:3px;padding:2px 9px 8px;align-items:center;flex-wrap:wrap}
@@ -404,7 +406,9 @@ body.kids-mode .day-row,
 body.kids-mode #btnTemplates,
 body.kids-mode .btn-save-tpl,
 body.kids-mode #btnSummary,
-body.kids-mode #btnKidsMode { display:none!important }
+body.kids-mode #btnKidsMode,
+body.kids-mode .chore-edit-btn,
+body.kids-mode .cotw-btn { display:none!important }
 
 body.kids-mode .km-hdr-badge { display:flex!important }
 /* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
@@ -427,7 +431,8 @@ body.kids-mode .r-name,
 body.kids-mode .cost-badge input,
 body.kids-mode .custom-sec-title { pointer-events:none!important }
 
-body.kids-mode .ic-btn.undo { opacity:.35;pointer-events:none!important }
+body.kids-mode .ic-btn.undo { display:none!important }
+body.kids-mode .allowance-box { display:none!important }
 body.kids-mode .check-btn { pointer-events:none!important;cursor:default!important }
 body.kids-mode .redeem-btn { opacity:.35;pointer-events:none!important;cursor:default!important }
 body.kids-mode .check-btn { width:32px;height:32px;font-size:14px }
@@ -580,7 +585,26 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .diff-badge.easy{background:rgba(105,240,174,0.13);border-color:rgba(105,240,174,0.38);color:var(--green)}
 .diff-badge.medium{background:rgba(255,215,64,0.13);border-color:rgba(255,215,64,0.38);color:var(--yellow)}
 .diff-badge.hard{background:rgba(255,107,107,0.13);border-color:rgba(255,107,107,0.38);color:var(--red)}
-.diff-badge.none{background:transparent;border-color:var(--border);color:var(--muted)}
+.diff-badge.none{display:none}
+/* ── CHORE EDIT MODAL ── */
+.ced-body{display:flex;flex-direction:column;gap:10px;padding:16px 18px 20px;}
+.ced-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.ced-inp{width:100%;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;border-radius:8px;padding:8px 10px;outline:none;box-sizing:border-box;}
+.ced-inp:focus{border-color:var(--blue)}
+.ced-diff-row{display:flex;gap:5px;flex-wrap:wrap;}
+.ced-diff-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:11px;font-weight:800;border-radius:7px;padding:5px 10px;cursor:pointer;transition:all .14s;}
+.ced-diff-btn.active.easy{background:rgba(105,240,174,0.13);border-color:rgba(105,240,174,0.38);color:var(--green)}
+.ced-diff-btn.active.medium{background:rgba(255,215,64,0.13);border-color:rgba(255,215,64,0.38);color:var(--yellow)}
+.ced-diff-btn.active.hard{background:rgba(255,107,107,0.13);border-color:rgba(255,107,107,0.38);color:var(--red)}
+.ced-diff-btn.active.none{background:var(--navy3);border-color:var(--border);color:var(--text)}
+.ced-day-row{display:flex;gap:3px;flex-wrap:wrap;}
+.ced-notes{width:100%;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;border-radius:8px;padding:8px 10px;outline:none;resize:none;height:60px;box-sizing:border-box;transition:border-color .15s;}
+.ced-notes:focus{border-color:var(--blue)}
+.ced-actions{display:flex;gap:8px;margin-top:4px;}
+.ced-save-btn{flex:1;background:var(--green);color:#0a2a1a;font-family:var(--font);font-size:13px;font-weight:800;border:none;border-radius:10px;padding:10px;cursor:pointer;transition:filter .14s;}
+.ced-save-btn:hover{filter:brightness(1.1)}
+.ced-del-btn{background:rgba(255,80,80,0.12);color:var(--red);font-family:var(--font);font-size:12px;font-weight:800;border:1px solid rgba(255,80,80,0.3);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all .14s;}
+.ced-del-btn:hover{background:rgba(255,80,80,0.22)}
 .notes-toggle{background:transparent;border:none;cursor:pointer;font-size:13px;color:var(--muted);padding:0 2px;transition:color .12s;flex-shrink:0;line-height:1;}
 .notes-toggle:hover,.notes-toggle.has-note{color:var(--blue)}
 .chore-notes{padding:2px 9px 8px;display:none;}
@@ -974,6 +998,8 @@ const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ALL_DAYS=[0,1,2,3,4,5,6];
 const CC={green:'#69f0ae',yellow:'#ffd740',blue:'#4fc3f7',orange:'#ffb74d',red:'#ff6b6b'};
 const GRP_ICON={daily:'\u{1F9FC}',bonus:'\u26A1',custom:'\u2728'};
+const DIFF_STATES=['none','easy','medium','hard'];
+const DIFF_LABELS={none:'\u25A1 None',easy:'\uD83D\uDFE2 Easy',medium:'\uD83D\uDFE1 Med',hard:'\uD83D\uDD34 Hard'};
 
 /* ── THEMES ── */
 const THEMES={
@@ -1036,7 +1062,7 @@ function openThemePicker(){
 let _uidc=0;
 function uid(){return Date.now()+'_'+(++_uidc)+'_'+Math.random().toString(36).slice(2,5);}
 function mkKid(name){return{id:uid(),name:name||'Kid',daily:[],bonus:[],customSections:[],rewards:[],tokens:[],streakDates:[],bestStreak:0,goal:{name:'',target:100,rewardId:null,savingsLock:false},allowance:{amount:0,day:1,lastPaid:null,lastWeekPaid:null},theme:'galaxy'};}
-function mkChore(daysOrGrp){const days=Array.isArray(daysOrGrp)?[...daysOrGrp]:[...ALL_DAYS];return{id:uid(),title:'',tokens:1,difficulty:null,notes:'',lastDone:null,completions:[],days};}
+function mkChore(daysOrGrp){const days=Array.isArray(daysOrGrp)?[...daysOrGrp]:[...ALL_DAYS];return{id:uid(),title:'',tokens:1,difficulty:'easy',notes:'',lastDone:null,completions:[],days};}
 function mkCustomSection(title){return{id:uid(),title:title||'Custom',chores:[],emoji:'✨'};}
 function mkReward(){return{id:uid(),title:'',cost:5};}
 
@@ -1189,8 +1215,7 @@ function buildChoreCard(grp,secId,idx,item,k){
       const toArr=getChoreArr(k,to.grp,to.secId);
       if(!fromArr||!toArr)return;
       const[moved]=fromArr.splice(from.idx,1);
-      let toIdx=to.idx;
-      if(fromArr===toArr&&from.idx<to.idx)toIdx--;
+      let toIdx=to.idx;if(fromArr===toArr&&from.idx<to.idx)toIdx--;
       toArr.splice(toIdx,0,moved);
       save();renderAll();
     }catch(ex){console.error(ex);}
@@ -1201,23 +1226,28 @@ function buildChoreCard(grp,secId,idx,item,k){
   const icon=document.createElement('div');icon.className='c-icon';
   if(grp==='custom'){const sec=(k.customSections||[]).find(s=>s.id===secId);icon.textContent=sec?.emoji||'\u2728';}
   else icon.textContent=GRP_ICON[grp]||'\u2705';
-  const name=document.createElement('input');name.className='c-name'+(done?' struck':'');
-  name.type='text';name.value=item.title;name.placeholder='Task name\u2026';
-  name.addEventListener('click',e=>e.stopPropagation());
-  name.addEventListener('input',e=>{item.title=e.target.value;save();});
 
-  /* difficulty */
-  const DIFF_STATES=['none','easy','medium','hard'];
-  const DIFF_LABELS={none:'\u25A1',easy:'\uD83D\uDFE2 Easy',medium:'\uD83D\uDFE1 Med',hard:'\uD83D\uDD34 Hard'};
+  /* name — read-only display */
+  const name=document.createElement('div');name.className='c-name'+(done?' struck':'');
+  name.textContent=item.title||'(unnamed)';
+
+  /* difficulty — display, click to cycle */
   const diff=document.createElement('div');diff.className='diff-badge '+(item.difficulty||'none');
-  diff.textContent=DIFF_LABELS[item.difficulty||'none'];diff.title='Click to set difficulty';
-  diff.addEventListener('click',e=>{e.stopPropagation();const cur=DIFF_STATES.indexOf(item.difficulty||'none');item.difficulty=DIFF_STATES[(cur+1)%DIFF_STATES.length];save();renderAll();});
+  diff.textContent=DIFF_LABELS[item.difficulty||'none'];diff.title='Click to change difficulty';
+  diff.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(kidsMode)return;
+    const cycle=['easy','medium','hard'];
+    const cur=cycle.indexOf(item.difficulty||'');
+    item.difficulty=cycle[(cur+1)%cycle.length];
+    diff.className='diff-badge '+(item.difficulty||'none');
+    diff.textContent=DIFF_LABELS[item.difficulty||'none'];
+    save();
+  });
 
-  const tb=document.createElement('div');tb.className='tok-badge';tb.innerHTML='<span class="tok-star">\u2605</span>';
-  const ti=document.createElement('input');ti.type='number';ti.value=item.tokens;ti.min=0;ti.inputMode='numeric';ti.placeholder='0';
-  ti.addEventListener('click',e=>e.stopPropagation());
-  ti.addEventListener('input',e=>{item.tokens=Number(e.target.value||0);save();renderPointsBanner(k);});
-  tb.appendChild(ti);
+  /* token badge — display only */
+  const tb=document.createElement('div');tb.className='tok-badge';
+  tb.innerHTML='<span class="tok-star">\u2605</span><span class="tok-val">'+item.tokens+'</span>';
 
   /* COTW star */
   const isCOTWchore=isCOTW(item.id);
@@ -1226,11 +1256,7 @@ function buildChoreCard(grp,secId,idx,item,k){
   cotwBtn.textContent='\u2B50';
   cotwBtn.addEventListener('click',e=>{e.stopPropagation();setCOTW(item.id,k.id);});
 
-  /* notes toggle */
-  const notesToggle=document.createElement('button');notesToggle.className='notes-toggle'+(item.notes?' has-note':'');
-  notesToggle.title='Notes / instructions';notesToggle.textContent='\uD83D\uDCDD';
-  notesToggle.addEventListener('click',e=>{e.stopPropagation();notesWrap.classList.toggle('open');});
-
+  /* check button */
   const chk=document.createElement('button');chk.className='check-btn'+(done?' ticked':'');
   chk.textContent=done?'\u2713':'';chk.title=done?'Done today!':sched?'Mark done':'Not scheduled today';
   if(!sched&&!done)chk.setAttribute('disabled','');
@@ -1246,6 +1272,7 @@ function buildChoreCard(grp,secId,idx,item,k){
     renderAll();
   });
 
+  /* undo button */
   const undo=document.createElement('button');undo.className='ic-btn undo';undo.title='Undo today';undo.textContent='\u21a9';
   undo.addEventListener('click',e=>{
     e.stopPropagation();if(item.lastDone!==today)return;
@@ -1255,39 +1282,14 @@ function buildChoreCard(grp,secId,idx,item,k){
     refreshStreak(k);save();renderAll();
   });
 
-  const del=document.createElement('button');del.className='ic-btn del';del.title='Delete';del.textContent='\ud83d\uddd1';
-  del.addEventListener('click',e=>{
-    e.stopPropagation();
-    const arr=getChoreArr(k,grp,secId);if(arr)arr.splice(idx,1);
-    save();renderAll();
-  });
+  /* edit button */
+  const editBtn=document.createElement('button');editBtn.className='ic-btn edit chore-edit-btn';editBtn.title='Edit chore';editBtn.innerHTML='\u270F\uFE0F';
+  editBtn.addEventListener('click',e=>{e.stopPropagation();openChoreEditModal(item,k,grp,secId);});
 
-  row.appendChild(handle);row.appendChild(icon);row.appendChild(name);row.appendChild(diff);row.appendChild(tb);row.appendChild(cotwBtn);row.appendChild(notesToggle);
-  if(isCOTWchore){const cb2=document.createElement('div');cb2.className='cotw-badge';cb2.textContent='\u2B50 COTW 2\u00D7';row.appendChild(cb2);}
-  row.appendChild(chk);row.appendChild(undo);row.appendChild(del);
+  row.appendChild(handle);row.appendChild(icon);row.appendChild(name);row.appendChild(diff);row.appendChild(tb);row.appendChild(cotwBtn);
+  row.appendChild(chk);row.appendChild(undo);row.appendChild(editBtn);
   card.appendChild(row);
-  const notesWrap=document.createElement('div');notesWrap.className='chore-notes'+(item.notes?' open':'');
-  const notesTA=document.createElement('textarea');notesTA.placeholder='Instructions or notes\u2026';notesTA.value=item.notes||'';
-  notesTA.addEventListener('click',e=>e.stopPropagation());
-  notesTA.addEventListener('input',e=>{item.notes=e.target.value;save();notesToggle.className='notes-toggle'+(item.notes?' has-note':'');});
-  notesWrap.appendChild(notesTA);card.appendChild(notesWrap);
   if(isCOTWchore)card.classList.add('cotw');
-
-  const dp=document.createElement('div');dp.className='day-row';
-  DAY_LABELS.forEach((lbl,d)=>{
-    const b=document.createElement('button');
-    b.className='day-btn'+(item.days.includes(d)?' on':'')+(d===dow?' today-ring':'');
-    b.textContent=lbl;b.title=DAY_NAMES[d];
-    b.addEventListener('click',e=>{
-      e.stopPropagation();
-      if(item.days.includes(d)){if(item.days.length>1)item.days=item.days.filter(x=>x!==d);}
-      else item.days=[...item.days,d].sort((a,b)=>a-b);
-      save();renderAll();
-    });
-    dp.appendChild(b);
-  });
-  if(!sched){const note=document.createElement('span');note.className='off-label';note.textContent='not today';dp.appendChild(note);}
-  card.appendChild(dp);
   return card;
 }
 
@@ -1383,7 +1385,7 @@ function renderCustomSections(k){
     titleWrap.appendChild(emojiBtn);titleWrap.appendChild(inp);
     const acts=document.createElement('div');acts.style.cssText='display:flex;gap:5px;align-items:center;flex-shrink:0';
     const addB=document.createElement('button');addB.className='btn-add';addB.textContent='+ Add';
-    addB.addEventListener('click',e=>{e.stopPropagation();sec.chores.push(mkChore(ALL_DAYS));save();renderAll();});
+    addB.addEventListener('click',e=>{e.stopPropagation();const c=mkChore(ALL_DAYS);sec.chores.push(c);save();renderAll();openChoreEditModal(c,k,'custom',sec.id);});
     const delB=document.createElement('button');delB.className='ic-btn del';delB.title='Delete section';delB.textContent='\ud83d\uddd1';
     delB.addEventListener('click',e=>{
       e.stopPropagation();if(!confirm('Delete section "'+(sec.title||'Custom')+'"?'))return;
@@ -2038,8 +2040,8 @@ function setupCommonEvents(){
       setTimeout(()=>document.addEventListener('click',closeKidDropdown,{once:true}),10);}
   });
   const b2=document.getElementById('btnAddKidBig');if(b2)b2.addEventListener('click',addKid);
-  const b3=document.getElementById('btnAddDaily');if(b3)b3.addEventListener('click',()=>{const k=kid();if(!k)return;k.daily.push(mkChore(ALL_DAYS));save();renderAll();});
-  const b4=document.getElementById('btnAddBonus');if(b4)b4.addEventListener('click',()=>{const k=kid();if(!k)return;k.bonus.push(mkChore(ALL_DAYS));save();renderAll();});
+  const b3=document.getElementById('btnAddDaily');if(b3)b3.addEventListener('click',()=>{const k=kid();if(!k)return;const c=mkChore(ALL_DAYS);k.daily.push(c);save();renderAll();openChoreEditModal(c,k,'daily',null);});
+  const b4=document.getElementById('btnAddBonus');if(b4)b4.addEventListener('click',()=>{const k=kid();if(!k)return;const c=mkChore(ALL_DAYS);k.bonus.push(c);save();renderAll();openChoreEditModal(c,k,'bonus',null);});
   const b5=document.getElementById('btnAddReward');if(b5)b5.addEventListener('click',()=>{const k=kid();if(!k)return;k.rewards.push(mkReward());save();renderAll();});
   const setAS=document.getElementById('setAddSection');if(setAS)setAS.addEventListener('click',()=>{const k=kid();if(!k){alert('Add a kid first!');return;}if(!k.customSections)k.customSections=[];k.customSections.push(mkCustomSection('Section '+(k.customSections.length+1)));save();renderAll();document.getElementById('settingsOverlay').classList.remove('open');});
   const b7=document.getElementById('btnSummary');if(b7)b7.addEventListener('click',openSummary);
@@ -2341,6 +2343,87 @@ function showCalPop(e,ds,containerId){
 
   setTimeout(()=>document.addEventListener('click',closeCalPop,{once:true}),10);
 }
+/* ══ CHORE EDIT MODAL ══ */
+function openChoreEditModal(item,k,grp,secId){
+  if(kidsMode)return;
+  let ov=document.getElementById('choreEditOverlay');if(ov)ov.remove();
+  const dow=todayDow();
+  ov=document.createElement('div');ov.id='choreEditOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:400px">
+    <div class="m-hdr"><div class="m-title">\u270F\uFE0F Edit Chore</div><button class="m-close" onclick="closeChoreEditModal()">\u2715</button></div>
+    <div class="m-body ced-body">
+      <div class="ced-label">Chore Name</div>
+      <input class="ced-inp" id="cedName" type="text" placeholder="Task name\u2026">
+      <div class="ced-label">\u2605 Tokens</div>
+      <input class="ced-inp" id="cedTok" type="number" min="0" inputmode="numeric">
+      <div class="ced-label">Difficulty</div>
+      <div class="ced-diff-row" id="cedDiff"></div>
+      <div class="ced-label">Schedule</div>
+      <div class="ced-day-row" id="cedDays"></div>
+      <div class="ced-label">\uD83D\uDCDD Instructions</div>
+      <textarea class="ced-notes" id="cedNotes" placeholder="Optional instructions\u2026"></textarea>
+      <div class="ced-actions">
+        <button class="ced-save-btn" id="cedSave">\u2713 Save</button>
+        <button class="ced-del-btn" id="cedDel">\uD83D\uDDD1 Delete</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeChoreEditModal();});
+
+  const nameInp=document.getElementById('cedName');nameInp.value=item.title||'';
+  const tokInp=document.getElementById('cedTok');tokInp.value=item.tokens||1;
+
+  const diffRow=document.getElementById('cedDiff');
+  DIFF_STATES.forEach(ds=>{
+    const b=document.createElement('button');
+    const cur=item.difficulty||'none';
+    b.className='ced-diff-btn'+(cur===ds?' active '+ds:'');
+    b.setAttribute('data-diff',ds);b.textContent=DIFF_LABELS[ds];
+    b.addEventListener('click',()=>{
+      item.difficulty=ds;
+      diffRow.querySelectorAll('.ced-diff-btn').forEach(x=>{
+        const d=x.getAttribute('data-diff');x.className='ced-diff-btn'+(d===ds?' active '+d:'');
+      });
+    });
+    diffRow.appendChild(b);
+  });
+
+  const daysRow=document.getElementById('cedDays');
+  DAY_LABELS.forEach((lbl,d)=>{
+    const b=document.createElement('button');
+    b.className='day-btn'+(item.days.includes(d)?' on':'')+(d===dow?' today-ring':'');
+    b.textContent=lbl;b.title=DAY_NAMES[d];
+    b.addEventListener('click',()=>{
+      if(item.days.includes(d)){if(item.days.length>1)item.days=item.days.filter(x=>x!==d);}
+      else item.days=[...item.days,d].sort((a,b)=>a-b);
+      b.className='day-btn'+(item.days.includes(d)?' on':'')+(d===dow?' today-ring':'');
+    });
+    daysRow.appendChild(b);
+  });
+
+  const notesTA=document.getElementById('cedNotes');notesTA.value=item.notes||'';
+
+  document.getElementById('cedSave').addEventListener('click',()=>{
+    item.title=nameInp.value.trim()||item.title||'(unnamed)';
+    item.tokens=Math.max(0,Number(tokInp.value||0));
+    item.notes=notesTA.value;
+    save();renderAll();closeChoreEditModal();
+  });
+  document.getElementById('cedDel').addEventListener('click',()=>{
+    if(!confirm('Delete "'+(item.title||'this chore')+'"?'))return;
+    const arr=getChoreArr(k,grp,secId);
+    if(arr){const i=arr.findIndex(c=>c.id===item.id);if(i!==-1)arr.splice(i,1);}
+    save();renderAll();closeChoreEditModal();
+  });
+
+  ov.classList.add('open');
+  nameInp.focus();nameInp.select();
+}
+function closeChoreEditModal(){
+  const ov=document.getElementById('choreEditOverlay');if(ov)ov.remove();
+}
+
 function closeCalPop(){
   if(calPopEl){calPopEl.remove();calPopEl=null;}
 }
