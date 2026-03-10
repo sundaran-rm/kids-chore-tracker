@@ -613,6 +613,23 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .chore-notes.open{display:block}
 .chore-notes textarea{width:100%;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;border-radius:8px;padding:7px 9px;outline:none;resize:none;height:54px;transition:border-color .15s;}
 .chore-notes textarea:focus{border-color:var(--blue)}
+/* ── CHORE NOTES REVEAL (desktop hover) ── */
+.chore-notes-tip{display:none;padding:3px 12px 7px 38px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;border-top:1px solid rgba(42,56,84,0.3);}
+.chore-card.has-notes:hover .chore-notes-tip{display:block;}
+/* ── BADGE TOOLTIP ── */
+.badge-card{position:relative;}
+.badge-card[data-tooltip]::after{
+  content:attr(data-tooltip);
+  position:absolute;bottom:calc(100% + 7px);left:50%;
+  transform:translateX(-50%);
+  background:var(--navy2);border:1px solid rgba(255,215,64,0.3);border-radius:10px;
+  padding:7px 11px;font-size:10px;font-weight:600;color:var(--text);
+  white-space:pre-line;text-align:center;line-height:1.5;
+  pointer-events:none;opacity:0;transition:opacity .15s;
+  z-index:500;min-width:140px;max-width:200px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.5);
+}
+.badge-card[data-tooltip]:hover::after{opacity:1;}
 .cotw-btn{background:transparent;border:none;cursor:pointer;font-size:13px;padding:0 2px;opacity:.35;transition:all .15s;flex-shrink:0;line-height:1;}
 .cotw-btn:hover{opacity:.7}
 .cotw-btn.active{opacity:1;filter:drop-shadow(0 0 5px #ffd740)}
@@ -870,6 +887,9 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
           <div class="chart-wrap"><canvas id="wChart"></canvas></div>
           <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
           <div class="chart-wrap"><canvas id="mChart"></canvas></div>
+          <!-- STREAK HISTORY -->
+          <div class="chart-sub-title">&#x1F525; 30-Day Streak History</div>
+          <div class="streak-hist-wrap"><canvas id="streakHistChart"></canvas></div>
         </div>
       </div>
       <div class="section" id="secRedemptions">
@@ -879,9 +899,6 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
           <div class="chart-wrap"><canvas id="wRChart"></canvas></div>
           <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
           <div class="chart-wrap"><canvas id="mRChart"></canvas></div>
-        <!-- STREAK HISTORY -->
-        <div class="chart-sub-title">&#x1F525; 30-Day Streak History</div>
-        <div class="streak-hist-wrap"><canvas id="streakHistChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -891,7 +908,7 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 <!-- SUMMARY MODAL -->
 <div class="overlay" id="summaryOverlay">
   <div class="modal">
-    <div class="m-hdr"><div class="m-title">&#x1F4CA; This Week</div><button class="m-close" id="btnSumClose">&#x2715;</button></div>
+    <div class="m-hdr"><div class="m-title">&#x1F4CA; All&#x2011;Time Summary</div><button class="m-close" id="btnSumClose">&#x2715;</button></div>
     <div class="m-body" id="sumBody"></div>
   </div>
 </div>
@@ -931,62 +948,78 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 
       <div class="help-section">
         <div class="help-section-title">&#x2600;&#xFE0F; Daily Tasks &amp; Chores</div>
-        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a chore</div><div class="help-item-desc">Click <strong>+ Add</strong> in any section header. Type the chore name and set a token value using the &#x2605; badge.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4C5;</div><div class="help-item-text"><div class="help-item-title">Set a schedule</div><div class="help-item-desc">Click the day buttons (S M T W T F S) under a chore to choose which days it appears. Greyed-out chores are not scheduled for today.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x2714;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Tick off a chore</div><div class="help-item-desc">Click the circle button on the left of any chore. Tokens are added automatically. Click again to undo.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a chore</div><div class="help-item-desc">Click <strong>+ Add</strong> in any section header. A new chore appears and the edit modal opens — set the name, tokens, difficulty, schedule, and instructions.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4DD;</div><div class="help-item-text"><div class="help-item-title">Chore instructions (hover)</div><div class="help-item-desc">If a chore has instructions set in its edit modal, <strong>hovering</strong> over the chore card reveals them in a strip below the title. Useful for reminding kids exactly what's expected.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F7E1;</div><div class="help-item-text"><div class="help-item-title">Difficulty badge</div><div class="help-item-desc">Click the coloured badge (🟢 Easy / 🟡 Med / 🔴 Hard) on any chore to cycle difficulty. Set it to None only via the ✏️ edit modal. Difficulty is hidden from kids in Kids Mode.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4C5;</div><div class="help-item-text"><div class="help-item-title">Set a schedule</div><div class="help-item-desc">Open the ✏️ edit modal and tap the day buttons (S M T W T F S) to choose which days a chore appears. Greyed-out chores are not scheduled for today.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2714;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Tick off a chore</div><div class="help-item-desc">Click the circle button on the right of any chore. Tokens are added automatically. Use ↩ to undo.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Chore of the Week</div><div class="help-item-desc">Click the ⭐ button on a chore to mark it as Chore of the Week — it earns 2× tokens for the whole week. The gold border highlights which chore it is.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x26A1;</div><div class="help-item-text"><div class="help-item-title">Bonus chores</div><div class="help-item-desc">One-off or extra chores that don't follow a daily schedule. Great for special tasks or extra effort.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x2728;</div><div class="help-item-text"><div class="help-item-title">Custom sections</div><div class="help-item-desc">Click <strong>+ Section</strong> in the header to create named groups (e.g. "Homework", "Pet Care"). Drag chores between sections.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4CB;</div><div class="help-item-text"><div class="help-item-title">Templates</div><div class="help-item-desc">Click the <strong>Templates</strong> button in the Daily Tasks header to load a ready-made pack of chores. Save your own packs with the &#x1F4BE; Save button.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4CB;</div><div class="help-item-text"><div class="help-item-title">Templates</div><div class="help-item-desc">Click the <strong>Templates</strong> button in the Daily Tasks header to load a ready-made pack. Save your own packs with the &#x1F4BE; Save button.</div></div></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x2B50; Tokens &amp; Rewards</div>
         <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Earning tokens</div><div class="help-item-desc">Tokens are earned automatically when chores are ticked off. The gold coin in the right column shows the running total.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x1F381;</div><div class="help-item-text"><div class="help-item-title">Rewards</div><div class="help-item-desc">Add rewards (e.g. "Movie Night – 50&#x2605;") in the Rewards section. Click <strong>Redeem</strong> to spend tokens when a reward is earned.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F6CD;</div><div class="help-item-text"><div class="help-item-title">Reward Shop</div><div class="help-item-desc">Click <strong>🛍 Shop</strong> in the Rewards header to browse suggested rewards. Customise shop items and costs per kid via <strong>Settings → Reward Shop Items</strong>.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x1F3AF;</div><div class="help-item-text"><div class="help-item-title">Goals</div><div class="help-item-desc">Set a savings goal in the Wallet section — link it to a reward to show a progress bar towards something specific.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Manual adjustments</div><div class="help-item-desc">Use the + Add / − Remove buttons in the Wallet to give bonus tokens or make corrections. Add a note to explain why.</div></div></div>
       </div>
 
       <div class="help-section">
+        <div class="help-section-title">&#x1F4AA; XP &amp; Levels</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">XP progress bar</div><div class="help-item-desc">The purple bar just below the header shows the current XP level and progress to the next one. XP is earned by completing chores and reduced by undo. Spending tokens on rewards does <strong>not</strong> reduce XP.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F331;</div><div class="help-item-text"><div class="help-item-title">Levels</div><div class="help-item-desc">There are 6 levels: 🌱 Rookie → ⭐ Helper → 🌟 Star → 🏆 Champion → 👑 Legend → 🔮 Master. Hover the XP bar to see exact XP count.</div></div></div>
+      </div>
+
+      <div class="help-section">
         <div class="help-section-title">&#x1F525; Streaks &amp; Achievements</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks</div><div class="help-item-desc">A streak increases each day at least one chore is completed. Miss a day and it resets. The record is saved separately.</div></div></div>
-        
-        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">14 badges to unlock. Greyed out = still locked. Earned badges show the date they were unlocked.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks</div><div class="help-item-desc">A streak increases each day at least one chore is completed. Miss a day and it resets. The record is saved separately. The 30-day streak chart is in the Earned section.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc"><strong>Hover</strong> any badge to see what it requires and — if earned — the exact date it was unlocked. Thresholds shown reflect any custom edits you've made.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2699;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Customise achievements</div><div class="help-item-desc">Go to <strong>Settings → Achievements &amp; Badges</strong> to change how many chores/streak days/tokens are needed for each default badge, and create entirely new achievements. Settings are per kid. Raising a threshold will un-earn badges the kid no longer qualifies for.</div></div></div>
         <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
           <div style="display:grid;grid-template-columns:26px 1fr;gap:6px 10px;align-items:start">
             <span style="font-size:18px;line-height:1.3">&#x1F31F;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">First Steps</span> <span style="font-size:10px;color:var(--muted)">— Complete your very first chore</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F3C3;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Getting Going</span> <span style="font-size:10px;color:var(--muted)">— Complete 10 chores in total</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F3C6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Champion</span> <span style="font-size:10px;color:var(--muted)">— Complete 50 chores in total</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F680;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Legend</span> <span style="font-size:10px;color:var(--muted)">— Complete 100 chores in total</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F525;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">On Fire</span> <span style="font-size:10px;color:var(--muted)">— Reach a 3-day streak</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x26A1;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Week Warrior</span> <span style="font-size:10px;color:var(--muted)">— Keep a 7-day streak going</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F4AB;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Fortnight Force</span> <span style="font-size:10px;color:var(--muted)">— Reach a 14-day streak</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F451;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Unstoppable</span> <span style="font-size:10px;color:var(--muted)">— Achieve a 30-day streak</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F4B0;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Collector</span> <span style="font-size:10px;color:var(--muted)">— Earn 50 tokens across all time</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F48E;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Hoarder</span> <span style="font-size:10px;color:var(--muted)">— Earn 250 tokens across all time</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F3E6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Millionaire</span> <span style="font-size:10px;color:var(--muted)">— Earn 1,000 tokens across all time</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3C3;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Getting Going</span> <span style="font-size:10px;color:var(--muted)">— Complete 10 chores (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3C6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Champion</span> <span style="font-size:10px;color:var(--muted)">— Complete 50 chores (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F680;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Chore Legend</span> <span style="font-size:10px;color:var(--muted)">— Complete 100 chores (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F525;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">On Fire</span> <span style="font-size:10px;color:var(--muted)">— 3-day streak (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x26A1;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Week Warrior</span> <span style="font-size:10px;color:var(--muted)">— 7-day streak (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F4AB;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Fortnight Force</span> <span style="font-size:10px;color:var(--muted)">— 14-day streak (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F451;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Unstoppable</span> <span style="font-size:10px;color:var(--muted)">— 30-day streak (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F4B0;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Collector</span> <span style="font-size:10px;color:var(--muted)">— Earn 50 tokens (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F48E;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Hoarder</span> <span style="font-size:10px;color:var(--muted)">— Earn 250 tokens (editable)</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3E6;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Token Millionaire</span> <span style="font-size:10px;color:var(--muted)">— Earn 1,000 tokens (editable)</span></div>
             <span style="font-size:18px;line-height:1.3">&#x1F381;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Treat Time</span> <span style="font-size:10px;color:var(--muted)">— Redeem your first reward</span></div>
             <span style="font-size:18px;line-height:1.3">&#x2728;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Perfect Day</span> <span style="font-size:10px;color:var(--muted)">— Complete every scheduled chore in a single day</span></div>
-            <span style="font-size:18px;line-height:1.3">&#x1F3AF;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Goal Getter</span> <span style="font-size:10px;color:var(--muted)">— Set a savings goal in the Wallet tab</span></div>
+            <span style="font-size:18px;line-height:1.3">&#x1F3AF;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Goal Getter</span> <span style="font-size:10px;color:var(--muted)">— Set a savings goal in the Wallet</span></div>
           </div>
         </div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x1F512; Kids Mode</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F512;</div><div class="help-item-text"><div class="help-item-title">Turning it on</div><div class="help-item-desc">Click <strong>Kids Mode</strong> in the header (or Settings). All editing controls are hidden — kids can only view and tick off chores.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F511;</div><div class="help-item-text"><div class="help-item-title">Parent PIN</div><div class="help-item-desc">Set a 4-digit PIN in Settings &#x2192; Parent PIN. Once set, Kids Mode can only be unlocked with the PIN. The PIN syncs across all devices.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F513;</div><div class="help-item-text"><div class="help-item-title">Unlocking</div><div class="help-item-desc">Click the green <strong>Kids Mode &#x1F512;</strong> badge in the header, enter the PIN, and parent controls return.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F512;</div><div class="help-item-text"><div class="help-item-title">Turning it on</div><div class="help-item-desc">Click <strong>Kids Mode</strong> in the header (or Settings). All editing controls hide — kids can only view, tick chores, and see their instructions by hovering.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F511;</div><div class="help-item-text"><div class="help-item-title">Parent PIN</div><div class="help-item-desc">Set a 4-digit PIN in Settings → Parent PIN. Once set, Kids Mode can only be unlocked with the PIN. The PIN syncs across all devices.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F513;</div><div class="help-item-text"><div class="help-item-title">Unlocking</div><div class="help-item-desc">Click the green <strong>Kids Mode 🔒</strong> badge in the header, enter the PIN, and parent controls return.</div></div></div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">&#x2611; Settings</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">Edit thresholds for numeric badges, and create custom achievements based on total chores, streak days, or tokens earned. Per kid.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F6CD;</div><div class="help-item-text"><div class="help-item-title">Reward Shop Items</div><div class="help-item-desc">Override the suggested token cost for any default shop item, and add your own custom items. Changes apply per kid.</div></div></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x2601; Cloud Sync</div>
-        <div class="help-item"><div class="help-item-icon">&#x2601;</div><div class="help-item-text"><div class="help-item-title">Setting up Firebase</div><div class="help-item-desc">Go to Settings &#x2192; Cloud Database and follow the 4-step guide to connect a free Firebase project. Takes about 5 minutes.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4F1;</div><div class="help-item-text"><div class="help-item-title">Linking devices</div><div class="help-item-desc">Use the same <strong>Household ID</strong> on every device. All chores, tokens, and templates sync in real time.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2601;</div><div class="help-item-text"><div class="help-item-title">Setting up Firebase</div><div class="help-item-desc">Go to Settings → Cloud Database and follow the 4-step guide to connect a free Firebase project. Takes about 5 minutes.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4F1;</div><div class="help-item-text"><div class="help-item-title">Linking devices</div><div class="help-item-desc">Use the same <strong>Household ID</strong> on every device. All chores, tokens, badges, and templates sync in real time.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x1F7E2;</div><div class="help-item-text"><div class="help-item-title">Sync status</div><div class="help-item-desc">The dot in the header shows sync state — green = synced, yellow = saving, orange = offline pending, red = error.</div></div></div>
       </div>
 
-      <div class="help-tip"><strong>Tip:</strong> Press <strong>Escape</strong> to collapse or expand all sections at once. Drag the &#x2630; handle on any chore or reward to reorder it within its section.</div>
+      <div class="help-tip"><strong>Tip:</strong> Press <strong>Escape</strong> to collapse or expand all sections at once. Drag the &#x2630; handle on any chore or reward to reorder it. Hover a badge to see its requirement and earned date.</div>
     </div>
   </div>
 </div>
@@ -1346,6 +1379,13 @@ function buildChoreCard(grp,secId,idx,item,k){
   row.appendChild(handle);row.appendChild(icon);row.appendChild(name);row.appendChild(diff);row.appendChild(tb);row.appendChild(cotwBtn);
   row.appendChild(chk);row.appendChild(undo);row.appendChild(editBtn);
   card.appendChild(row);
+  // Notes hover reveal
+  if(item.notes&&item.notes.trim()){
+    card.classList.add('has-notes');
+    const tip=document.createElement('div');tip.className='chore-notes-tip';
+    tip.textContent=item.notes.trim();
+    card.appendChild(tip);
+  }
   if(isCOTWchore)card.classList.add('cotw');
   return card;
 }
@@ -1686,26 +1726,31 @@ function getAllSectionIds(){
 function openSummary(){
   const k=kid();if(!k){alert('Add a kid first!');return;}
   const body=document.getElementById('sumBody');body.innerHTML='';
-  const today=new Date(),dow=today.getDay(),dfm=(dow+6)%7;
-  const wS=new Date(today);wS.setDate(today.getDate()-dfm);wS.setHours(0,0,0,0);
-  const wE=new Date(today);wE.setHours(23,59,59,999);
-  const dayMap={};let earned=0,redeemed=0;
-  for(let i=0;i<=dfm;i++){const d=new Date(wS);d.setDate(wS.getDate()+i);dayMap[dateStr(d)]=0;}
+  // All-time stats
+  let totalEarned=0,totalRedeemed=0,bestDayVal=0,bestDayDate='';
+  const dayTotals={};
   (k.tokens||[]).forEach(ev=>{
-    const d=new Date(ev.timestamp),ds=dateStr(d),v=Number(ev.amount||0);
-    if(d>=wS&&d<=wE){if(v>0){earned+=v;if(ds in dayMap)dayMap[ds]+=v;}else if((ev.note||'').startsWith('\ud83c\udf81'))redeemed+=Math.abs(v);}
+    const v=Number(ev.amount||0),ds=dateStr(new Date(ev.timestamp));
+    if(v>0){totalEarned+=v;dayTotals[ds]=(dayTotals[ds]||0)+v;}
+    else if((ev.note||'').startsWith('\ud83c\udf81'))totalRedeemed+=Math.abs(v);
   });
-  const best=Object.entries(dayMap).sort((a,b)=>b[1]-a[1])[0];
-  const bLbl=best?new Date(best[0]+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+best[1]+')':'\u2014';
+  Object.entries(dayTotals).forEach(([ds,val])=>{if(val>bestDayVal){bestDayVal=val;bestDayDate=ds;}});
+  const bLbl=bestDayDate?new Date(bestDayDate+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+bestDayVal+')':'\u2014';
+  const allChores=getAllChores(k);
+  const totalDone=allChores.reduce((s,c)=>(c.completions||[]).length+s,0);
   const streak=calcStreak(k);
+  const badgeCount=(k.badges||[]).length;
+  const LEVELS=[{xp:0,n:'Rookie',e:'\uD83C\uDF31'},{xp:50,n:'Helper',e:'\u2B50'},{xp:150,n:'Star',e:'\uD83C\uDF1F'},{xp:350,n:'Champion',e:'\uD83C\uDFC6'},{xp:700,n:'Legend',e:'\uD83D\uDC51'},{xp:1200,n:'Master',e:'\uD83D\uDD2E'}];
+  const xp=getXP(k);const lv=LEVELS.filter(l=>xp>=l.xp).pop();
   const period=document.createElement('div');period.className='sum-period';
-  period.textContent=(k.name||'Kid')+' \xb7 '+wS.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' \u2013 '+today.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  period.textContent=(k.name||'Kid')+' \u00B7 All Time';
   body.appendChild(period);
   const grid=document.createElement('div');grid.className='stat-grid';
-  [{v:'+'+earned,kk:'Earned',c:CC.green},{v:'-'+redeemed,kk:'Redeemed',c:CC.red},
-   {v:(earned-redeemed>=0?'+':'')+(earned-redeemed),kk:'Net',c:CC.yellow},
-   {v:bLbl,kk:'Best Day',c:CC.blue,sm:true},{v:streak+'\ud83d\udd25',kk:'Streak',c:CC.orange},
-   {v:(k.bestStreak||0)+'\ud83c\udfc6',kk:'Best Ever',c:CC.yellow}
+  [{v:'+'+totalEarned,kk:'Earned',c:CC.green},{v:totalRedeemed,kk:'Redeemed',c:CC.red},
+   {v:totalDone,kk:'Chores Done',c:CC.blue},
+   {v:bLbl,kk:'Best Day',c:CC.blue,sm:true},{v:streak+'\uD83D\uDD25',kk:'Streak',c:CC.orange},
+   {v:(k.bestStreak||0)+'\uD83C\uDFC6',kk:'Best Streak',c:CC.yellow},
+   {v:(lv.e+' '+lv.n),kk:'Level',c:CC.purple,sm:true},{v:badgeCount+' / '+((BADGES.length+(k.customBadges||[]).length)),kk:'Badges',c:CC.yellow}
   ].forEach(s=>{
     const c=document.createElement('div');c.className='stat-card';
     const vv=document.createElement('div');vv.className='stat-val';vv.style.color=s.c;vv.style.fontSize=s.sm?'11px':'22px';vv.textContent=s.v;
@@ -1714,22 +1759,17 @@ function openSummary(){
   });
   body.appendChild(grid);
   const allC=[];
-  const addChores=(grpArr)=>{(grpArr||[]).forEach(c=>{
-    let possible=0;for(let i=0;i<=dfm;i++){const d=new Date(wS);d.setDate(wS.getDate()+i);if((c.days||ALL_DAYS).includes(d.getDay()))possible++;}
-    const done=(c.completions||[]).filter(ds=>{const d=new Date(ds+'T12:00');return d>=wS&&d<=wE;}).length;
-    if(possible>0)allC.push({name:c.title||'Untitled',done,possible,pct:Math.round(done/possible*100)});
-  });};
-  addChores(k.daily);addChores(k.bonus);(k.customSections||[]).forEach(s=>addChores(s.chores));
+  allChores.forEach(c=>{const done=(c.completions||[]).length;if(done>0)allC.push({name:c.title||'Untitled',done});});
   if(allC.length){
-    const t=document.createElement('div');t.className='sum-sec';t.textContent='Chore Completion';body.appendChild(t);
-    allC.sort((a,b)=>b.pct-a.pct).forEach(c=>{
+    const t=document.createElement('div');t.className='sum-sec';t.textContent='All-Time Chore Completions';body.appendChild(t);
+    allC.sort((a,b)=>b.done-a.done).slice(0,10).forEach(c=>{
+      const maxDone=allC[0].done||1;
       const r=document.createElement('div');r.className='cs-row';
       const n=document.createElement('div');n.className='cs-name';n.textContent=c.name;
       const tr=document.createElement('div');tr.className='cs-track';
-      const fi=document.createElement('div');fi.className='cs-fill';fi.style.width=c.pct+'%';tr.appendChild(fi);
-      const pct=document.createElement('div');pct.className='cs-pct';pct.style.color=c.pct>=80?CC.green:c.pct>=50?CC.yellow:CC.red;pct.textContent=c.pct+'%';
-      const frac=document.createElement('div');frac.className='cs-frac';frac.textContent=c.done+'/'+c.possible;
-      r.appendChild(n);r.appendChild(tr);r.appendChild(pct);r.appendChild(frac);body.appendChild(r);
+      const fi=document.createElement('div');fi.className='cs-fill';fi.style.width=Math.round(c.done/maxDone*100)+'%';tr.appendChild(fi);
+      const cnt=document.createElement('div');cnt.className='cs-pct';cnt.style.color=CC.green;cnt.textContent=c.done+'\xd7';
+      r.appendChild(n);r.appendChild(tr);r.appendChild(cnt);body.appendChild(r);
     });
   }
   document.getElementById('summaryOverlay').classList.add('open');
@@ -1927,6 +1967,22 @@ function checkAchievements(k){
   }
 }
 
+function getBadgeDynamicDesc(badge,k){
+  switch(badge.id){
+    case 'chore_10':  return 'Complete '+getThreshold(k,'chore_10',10)+' chores total';
+    case 'chore_50':  return 'Complete '+getThreshold(k,'chore_50',50)+' chores total';
+    case 'chore_100': return 'Complete '+getThreshold(k,'chore_100',100)+' chores total';
+    case 'streak_3':  return getThreshold(k,'streak_3',3)+'-day streak';
+    case 'streak_7':  return getThreshold(k,'streak_7',7)+'-day streak';
+    case 'streak_14': return getThreshold(k,'streak_14',14)+'-day streak';
+    case 'streak_30': return getThreshold(k,'streak_30',30)+'-day streak';
+    case 'tokens_50': return 'Earn '+getThreshold(k,'tokens_50',50)+' tokens';
+    case 'tokens_250':return 'Earn '+getThreshold(k,'tokens_250',250)+' tokens';
+    case 'tokens_1000':return 'Earn '+getThreshold(k,'tokens_1000',1000)+' tokens';
+    default: return badge.desc;
+  }
+}
+
 function renderBadges(k){
   const ct=document.getElementById('badgesGrid');if(!ct)return;
   ct.innerHTML='';
@@ -1936,7 +1992,10 @@ function renderBadges(k){
   allBadges.forEach(badge=>{
     const isEarned=earned.has(badge.id);
     const card=document.createElement('div');card.className='badge-card'+(isEarned?' earned':'');
-    card.title=badge.desc+(isEarned?'\nEarned '+new Date(earnedMap[badge.id]).toLocaleDateString():'');
+    const desc=getBadgeDynamicDesc(badge,k);
+    let tip=badge.name+'\n'+desc;
+    if(isEarned)tip+='\n\u2713 Earned '+new Date(earnedMap[badge.id]).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    card.setAttribute('data-tooltip',tip);
     const em=document.createElement('div');em.className='badge-emoji';em.textContent=badge.emoji;
     const nm=document.createElement('div');nm.className='badge-name';nm.textContent=badge.name;
     card.appendChild(em);card.appendChild(nm);
@@ -2725,6 +2784,12 @@ function openAchievementManager(){
       const inp=document.getElementById('amThresh_'+badge.id);
       if(inp){const v=parseInt(inp.value,10);if(!isNaN(v)&&v>0)k.badgeThresholds[badge.id]=v;else delete k.badgeThresholds[badge.id];}
     });
+    // Re-evaluate earned status: remove badges the kid no longer qualifies for
+    k.badges=k.badges.filter(b=>{
+      const def=BADGES.find(d=>d.id===b.id);
+      if(def&&BADGE_THRESHOLDS[b.id]!=null)return badgeCheck(def,k);
+      return true; // keep custom badges and non-threshold default badges
+    });
     save();renderAll();closeAchievementManager();
   });
   ov.classList.add('open');
@@ -2733,7 +2798,9 @@ function closeAchievementManager(){const ov=document.getElementById('achievement
 
 function renderAMDefaults(k){
   const ct=document.getElementById('amDefaultList');if(!ct)return;ct.innerHTML='';
+  const NO_THRESH=new Set(['first_chore','first_redeem','goal_set','perfect_day']);
   BADGES.forEach(badge=>{
+    if(NO_THRESH.has(badge.id))return; // hide non-threshold badges
     const row=document.createElement('div');row.className='am-badge-row';
     const em=document.createElement('div');em.className='am-badge-emoji';em.textContent=badge.emoji;
     const info=document.createElement('div');info.className='am-badge-info';
