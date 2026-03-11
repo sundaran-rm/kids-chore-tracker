@@ -127,7 +127,27 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .check-btn{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;transition:all .18s;color:transparent;}
 .check-btn:hover:not([disabled]){border-color:var(--green);background:rgba(105,240,174,0.09)}
 .check-btn.ticked{border-color:var(--green);background:var(--green);color:#0a2a1a;animation:pop .28s ease}
+.check-btn.pending{border-color:var(--orange);background:rgba(255,183,77,0.12);color:var(--orange);animation:none;font-size:13px;}
 .check-btn[disabled]{opacity:.35;cursor:default}
+/* Approval badge on header */
+.approval-badge{position:relative;display:none}
+.approval-badge.has-pending{display:flex}
+body.kids-mode .approval-badge{display:none!important}
+.approval-badge-count{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+/* Approval panel items */
+.ap-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--navy3);border-radius:10px;margin-bottom:6px;}
+.ap-kid-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ap-info{flex:1;min-width:0}
+.ap-chore{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.ap-tokens{font-size:13px;font-weight:800;color:var(--green);flex-shrink:0;min-width:36px;text-align:right}
+.ap-actions{display:flex;gap:5px;flex-shrink:0}
+.ap-btn{width:30px;height:30px;border-radius:8px;border:1px solid;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.ap-btn.approve{border-color:rgba(105,240,174,0.4);background:rgba(105,240,174,0.08);color:var(--green)}
+.ap-btn.approve:hover{background:var(--green);color:#0a2a1a}
+.ap-btn.reject{border-color:rgba(255,107,107,0.35);background:rgba(255,107,107,0.07);color:var(--red)}
+.ap-btn.reject:hover{background:var(--red);color:#fff}
+.ap-empty{text-align:center;padding:28px 0;font-size:13px;color:var(--muted);font-style:italic}
 @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
 .ic-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);transition:all .14s;}
 .ic-btn.del:hover{background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.4);color:var(--red)}
@@ -373,6 +393,8 @@ body.kids-mode .chore-card.has-notes .c-name { pointer-events:auto!important;cur
 body.kids-mode .ic-btn.undo { display:none!important }
 body.kids-mode .allowance-box { display:none!important }
 body.kids-mode .check-btn { pointer-events:none!important;cursor:default!important }
+/* When approval mode on, kids can tap check to request approval */
+body.kids-mode.approval-mode .check-btn:not([disabled]):not(.ticked) { pointer-events:auto!important;cursor:pointer!important; }
 body.kids-mode .redeem-btn { opacity:.35;pointer-events:none!important;cursor:default!important }
 body.kids-mode .check-btn { width:32px;height:32px;font-size:14px }
 
@@ -603,6 +625,7 @@ body.kids-mode .km-badge { display:flex!important }
 /* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
 body.kids-mode #setDB,
 body.kids-mode #setAddSection,
+body.kids-mode #setApprovalMode,
 body.kids-mode #setExport,
 body.kids-mode #setImport,
 body.kids-mode #setPin,
@@ -852,6 +875,10 @@ body.kids-mode .settings-km-hint { display:block!important }
       <div class="sync-icon-btn" id="syncPill" title="Synced">
         <div class="si-ring"><div class="si-dot" id="syncDot"></div></div>
       </div>
+      <div class="approval-badge" id="approvalBadge" title="Pending approvals">
+        <button class="icon-btn" id="btnApprovals" style="color:var(--orange)">&#x23F3;</button>
+        <div class="approval-badge-count" id="approvalCount">0</div>
+      </div>
       <button class="icon-btn" id="btnSettings" title="Settings">&#x2699;</button>
       <button class="icon-btn" id="btnHelp" title="Help" style="color:var(--blue)">&#x2753;</button>
       <button class="icon-btn" id="btnKidsLock" title="Exit Kids Mode" style="color:var(--yellow)">&#x1F512;</button>
@@ -1058,6 +1085,7 @@ body.kids-mode .settings-km-hint { display:block!important }
       <div class="setting-row" id="setExport"><span class="setting-icon">&#x2B07;</span><div class="setting-info"><div class="setting-label">Export Data</div><div class="setting-desc">Download all data as JSON</div></div></div>
       <div class="setting-row" id="setImport"><span class="setting-icon">&#x2B06;</span><div class="setting-info"><div class="setting-label">Import Data</div><div class="setting-desc">Load data from JSON file</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing — kids can view chores &amp; rewards</div></div></div>
+      <div class="setting-row" id="setApprovalMode"><span class="setting-icon">&#x270D;&#xFE0F;</span><div class="setting-info"><div class="setting-label">Require Parent Approval <span class="km-status-badge" id="approvalStatusBadge">Off</span></div><div class="setting-desc">Chore ticks in Kids Mode wait for your approval before awarding tokens</div></div></div>
       <div class="setting-row" id="setTheme"><span class="setting-icon">&#x1F3A8;</span><div class="setting-info"><div class="setting-label">Change Theme</div><div class="setting-desc">Personalise with Galaxy, Dino, Princess &amp; more</div></div></div>
       <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">Parent PIN</div><div class="setting-desc">Set a 4-digit PIN to protect parent mode</div></div></div>
       <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
@@ -1366,7 +1394,9 @@ function startListener(hid){
         S=remote;
         if(!S.kids)S.kids=[];
         if(!S.customTemplates)S.customTemplates=[];
-        S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
+        if(!S.customShopItems)S.customShopItems=[];
+        if(!S.customBadges)S.customBadges=[];
+        S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.pendingApprovals)k.pendingApprovals=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
         saveLocal();renderAll();
       }
     }else{save();}
@@ -1510,11 +1540,32 @@ function buildChoreCard(grp,secId,idx,item,k){
   cotwBtn.addEventListener('click',e=>{e.stopPropagation();setCOTW(item.id,k.id);});
 
   /* check button */
-  const chk=document.createElement('button');chk.className='check-btn'+(done?' ticked':'');
-  chk.textContent=done?'\u2713':'';chk.title=done?'Done today!':sched?'Mark done':'Not scheduled today';
-  if(!sched&&!done)chk.setAttribute('disabled','');
+  const chk=document.createElement('button');
+  const pendingEntry=(k.pendingApprovals||[]).find(p=>p.choreId===item.id);
+  const isPending=!!pendingEntry;
+  if(done){chk.className='check-btn ticked';chk.textContent='\u2713';chk.title='Done today!';}
+  else if(isPending){chk.className='check-btn pending';chk.textContent='\u23F3';chk.title='Waiting for parent approval — tap to cancel';}
+  else{chk.className='check-btn';chk.textContent='';chk.title=sched?'Mark done':'Not scheduled today';}
+  if(!sched&&!done&&!isPending)chk.setAttribute('disabled','');
   chk.addEventListener('click',e=>{
-    e.stopPropagation();if(item.lastDone===today)return;
+    e.stopPropagation();
+    if(item.lastDone===today)return;
+    // If already pending — cancel it
+    if(isPending){
+      k.pendingApprovals=k.pendingApprovals.filter(p=>p.choreId!==item.id);
+      save();renderAll();return;
+    }
+    // Approval mode in kids mode — queue instead of award
+    if(kidsMode&&S.approvalMode){
+      if(!k.pendingApprovals)k.pendingApprovals=[];
+      if(!k.pendingApprovals.find(p=>p.choreId===item.id)){
+        const baseT=Number(item.tokens||0);const multi=isCOTW(item.id)?2:1;
+        k.pendingApprovals.push({id:uid(),choreId:item.id,choreTitle:item.title||'Chore',tokens:baseT,multi,grp,secId,requestedAt:Date.now()});
+        save();renderAll();
+      }
+      return;
+    }
+    // Normal immediate completion
     item.lastDone=today;if(!item.completions)item.completions=[];
     if(!item.completions.includes(today))item.completions.push(today);
     const baseT=Number(item.tokens||0);const multi=isCOTW(item.id)?2:1;const awarded=baseT*multi;
@@ -1803,6 +1854,95 @@ function renderCharts(k){
 }
 
 
+/* ══════════════════════════════════════════════
+   PARENT APPROVAL
+══════════════════════════════════════════════ */
+function totalPending(){return(S.kids||[]).reduce((s,k)=>s+(k.pendingApprovals||[]).length,0);}
+
+function updateApprovalBadge(){
+  const n=totalPending();
+  const badge=document.getElementById('approvalBadge');
+  const count=document.getElementById('approvalCount');
+  const statusBadge=document.getElementById('approvalStatusBadge');
+  const show=n>0&&!kidsMode&&!!S.approvalMode;
+  if(badge){badge.classList.toggle('has-pending',show);}
+  if(count)count.textContent=n;
+  if(statusBadge)statusBadge.textContent=S.approvalMode?'On':'Off';
+}
+
+function openApprovalPanel(){
+  let ov=document.getElementById('approvalOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='approvalOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">&#x270D;&#xFE0F; Pending Approvals</div><button class="sheet-close" onclick="document.getElementById('approvalOverlay').remove()">&#x2715;</button></div>
+    <div class="sheet-body" id="approvalBody"></div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  renderApprovalPanel();
+  ov.classList.add('open');
+}
+
+function renderApprovalPanel(){
+  const body=document.getElementById('approvalBody');if(!body)return;
+  body.innerHTML='';
+  const today=todayStr();
+  let hasAny=false;
+  S.kids.forEach(k=>{
+    if(!k.pendingApprovals||!k.pendingApprovals.length)return;
+    hasAny=true;
+    const t=THEMES[k.theme||'galaxy']||THEMES.galaxy;
+    k.pendingApprovals.forEach(p=>{
+      const item=document.createElement('div');item.className='ap-item';
+      const dot=document.createElement('div');dot.className='ap-kid-dot';dot.style.background=t.accent;dot.title=k.name;
+      const info=document.createElement('div');info.className='ap-info';
+      const choreName=document.createElement('div');choreName.className='ap-chore';choreName.textContent=p.choreTitle;
+      const meta=document.createElement('div');meta.className='ap-meta';
+      meta.textContent=k.name+' · '+p.grp+' · '+timeAgo(p.requestedAt);
+      info.appendChild(choreName);info.appendChild(meta);
+      const tok=document.createElement('div');tok.className='ap-tokens';tok.textContent='+'+(p.tokens*p.multi)+'⭐';
+      const acts=document.createElement('div');acts.className='ap-actions';
+      const approveBtn=document.createElement('button');approveBtn.className='ap-btn approve';approveBtn.title='Approve';approveBtn.textContent='✓';
+      approveBtn.addEventListener('click',()=>{
+        // Find the real chore and complete it
+        const chore=getAllChores(k).find(c=>c.id===p.choreId);
+        // Get reference to actual chore object in k (not the copy from getAllChores)
+        const actualChore=findChoreInKid(k,p.choreId);
+        if(actualChore){
+          actualChore.lastDone=today;
+          if(!actualChore.completions)actualChore.completions=[];
+          if(!actualChore.completions.includes(today))actualChore.completions.push(today);
+        }
+        const awarded=p.tokens*p.multi;
+        const note=p.choreTitle+' ('+p.grp+')'+(p.multi>1?' ⭐2×':'');
+        k.tokens.unshift({amount:awarded,note,timestamp:Date.now()});
+        k.pendingApprovals=k.pendingApprovals.filter(x=>x.id!==p.id);
+        refreshStreak(k);save();playTick();renderAll();
+        const r=approveBtn.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);
+        renderApprovalPanel();updateApprovalBadge();
+      });
+      const rejectBtn=document.createElement('button');rejectBtn.className='ap-btn reject';rejectBtn.title='Reject';rejectBtn.textContent='✕';
+      rejectBtn.addEventListener('click',()=>{
+        k.pendingApprovals=k.pendingApprovals.filter(x=>x.id!==p.id);
+        save();renderAll();renderApprovalPanel();updateApprovalBadge();
+      });
+      acts.appendChild(approveBtn);acts.appendChild(rejectBtn);
+      item.appendChild(dot);item.appendChild(info);item.appendChild(tok);item.appendChild(acts);
+      body.appendChild(item);
+    });
+  });
+  if(!hasAny){
+    const emp=document.createElement('div');emp.className='ap-empty';emp.textContent='No pending approvals 🎉';body.appendChild(emp);
+  }
+}
+
+function findChoreInKid(k,choreId){
+  for(const c of(k.daily||[]))if(c.id===choreId)return c;
+  for(const c of(k.bonus||[]))if(c.id===choreId)return c;
+  for(const s of(k.customSections||[]))for(const c of(s.chores||[]))if(c.id===choreId)return c;
+  return null;
+}
+
 function openResetConfirm(){
   const kidNames=(S.kids||[]).map(k=>k.name).join(', ')||'no kids';
   let ov=document.getElementById('resetConfirmOverlay');
@@ -1845,6 +1985,7 @@ function renderAll(){
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
   if(has){applyTheme(k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);renderCalendar('calBody');renderXPHeaderBar(k);}
+  updateApprovalBadge();
 }
 
 function renderXPHeaderBar(k){
@@ -1955,6 +2096,7 @@ let kidsMode = localStorage.getItem('cq_kids_mode') === '1';
 function applyKidsMode(){
   if(kidsMode){ document.body.classList.add('kids-mode'); }
   else { document.body.classList.remove('kids-mode'); }
+  document.body.classList.toggle('approval-mode', !!S.approvalMode);
   // PWA: kmBadge + btnKidsLock; Desktop: kmHdrBadge + btnKidsMode
   const badge = document.getElementById('kmBadge') || document.getElementById('kmHdrBadge');
   if(badge) badge.style.display = kidsMode ? 'flex' : 'none';
@@ -1966,10 +2108,10 @@ function applyKidsMode(){
   if(btn) btn.textContent = kidsMode ? '\uD83D\uDD13 Unlock' : '\uD83D\uDD12 Kids Mode';
 }
 function enterKidsMode(){
-  kidsMode=true; localStorage.setItem('cq_kids_mode','1'); applyKidsMode();
+  kidsMode=true; localStorage.setItem('cq_kids_mode','1'); applyKidsMode(); updateApprovalBadge();
 }
 function exitKidsMode(){
-  kidsMode=false; localStorage.setItem('cq_kids_mode','0'); applyKidsMode();
+  kidsMode=false; localStorage.setItem('cq_kids_mode','0'); applyKidsMode(); updateApprovalBadge();
 }
 
 /* PIN */
@@ -2437,6 +2579,13 @@ function setupCommonEvents(){
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openAchievementManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openShopItemsManager();});
+  const setApproval=document.getElementById('setApprovalMode');if(setApproval)setApproval.addEventListener('click',()=>{
+    S.approvalMode=!S.approvalMode;
+    if(!S.approvalMode){S.kids.forEach(k=>{k.pendingApprovals=[];});}
+    document.body.classList.toggle('approval-mode',!!S.approvalMode);
+    save();renderAll();updateApprovalBadge();
+  });
+  const btnApprovals=document.getElementById('btnApprovals');if(btnApprovals)btnApprovals.addEventListener('click',openApprovalPanel);
   const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openResetConfirm();});
   // Templates
   const btnHelp=document.getElementById('btnHelp');if(btnHelp)btnHelp.addEventListener('click',()=>document.getElementById('helpOverlay').classList.add('open'));
@@ -3166,7 +3315,7 @@ S.kids.forEach(k=>{
   }
 });
 // Migrate old kids without new fields
-S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
+S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.pendingApprovals)k.pendingApprovals=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
 // Migrate PIN from localStorage into S if present
 (()=>{const lp=localStorage.getItem('cq_parent_pin');if(lp&&!S.parentPin){S.parentPin=lp;localStorage.removeItem('cq_parent_pin');save();}})();
 setupCommonEvents();
