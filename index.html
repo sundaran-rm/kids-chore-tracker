@@ -1943,10 +1943,15 @@ function renderApprovalPanel(){
       const acts=document.createElement('div');acts.className='ap-actions';
       const approveBtn=document.createElement('button');approveBtn.className='ap-btn approve';approveBtn.title='Approve';approveBtn.textContent='✓';
       approveBtn.addEventListener('click',()=>{
+        const requestDate=dateStr(new Date(p.requestedAt));
         const actualChore=findChoreInKid(k,p.choreId);
-        if(actualChore){actualChore.lastDone=today;if(!actualChore.completions)actualChore.completions=[];if(!actualChore.completions.includes(today))actualChore.completions.push(today);}
+        if(actualChore){
+          if(!actualChore.lastDone||actualChore.lastDone<requestDate)actualChore.lastDone=requestDate;
+          if(!actualChore.completions)actualChore.completions=[];
+          if(!actualChore.completions.includes(requestDate))actualChore.completions.push(requestDate);
+        }
         const awarded=p.tokens*p.multi;
-        k.tokens.unshift({amount:awarded,note:p.choreTitle+' ('+p.grp+')'+(p.multi>1?' ⭐2×':''),timestamp:Date.now()});
+        k.tokens.unshift({amount:awarded,note:p.choreTitle+' ('+p.grp+')'+(p.multi>1?' ⭐2×':''),timestamp:p.requestedAt});
         k.pendingApprovals=k.pendingApprovals.filter(x=>x.id!==p.id);
         refreshStreak(k);save();playTick();renderAll();
         const r=approveBtn.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);
