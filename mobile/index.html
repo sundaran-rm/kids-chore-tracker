@@ -1307,7 +1307,32 @@ const THEMES={
     '--navy':'#150d1f','--navy2':'#1d1030','--navy3':'#26143e','--navy4':'#30184d',
     '--border':'#3d1e61','--blue':'#ea80fc','--green':'#f48fb1','--green-dark':'#e040fb',
     '--yellow':'#ffcc02','--purple':'#b388ff','--orange':'#ff80ab','--red':'#ff6b9d',
-    grad:'rgba(234,128,252,0.09)',grad2:'rgba(179,136,255,0.09)'}
+    grad:'rgba(234,128,252,0.09)',grad2:'rgba(179,136,255,0.09)'},
+  crimson:{label:'Crimson',emoji:'\u{1F525}',accent:'#ff5252',
+    '--navy':'#1a0808','--navy2':'#220d0d','--navy3':'#2e1212','--navy4':'#3a1717',
+    '--border':'#551f1f','--blue':'#ff5252','--green':'#ff8a65','--green-dark':'#e64a19',
+    '--yellow':'#ffd740','--purple':'#ff80ab','--orange':'#ffab40','--red':'#ff1744',
+    grad:'rgba(255,82,82,0.09)',grad2:'rgba(255,171,64,0.07)'},
+  solar:{label:'Solar',emoji:'\u2600\uFE0F',accent:'#ffd740',
+    '--navy':'#1a1400','--navy2':'#221b00','--navy3':'#2d2400','--navy4':'#382d00',
+    '--border':'#4d3e00','--blue':'#ffd740','--green':'#ffee58','--green-dark':'#f9a825',
+    '--yellow':'#ffe57f','--purple':'#ffb300','--orange':'#ff8f00','--red':'#ff6f00',
+    grad:'rgba(255,215,64,0.10)',grad2:'rgba(255,179,0,0.08)'},
+  slate:{label:'Slate',emoji:'\u{1FA76}',accent:'#90a4ae',
+    '--navy':'#0e1214','--navy2':'#141a1e','--navy3':'#1c2429','--navy4':'#232d33',
+    '--border':'#2e3c44','--blue':'#90a4ae','--green':'#80cbc4','--green-dark':'#4db6ac',
+    '--yellow':'#fff176','--purple':'#b0bec5','--orange':'#ffcc80','--red':'#ef9a9a',
+    grad:'rgba(144,164,174,0.08)',grad2:'rgba(128,203,196,0.07)'},
+  midnight:{label:'Midnight',emoji:'\u{1F311}',accent:'#e0e0e0',
+    '--navy':'#050507','--navy2':'#09090d','--navy3':'#0e0e14','--navy4':'#13131b',
+    '--border':'#1e1e28','--blue':'#e0e0e0','--green':'#b0b0b0','--green-dark':'#9e9e9e',
+    '--yellow':'#ffe082','--purple':'#ce93d8','--orange':'#ffcc80','--red':'#ef5350',
+    grad:'rgba(224,224,224,0.06)',grad2:'rgba(206,147,216,0.06)'},
+  forest:{label:'Forest',emoji:'\u{1F332}',accent:'#66bb6a',
+    '--navy':'#060f07','--navy2':'#0a160b','--navy3':'#0f1f10','--navy4':'#142815',
+    '--border':'#1c3a1e','--blue':'#66bb6a','--green':'#a5d6a7','--green-dark':'#388e3c',
+    '--yellow':'#dce775','--purple':'#aed581','--orange':'#ffb74d','--red':'#ef5350',
+    grad:'rgba(102,187,106,0.08)',grad2:'rgba(174,213,129,0.07)'}
 };
 function applyTheme(name){
   const t=THEMES[name]||THEMES.galaxy;
