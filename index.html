@@ -434,6 +434,7 @@ body.kids-mode #setPin,
 body.kids-mode #setAddSection,
 body.kids-mode #setApprovalMode,
 body.kids-mode #setAllowance,
+body.kids-mode #setXPLevels,
 body.kids-mode #setAchievements,
 body.kids-mode #setShopItems,
 body.kids-mode #setReset { display:none!important }
@@ -612,6 +613,10 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .ced-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
 .ced-inp{width:100%;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;border-radius:8px;padding:8px 10px;outline:none;box-sizing:border-box;}
 .ced-inp:focus{border-color:var(--blue)}
+.ced-emoji-row{display:flex;align-items:center;gap:8px;}
+.ced-emoji-inp{width:52px;height:44px;background:var(--navy4);border:2px solid var(--border);color:var(--text);font-size:22px;text-align:center;border-radius:10px;outline:none;cursor:pointer;flex-shrink:0;transition:border-color .15s;}
+.ced-emoji-inp:focus{border-color:var(--blue);}
+.ced-emoji-hint{font-size:10px;color:var(--muted);line-height:1.4;}
 .ced-diff-row{display:flex;gap:5px;flex-wrap:wrap;}
 .ced-diff-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:11px;font-weight:800;border-radius:7px;padding:5px 10px;cursor:pointer;transition:all .14s;}
 .ced-diff-btn.active.easy{background:rgba(105,240,174,0.13);border-color:rgba(105,240,174,0.38);color:var(--green)}
@@ -701,7 +706,7 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 /* ── SHOP ITEMS MANAGER ── */
 .sim-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,56,84,0.35);}
 .sim-row:last-child{border-bottom:none}
-.sim-icon-inp{width:38px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:16px;border-radius:6px;padding:3px;text-align:center;outline:none;flex-shrink:0;}
+.sim-icon-inp{width:38px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:16px;border-radius:6px;padding:3px;text-align:center;outline:none;flex-shrink:0;cursor:pointer;}
 .sim-name-inp{flex:1;min-width:0;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;border-radius:6px;padding:5px 7px;outline:none;}
 .sim-name-inp:focus,.sim-icon-inp:focus{border-color:var(--blue)}
 .sim-cost-inp{width:52px;background:var(--navy4);border:1px solid var(--border);color:var(--yellow);font-family:var(--font);font-size:12px;font-weight:800;border-radius:6px;padding:5px 6px;text-align:center;outline:none;flex-shrink:0;}
@@ -950,6 +955,7 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
       <div class="setting-row" id="setTheme"><span class="setting-icon">&#x1F3A8;</span><div class="setting-info"><div class="setting-label">Change Theme</div><div class="setting-desc">Personalise with Galaxy, Dino, Princess &amp; more</div></div></div>
       <div class="setting-row" id="setAddSection"><span class="setting-icon">&#x2728;</span><div class="setting-info"><div class="setting-label">Add Custom Section</div><div class="setting-desc">Create a named chore group (e.g. Homework, Pet Care)</div></div></div>
       <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
+      <div class="setting-row" id="setXPLevels"><span class="setting-icon">&#x26A1;</span><div class="setting-info"><div class="setting-label">XP Levels</div><div class="setting-desc">Edit level thresholds and create custom levels</div></div></div>
       <div class="setting-row" id="setShopItems"><span class="setting-icon">&#x1F6CD;</span><div class="setting-info"><div class="setting-label">Reward Shop Items</div><div class="setting-desc">Edit default costs and add custom shop items</div></div></div>
       <div class="setting-row" id="setAllowance"><span class="setting-icon">&#x1F4B0;</span><div class="setting-info"><div class="setting-label">Weekly Allowance</div><div class="setting-desc">Set automatic weekly token payouts per kid</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing &mdash; kids can view chores &amp; check off tasks</div></div></div>
@@ -1234,6 +1240,8 @@ function startListener(hid){
         if(!S.customTemplates)S.customTemplates=[];
         if(!S.customShopItems)S.customShopItems=[];
         if(!S.customBadges)S.customBadges=[];
+        if(!S.levelThresholds)S.levelThresholds={};
+        if(!S.customLevels)S.customLevels=[];
         S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.pendingApprovals)k.pendingApprovals=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
         saveLocal();renderAll();
       }
@@ -1818,8 +1826,7 @@ function openSummary(){
   const totalDone=allChores.reduce((s,c)=>(c.completions||[]).length+s,0);
   const streak=calcStreak(k);
   const badgeCount=(k.badges||[]).length;
-  const LEVELS=[{xp:0,n:'Rookie',e:'\uD83C\uDF31'},{xp:50,n:'Helper',e:'\u2B50'},{xp:150,n:'Star',e:'\uD83C\uDF1F'},{xp:350,n:'Champion',e:'\uD83C\uDFC6'},{xp:700,n:'Legend',e:'\uD83D\uDC51'},{xp:1200,n:'Master',e:'\uD83D\uDD2E'}];
-  const xp=getXP(k);const lv=LEVELS.filter(l=>xp>=l.xp).pop();
+  const xp=getXP(k);const lv=getLevel(xp);
   const period=document.createElement('div');period.className='sum-period';
   period.textContent=(k.name||'Kid')+' \u00B7 All Time';
   body.appendChild(period);
@@ -2418,6 +2425,7 @@ function setupCommonEvents(){
   const setExp=document.getElementById('setExport');if(setExp)setExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openAchievementManager();});
+  const setXPLv=document.getElementById('setXPLevels');if(setXPLv)setXPLv.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openXPLevelManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openShopItemsManager();});
   const setAllow=document.getElementById('setAllowance');if(setAllow)setAllow.addEventListener('click',openAllowanceSheet);
   const setApproval=document.getElementById('setApprovalMode');if(setApproval)setApproval.addEventListener('click',()=>{
@@ -2757,8 +2765,13 @@ function getXP(k){
   },0));
 }
 function getThreshold(k,badgeId,def){return(k.badgeThresholds&&k.badgeThresholds[badgeId]!=null)?Number(k.badgeThresholds[badgeId]):def;}
-function getLevel(xp){let lv=LEVELS[0];for(const l of LEVELS){if(xp>=l.min)lv=l;else break;}return lv;}
-function getNextLevel(xp){for(const l of LEVELS){if(xp<l.min)return l;}return null;}
+function getEffectiveLevels(){
+  const defaults=LEVELS.map(l=>({...l,min:(S.levelThresholds&&S.levelThresholds[l.cls]!=null)?Number(S.levelThresholds[l.cls]):l.min,isDefault:true}));
+  const customs=(S.customLevels||[]).map(l=>({...l,isDefault:false}));
+  return [...defaults,...customs].sort((a,b)=>a.min-b.min);
+}
+function getLevel(xp){const lvs=getEffectiveLevels();let lv=lvs[0];for(const l of lvs){if(xp>=l.min)lv=l;else break;}return lv;}
+function getNextLevel(xp){const lvs=getEffectiveLevels();for(const l of lvs){if(xp<l.min)return l;}return null;}
 function renderLevelBox(k,containerId){
   const el=document.getElementById(containerId);if(!el)return;
   const xp=getXP(k);const lv=getLevel(xp);const next=getNextLevel(xp);
@@ -2943,6 +2956,132 @@ function renderShop(){
 const BADGE_THRESHOLDS={chore_10:10,chore_50:50,chore_100:100,streak_3:3,streak_7:7,streak_14:14,streak_30:30,tokens_50:50,tokens_250:250,tokens_1000:1000};
 const BADGE_THRESH_LABEL={chore_10:'chores',chore_50:'chores',chore_100:'chores',streak_3:'days',streak_7:'days',streak_14:'days',streak_30:'days',tokens_50:'tokens',tokens_250:'tokens',tokens_1000:'tokens'};
 
+/* ══════════════════════════════════════════════
+   XP LEVEL MANAGER
+══════════════════════════════════════════════ */
+function openXPLevelManager(){
+  if(!S.levelThresholds)S.levelThresholds={};
+  if(!S.customLevels)S.customLevels=[];
+  let ov=document.getElementById('xpLevelManagerOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='xpLevelManagerOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:480px">
+    <div class="m-hdr"><div class="m-title">&#x26A1; XP Levels</div><button class="m-close" onclick="closeXPLevelManager()">&#x2715;</button></div>
+    <div class="m-body" style="padding:14px 16px 18px;overflow-y:auto;max-height:76vh">
+      <div class="am-section">
+        <div class="am-section-title">Default Levels — edit XP thresholds</div>
+        <div id="xplDefaultList"></div>
+      </div>
+      <div class="am-section">
+        <div class="am-section-title">Custom Levels</div>
+        <div id="xplCustomList"></div>
+        <button class="am-add-btn" onclick="openCreateLevelModal()">+ Create Level</button>
+      </div>
+      <button class="am-save-all-btn" id="xplSaveBtn">&#x2713; Save All Changes</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeXPLevelManager();});
+  renderXPLDefaults();renderXPLCustom();
+  document.getElementById('xplSaveBtn').addEventListener('click',()=>{
+    LEVELS.forEach(l=>{
+      const inp=document.getElementById('xplThresh_'+l.cls);
+      if(inp){const v=parseInt(inp.value,10);if(!isNaN(v)&&v>=0)S.levelThresholds[l.cls]=v;else delete S.levelThresholds[l.cls];}
+    });
+    save();renderAll();closeXPLevelManager();
+  });
+  ov.classList.add('open');
+}
+function closeXPLevelManager(){const ov=document.getElementById('xpLevelManagerOverlay');if(ov)ov.remove();}
+function renderXPLDefaults(){
+  const ct=document.getElementById('xplDefaultList');if(!ct)return;ct.innerHTML='';
+  LEVELS.forEach(l=>{
+    const row=document.createElement('div');row.className='am-badge-row';
+    const em=document.createElement('div');em.className='am-badge-emoji';em.textContent=l.emoji;
+    const info=document.createElement('div');info.className='am-badge-info';
+    const nm=document.createElement('div');nm.className='am-badge-name';nm.textContent=l.name;
+    const def=document.createElement('div');def.className='am-badge-desc';def.textContent='Default: '+l.min+' XP';
+    info.appendChild(nm);info.appendChild(def);
+    const inp=document.createElement('input');inp.type='number';inp.className='am-thresh-inp';
+    inp.id='xplThresh_'+l.cls;inp.min=0;
+    inp.value=(S.levelThresholds&&S.levelThresholds[l.cls]!=null)?S.levelThresholds[l.cls]:l.min;
+    const lbl=document.createElement('span');lbl.className='am-thresh-label';lbl.textContent='XP';
+    row.appendChild(em);row.appendChild(info);row.appendChild(inp);row.appendChild(lbl);
+    ct.appendChild(row);
+  });
+}
+function renderXPLCustom(){
+  const ct=document.getElementById('xplCustomList');if(!ct)return;ct.innerHTML='';
+  if(!S.customLevels||!S.customLevels.length){ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom levels yet.</div>';return;}
+  S.customLevels.forEach(lvl=>{
+    const row=document.createElement('div');row.className='am-badge-row';
+    const em=document.createElement('div');em.className='am-badge-emoji';em.textContent=lvl.emoji;
+    const info=document.createElement('div');info.className='am-badge-info';
+    const nm=document.createElement('div');nm.className='am-badge-name';nm.textContent=lvl.name;
+    const desc=document.createElement('div');desc.className='am-badge-desc';desc.textContent=lvl.min+' XP';
+    info.appendChild(nm);info.appendChild(desc);
+    const editBtn=document.createElement('button');editBtn.className='am-edit-btn';editBtn.textContent='✏️';
+    editBtn.addEventListener('click',()=>openCreateLevelModal(lvl));
+    const delBtn=document.createElement('button');delBtn.className='am-del-btn';delBtn.textContent='🗑';
+    delBtn.addEventListener('click',()=>{
+      if(!confirm('Delete "'+lvl.name+'"?'))return;
+      S.customLevels=S.customLevels.filter(l=>l.id!==lvl.id);
+      save();renderAll();renderXPLCustom();
+    });
+    row.appendChild(em);row.appendChild(info);row.appendChild(editBtn);row.appendChild(delBtn);
+    ct.appendChild(row);
+  });
+}
+function openCreateLevelModal(existing){
+  let ov=document.getElementById('createLevelOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='createLevelOverlay';ov.className='overlay';
+  const isEdit=!!(existing&&existing.id);
+  ov.innerHTML=`<div class="modal" style="max-width:340px">
+    <div class="m-hdr"><div class="m-title">${isEdit?'&#x270F;&#xFE0F; Edit':'&#x2728; Create'} Level</div><button class="m-close" onclick="closeCreateLevelModal()">&#x2715;</button></div>
+    <div class="m-body ced-body">
+      <div class="ced-label">Emoji</div>
+      <div class="ced-emoji-row">
+        <input class="ced-emoji-inp" id="clEmoji" maxlength="4" placeholder="🚀">
+        <div class="ced-emoji-hint">Click the box, then press<br>Win+. (Windows) or Cmd+Ctrl+Space (Mac)</div>
+      </div>
+      <div class="ced-label">Name</div>
+      <input class="ced-inp" id="clName" type="text" placeholder="Level name…">
+      <div class="ced-label">XP Required</div>
+      <input class="ced-inp" id="clMin" type="number" min="0" placeholder="e.g. 2500">
+      <div class="ced-actions">
+        <button class="ced-save-btn" id="clSaveBtn">${isEdit?'&#x2713; Save':'&#x2713; Create'}</button>
+        ${isEdit?'<button class="ced-del-btn" id="clDelBtn">&#x1F5D1; Delete</button>':''}
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeCreateLevelModal();});
+  if(isEdit){
+    document.getElementById('clEmoji').value=existing.emoji||'🚀';
+    document.getElementById('clName').value=existing.name||'';
+    document.getElementById('clMin').value=existing.min||0;
+    const delBtn=document.getElementById('clDelBtn');
+    if(delBtn)delBtn.addEventListener('click',()=>{
+      if(!confirm('Delete "'+existing.name+'"?'))return;
+      S.customLevels=S.customLevels.filter(l=>l.id!==existing.id);
+      save();renderAll();closeCreateLevelModal();
+      if(document.getElementById('xpLevelManagerOverlay'))renderXPLCustom();
+    });
+  }
+  document.getElementById('clSaveBtn').addEventListener('click',()=>{
+    const emoji=document.getElementById('clEmoji').value.trim()||'🚀';
+    const name=document.getElementById('clName').value.trim();
+    const min=Math.max(0,parseInt(document.getElementById('clMin').value,10)||0);
+    if(!name){alert('Please enter a name.');return;}
+    if(isEdit){const l=S.customLevels.find(l=>l.id===existing.id);if(l){l.emoji=emoji;l.name=name;l.min=min;}}
+    else{if(!S.customLevels)S.customLevels=[];S.customLevels.push({id:uid(),emoji,name,min});}
+    save();renderAll();closeCreateLevelModal();
+    if(document.getElementById('xpLevelManagerOverlay'))renderXPLCustom();
+  });
+  ov.classList.add('open');
+  document.getElementById('clEmoji').focus();
+}
+function closeCreateLevelModal(){const ov=document.getElementById('createLevelOverlay');if(ov)ov.remove();}
+
 function openAchievementManager(){
   const k=kid();if(!k){alert('Select a kid first.');return;}
   if(!k.badgeThresholds)k.badgeThresholds={};
@@ -3045,7 +3184,10 @@ function openCreateBadgeModal(existing){
     <div class="m-hdr"><div class="m-title">${isEdit?'✏️ Edit':'✨ Create'} Achievement</div><button class="m-close" onclick="closeCreateBadgeModal()">✕</button></div>
     <div class="m-body ced-body">
       <div class="ced-label">Emoji</div>
-      <input class="ced-inp" id="cbEmoji" maxlength="4" placeholder="🏅" style="font-size:20px;text-align:center">
+      <div class="ced-emoji-row">
+        <input class="ced-emoji-inp" id="cbEmoji" maxlength="4" placeholder="🏅">
+        <div class="ced-emoji-hint">Click the box, then press<br>Win+. (Windows) or Cmd+Ctrl+Space (Mac)</div>
+      </div>
       <div class="ced-label">Name</div>
       <input class="ced-inp" id="cbName" type="text" placeholder="Achievement name…">
       <div class="ced-label">Description</div>
@@ -3172,7 +3314,7 @@ function renderSIMCustom(k){
   if(!S.customShopItems||S.customShopItems.length===0){ct.innerHTML='<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No custom items yet.</div>';return;}
   S.customShopItems.forEach(item=>{
     const row=document.createElement('div');row.className='sim-row';
-    const iconI=document.createElement('input');iconI.className='sim-icon-inp';iconI.id='simIcon_'+item.id;iconI.maxLength=4;iconI.value=item.icon||'🎁';
+    const iconI=document.createElement('input');iconI.className='sim-icon-inp';iconI.id='simIcon_'+item.id;iconI.maxLength=4;iconI.value=item.icon||'🎁';iconI.title='Click to change emoji';
     const nameI=document.createElement('input');nameI.className='sim-name-inp';nameI.id='simName_'+item.id;nameI.type='text';nameI.placeholder='Item name…';nameI.value=item.name||'';
     const costI=document.createElement('input');costI.className='sim-cost-inp';costI.id='simCost_'+item.id;costI.type='number';costI.min=1;costI.value=item.cost||10;
     const star=document.createElement('span');star.textContent='⭐';star.style.cssText='font-size:11px;flex-shrink:0';
@@ -3215,8 +3357,9 @@ function renderShop(){
 if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
 if(!S.customTemplates)S.customTemplates=[];
-// Custom shop items are shared across kids (live on S)
 if(!S.customShopItems)S.customShopItems=[];
+if(!S.levelThresholds)S.levelThresholds={};
+if(!S.customLevels)S.customLevels=[];
 // Migrate old per-kid customShopItems up to S (merge, dedup by id)
 S.kids.forEach(k=>{
   if(k.customShopItems&&k.customShopItems.length){
