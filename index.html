@@ -433,6 +433,7 @@ body.kids-mode #setImport,
 body.kids-mode #setPin,
 body.kids-mode #setAddSection,
 body.kids-mode #setApprovalMode,
+body.kids-mode #setAllowance,
 body.kids-mode #setAchievements,
 body.kids-mode #setShopItems,
 body.kids-mode #setReset { display:none!important }
@@ -878,8 +879,6 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
           <div class="m-hint">Manual adjustments are logged in history.</div>
         </div>
       </div>
-      <div class="level-box" id="levelBox"></div>
-      <div class="allowance-box" id="allowanceBox" style="display:none"></div>
       <div class="section" id="secBadges">
         <div class="sec-hdr" onclick="toggleSection('secBadges')">
           <div class="sec-title">&#x1F3C5; Achievements</div>
@@ -911,15 +910,6 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
           <div class="streak-hist-wrap"><canvas id="streakHistChart"></canvas></div>
         </div>
       </div>
-      <div class="section" id="secRedemptions">
-        <div class="sec-hdr" onclick="toggleSection('secRedemptions')"><div class="sec-title">&#x1F381; Redemptions</div></div>
-        <div class="charts-body sec-body">
-          <div class="chart-lbl">Last 7 Days</div>
-          <div class="chart-wrap"><canvas id="wRChart"></canvas></div>
-          <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
-          <div class="chart-wrap"><canvas id="mRChart"></canvas></div>
-        </div>
-      </div>
       <div class="section" id="secMischief">
         <div class="sec-hdr" onclick="toggleSection('secMischief')"><div class="sec-title">&#x1F608; Mischief</div></div>
         <div class="charts-body sec-body">
@@ -927,6 +917,15 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
           <div class="chart-wrap"><canvas id="wMChart"></canvas></div>
           <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
           <div class="chart-wrap"><canvas id="mMChart"></canvas></div>
+        </div>
+      </div>
+      <div class="section" id="secRedemptions">
+        <div class="sec-hdr" onclick="toggleSection('secRedemptions')"><div class="sec-title">&#x1F381; Redemptions</div></div>
+        <div class="charts-body sec-body">
+          <div class="chart-lbl">Last 7 Days</div>
+          <div class="chart-wrap"><canvas id="wRChart"></canvas></div>
+          <div class="chart-lbl" style="margin-top:3px">Last 12 Months</div>
+          <div class="chart-wrap"><canvas id="mRChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -952,6 +951,7 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
       <div class="setting-row" id="setAddSection"><span class="setting-icon">&#x2728;</span><div class="setting-info"><div class="setting-label">Add Custom Section</div><div class="setting-desc">Create a named chore group (e.g. Homework, Pet Care)</div></div></div>
       <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
       <div class="setting-row" id="setShopItems"><span class="setting-icon">&#x1F6CD;</span><div class="setting-info"><div class="setting-label">Reward Shop Items</div><div class="setting-desc">Edit default costs and add custom shop items</div></div></div>
+      <div class="setting-row" id="setAllowance"><span class="setting-icon">&#x1F4B0;</span><div class="setting-info"><div class="setting-label">Weekly Allowance</div><div class="setting-desc">Set automatic weekly token payouts per kid</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing &mdash; kids can view chores &amp; check off tasks</div></div></div>
       <div class="setting-row" id="setApprovalMode"><span class="setting-icon">&#x270D;&#xFE0F;</span><div class="setting-info"><div class="setting-label">Require Parent Approval <span class="km-status-badge" id="approvalStatusBadge">Off</span></div><div class="setting-desc">Chore ticks in Kids Mode wait for your approval before awarding tokens</div></div></div>
       <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">Parent PIN</div><div class="setting-desc">Set a 4-digit PIN to protect parent mode</div></div></div>
@@ -1357,7 +1357,6 @@ function buildChoreCard(grp,secId,idx,item,k){
   diff.textContent=DIFF_LABELS[item.difficulty||'none'];diff.title='Click to change difficulty';
   diff.addEventListener('click',e=>{
     e.stopPropagation();
-    if(kidsMode)return;
     const cycle=['easy','medium','hard'];
     const cur=cycle.indexOf(item.difficulty||'');
     item.difficulty=cycle[(cur+1)%cycle.length];
@@ -1576,8 +1575,7 @@ function renderRight(){
   const sn=document.getElementById('sNum');if(sn)sn.textContent=streak;
   const sb=document.getElementById('sBest');if(sb)sb.textContent='best: '+best;
   const sb2=document.getElementById('streakBox');if(sb2)sb2.className='streak-box'+(streak===0?' no-streak':'');
-  if(k){renderLevelBox(k,'levelBox');}
-  renderAllowanceBox(k);
+  if(k){}
   if(k){
     const g=k.goal||{name:'',target:100,rewardId:null};
     if(g.rewardId){const r=(k.rewards||[]).find(r=>r.id===g.rewardId);if(r){g.name=r.title||'';g.target=r.cost||1;}else{g.rewardId=null;g.savingsLock=false;save();}}
@@ -1749,7 +1747,7 @@ function renderTabs(){
     inp.className='kd-name-inp';inp.type='text';inp.value=kk.name||'';inp.placeholder='Kid name…';
     inp.addEventListener('pointerdown',e=>e.stopPropagation());
     inp.addEventListener('click',e=>e.stopPropagation());
-    inp.addEventListener('input',e=>{kk.name=e.target.value;save();if(kk.id===S.activeId)renderTabs();});
+    inp.addEventListener('input',e=>{kk.name=e.target.value;save();if(kk.id===S.activeId){const n=document.getElementById('kpbName');if(n)n.textContent=kk.name||'Kid';}});
     const acts=document.createElement('div');acts.className='kd-actions';
     const tdot=document.createElement('div');tdot.className='kd-theme-dot';
     tdot.style.background=kt.accent;tdot.title='Change theme';
@@ -2421,6 +2419,7 @@ function setupCommonEvents(){
   const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
   const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openAchievementManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openShopItemsManager();});
+  const setAllow=document.getElementById('setAllowance');if(setAllow)setAllow.addEventListener('click',openAllowanceSheet);
   const setApproval=document.getElementById('setApprovalMode');if(setApproval)setApproval.addEventListener('click',()=>{
     S.approvalMode=!S.approvalMode;
     if(!S.approvalMode){S.kids.forEach(k=>{k.pendingApprovals=[];});}
@@ -2794,6 +2793,41 @@ function checkAllowance(){
     toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3200);
   },400);
 }
+function openAllowanceSheet(){
+  document.getElementById('settingsOverlay').classList.remove('open');
+  let ov=document.getElementById('allowanceOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='allowanceOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:440px"><div class="m-hdr"><div class="m-title">&#x1F4B0; Weekly Allowance</div><button class="m-close" onclick="document.getElementById('allowanceOverlay').remove()">&#x2715;</button></div><div class="m-body" id="allowanceSheetBody" style="padding:14px 18px 22px;overflow-y:auto;max-height:72vh"></div></div>`;
+  document.body.appendChild(ov);ov.classList.add('open');
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  renderAllowanceSheet();
+}
+function renderAllowanceSheet(){
+  const body=document.getElementById('allowanceSheetBody');if(!body)return;
+  body.innerHTML='';
+  const DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  if(!S.kids||!S.kids.length){body.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No kids added yet.</div>';return;}
+  S.kids.forEach(k=>{
+    if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};
+    const a=k.allowance;
+    const t=THEMES[k.theme||'galaxy']||THEMES.galaxy;
+    const nextPay=(()=>{if(!a.amount||a.amount<=0)return'Not configured';const today=new Date();const payDay=Number(a.day||1);let diff=(payDay-today.getDay()+7)%7;if(diff===0)diff=7;const d=new Date(today);d.setDate(today.getDate()+diff);return'Next: '+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});})();
+    const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:16px;padding:12px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:12px;';
+    wrap.innerHTML=`<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px"><div style="width:9px;height:9px;border-radius:50%;background:${t.accent}"></div><div style="font-size:13px;font-weight:700;color:var(--text)">${k.name||'Kid'}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input class="allowance-inp" id="alAmt_${k.id}" type="number" min="0" value="${a.amount||0}" placeholder="0">
+        <span style="font-size:12px;color:var(--yellow)">&#x2605;/week on</span>
+        <select class="allowance-day-sel" id="alDay_${k.id}">${DN.map((n,i)=>'<option value="'+i+'"'+(Number(a.day||1)===i?' selected':'')+'>'+n+'</option>').join('')}</select>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">${nextPay}</div>`;
+    body.appendChild(wrap);
+    const amtInp=document.getElementById('alAmt_'+k.id);
+    if(amtInp)amtInp.addEventListener('input',e=>{k.allowance.amount=Math.max(0,Number(e.target.value||0));save();renderAllowanceSheet();});
+    const dayS=document.getElementById('alDay_'+k.id);
+    if(dayS)dayS.addEventListener('change',e=>{k.allowance.day=Number(e.target.value);k.allowance.lastPaid=null;k.allowance.lastWeekPaid=null;save();renderAllowanceSheet();});
+  });
+}
+
 function renderAllowanceBox(k){
   const el=document.getElementById('allowanceBox');if(!el)return;
   if(!k){el.style.display='none';return;}
