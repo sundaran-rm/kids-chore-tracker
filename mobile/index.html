@@ -633,6 +633,9 @@ body.kids-mode #setImport,
 body.kids-mode #setPin,
 body.kids-mode #setAchievements,
 body.kids-mode #setShopItems,
+body.kids-mode #setFlashMsg,
+body.kids-mode #setNotifs,
+body.kids-mode #flashBtnWrap,
 body.kids-mode #setReset { display:none!important }
 /* Dim the settings gear so it's clear it's restricted */
 body.kids-mode #btnSettings { opacity:.5 }
@@ -868,6 +871,68 @@ body.kids-mode .settings-km-hint { display:block!important }
 .chart-sub-title{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:14px;margin-bottom:2px;padding-left:2px;}
 .streak-hist-wrap{height:80px;margin-top:4px;position:relative;}
 
+/* ── FLASH MESSAGES ── */
+.flash-overlay{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.flash-overlay.open{opacity:1;pointer-events:all;}
+.flash-modal{width:min(92vw,380px);background:var(--navy2);border:1px solid var(--border);border-radius:20px;overflow:hidden;transform:scale(.92);transition:transform .25s;box-shadow:0 24px 80px rgba(0,0,0,.6);}
+.flash-overlay.open .flash-modal{transform:scale(1);}
+.flash-mood-banner{padding:18px 20px 14px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.flash-mood-emoji{font-size:44px;line-height:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));}
+.flash-mood-label{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.8;}
+.flash-msg-body{padding:0 20px 6px;font-size:15px;font-weight:700;color:var(--text);line-height:1.55;text-align:center;min-height:40px;}
+.flash-from{font-size:10px;color:var(--muted);text-align:center;padding-bottom:14px;}
+.flash-read-btn{display:block;width:calc(100% - 32px);margin:0 16px 18px;padding:14px;border:none;border-radius:14px;font-family:var(--font);font-size:15px;font-weight:900;cursor:pointer;transition:filter .15s;letter-spacing:.2px;}
+.flash-read-btn:hover{filter:brightness(1.1);}
+.flash-queue-hint{text-align:center;font-size:10px;color:var(--muted);padding-bottom:14px;margin-top:-8px;}
+.flash-compose-body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;flex:1;}
+.flash-mood-row{display:flex;gap:6px;}
+.flash-mood-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;background:var(--navy3);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .14s;font-family:var(--font);}
+.flash-mood-btn .fm-emoji{font-size:20px;line-height:1;}
+.flash-mood-btn .fm-lbl{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.3px;}
+.flash-mood-btn.active{border-color:var(--accent);background:rgba(79,195,247,0.1);}
+.flash-compose-ta{width:100%;min-height:80px;background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;border-radius:10px;padding:10px;outline:none;resize:none;box-sizing:border-box;transition:border-color .15s;}
+.flash-compose-ta:focus{border-color:var(--accent);}
+.flash-target-row{display:flex;gap:6px;flex-wrap:wrap;}
+.flash-target-btn{padding:5px 11px;background:var(--navy3);border:1.5px solid var(--border);border-radius:8px;color:var(--muted);font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;transition:all .14s;}
+.flash-target-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,195,247,0.1);}
+.flash-send-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--purple-dark));color:#fff;font-family:var(--font);font-size:14px;font-weight:800;border:none;border-radius:12px;cursor:pointer;flex-shrink:0;margin-top:2px;transition:filter .15s;}
+.flash-send-btn:hover{filter:brightness(1.1);}
+.flash-history{margin-top:4px;display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;}
+.flash-hist-item{background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;display:flex;align-items:flex-start;gap:10px;}
+.fhi-emoji{font-size:18px;flex-shrink:0;line-height:1.2;}
+.fhi-info{flex:1;min-width:0;}
+.fhi-text{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fhi-meta{font-size:9px;color:var(--muted);margin-top:2px;}
+.fhi-read{font-size:9px;color:var(--green);font-weight:700;}
+.fhi-unread{font-size:9px;color:var(--orange);font-weight:700;}
+.flash-badge{position:absolute;top:-3px;right:-3px;background:var(--orange);color:#fff;border-radius:50%;width:15px;height:15px;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.flash-btn-wrap{position:relative;display:inline-flex;}
+.notif-section-title{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 0 4px;}
+.notif-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.notif-row:last-child{border-bottom:none;}
+.notif-info{flex:1;min-width:0;}
+.notif-label{font-size:13px;font-weight:700;color:var(--text);}
+.notif-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+.notif-toggle{width:36px;height:20px;border-radius:10px;background:var(--border);border:none;position:relative;cursor:pointer;transition:background .15s;flex-shrink:0;}
+.notif-toggle.on{background:var(--green);}
+.notif-toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .15s;}
+.notif-toggle.on::after{transform:translateX(16px);}
+.notif-time{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.notif-time-inp{background:var(--navy4);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;font-weight:800;border-radius:7px;padding:4px 8px;outline:none;width:68px;transition:border-color .15s;}
+.notif-time-inp:focus{border-color:var(--accent);}
+.notif-time-lbl{font-size:10px;color:var(--muted);}
+.notif-perm-banner{background:rgba(255,183,77,0.1);border:1px solid rgba(255,183,77,0.3);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.notif-perm-txt{font-size:11px;color:var(--yellow);font-weight:600;line-height:1.45;}
+.notif-perm-btn{margin-top:8px;width:100%;padding:8px;background:var(--yellow);color:#1a1200;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;}
+.notif-blocked{font-size:10px;color:var(--red);background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.2);border-radius:8px;padding:8px 10px;line-height:1.5;}
+.inapp-notif{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-120%);opacity:0;pointer-events:none;z-index:1100;background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:11px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;max-width:360px;width:calc(100vw - 32px);}
+.inapp-notif.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all;}
+.inapp-notif-icon{font-size:22px;flex-shrink:0;}
+.inapp-notif-body{flex:1;min-width:0;}
+.inapp-notif-title{font-size:12px;font-weight:800;color:var(--text);}
+.inapp-notif-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.inapp-notif-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;flex-shrink:0;}
+
 </style>
 </head>
 <body>
@@ -890,6 +955,10 @@ body.kids-mode .settings-km-hint { display:block!important }
         <button class="icon-btn" id="btnApprovals" style="color:var(--orange)">&#x23F3;</button>
         <div class="approval-badge-count" id="approvalCount">0</div>
       </div>
+      <div class="flash-btn-wrap" id="flashBtnWrap">
+        <button class="icon-btn" id="btnFlash" title="Flash Message">&#x1F4E3;</button>
+        <div class="flash-badge" id="flashBadge" style="display:none">0</div>
+      </div>
       <button class="icon-btn" id="btnSettings" title="Settings">&#x2699;</button>
       <button class="icon-btn" id="btnHelp" title="Help" style="color:var(--blue)">&#x2753;</button>
       <button class="icon-btn" id="btnKidsLock" title="Exit Kids Mode" style="color:var(--yellow)">&#x1F512;</button>
@@ -900,6 +969,16 @@ body.kids-mode .settings-km-hint { display:block!important }
 <!-- KID DROPDOWN -->
 <div class="kid-dropdown" id="kidDropdown"></div>
 <div id="kdBackdrop" style="display:none;position:fixed;inset:0;z-index:499" onclick="closeKidDropdown()"></div>
+
+<!-- IN-APP NOTIFICATION BANNER -->
+<div class="inapp-notif" id="inappNotif">
+  <div class="inapp-notif-icon" id="inappNotifIcon">🔔</div>
+  <div class="inapp-notif-body">
+    <div class="inapp-notif-title" id="inappNotifTitle"></div>
+    <div class="inapp-notif-sub" id="inappNotifSub"></div>
+  </div>
+  <button class="inapp-notif-close" onclick="dismissInappNotif()">&#x2715;</button>
+</div>
 
 <!-- CONTENT -->
 <div class="content" id="mainContent">
@@ -1100,6 +1179,8 @@ body.kids-mode .settings-km-hint { display:block!important }
       <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
       <div class="setting-row" id="setXPLevels"><span class="setting-icon">&#x26A1;</span><div class="setting-info"><div class="setting-label">XP Levels</div><div class="setting-desc">Edit level thresholds and create custom levels</div></div></div>
       <div class="setting-row" id="setShopItems"><span class="setting-icon">&#x1F6CD;</span><div class="setting-info"><div class="setting-label">Reward Shop Items</div><div class="setting-desc">Edit default costs and add custom shop items</div></div></div>
+      <div class="setting-row" id="setFlashMsg"><span class="setting-icon">&#x1F4E3;</span><div class="setting-info"><div class="setting-label">Flash Message</div><div class="setting-desc">Send a message that pops up in Kids Mode</div></div></div>
+      <div class="setting-row" id="setNotifs"><span class="setting-icon">&#x1F514;</span><div class="setting-info"><div class="setting-label">Notifications</div><div class="setting-desc">Reminders for kids &amp; parent approvals</div></div></div>
       <div class="setting-row" id="setAllowance"><span class="setting-icon">&#x1F4B0;</span><div class="setting-info"><div class="setting-label">Weekly Allowance</div><div class="setting-desc">Set automatic weekly token payouts per kid</div></div></div>
       <div class="setting-row danger" id="setReset"><span class="setting-icon">&#x267B;</span><div class="setting-info"><div class="setting-label">Reset Everything</div><div class="setting-desc">Delete all kids and data</div></div></div>
     </div>
@@ -1441,6 +1522,7 @@ function startListener(hid){
         if(!S.customBadges)S.customBadges=[];
         if(!S.levelThresholds)S.levelThresholds={};
         if(!S.customLevels)S.customLevels=[];
+        if(!S.flashMessages)S.flashMessages=[];
         S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.oneTime)k.oneTime=[];if(!k.theme)k.theme='galaxy';if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.pendingApprovals)k.pendingApprovals=[];k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
         saveLocal();renderAll();
       }
@@ -2033,11 +2115,13 @@ function renderApprovalPanel(){
         refreshStreak(k);save();playTick();renderAll();
         const r=approveBtn.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);
         renderApprovalPanel();updateApprovalBadge();
+        if(totalPending()===0){setTimeout(()=>{const o=document.getElementById('approvalOverlay');if(o)o.remove();},600);}
       });
       const rejectBtn=document.createElement('button');rejectBtn.className='ap-btn reject';rejectBtn.title='Reject';rejectBtn.textContent='✕';
       rejectBtn.addEventListener('click',()=>{
         k.pendingApprovals=k.pendingApprovals.filter(x=>x.id!==p.id);
         save();renderAll();renderApprovalPanel();updateApprovalBadge();
+        if(totalPending()===0){setTimeout(()=>{const o=document.getElementById('approvalOverlay');if(o)o.remove();},600);}
       });
       acts.appendChild(approveBtn);acts.appendChild(rejectBtn);
       item.appendChild(dot);item.appendChild(info);item.appendChild(tok);item.appendChild(acts);
@@ -2222,10 +2306,11 @@ function applyKidsMode(){
   if(btn) btn.textContent = kidsMode ? '\uD83D\uDD13 Unlock' : '\uD83D\uDD12 Kids Mode';
 }
 function enterKidsMode(){
-  kidsMode=true; localStorage.setItem('cq_kids_mode','1'); applyKidsMode(); updateApprovalBadge();
+  kidsMode=true; localStorage.setItem('cq_kids_mode','1'); applyKidsMode(); updateApprovalBadge(); updateFlashBadge();
+  setTimeout(checkFlashMessages,400);
 }
 function exitKidsMode(){
-  kidsMode=false; localStorage.setItem('cq_kids_mode','0'); applyKidsMode(); updateApprovalBadge();
+  kidsMode=false; localStorage.setItem('cq_kids_mode','0'); applyKidsMode(); updateApprovalBadge(); updateFlashBadge();
 }
 
 /* PIN */
@@ -2695,6 +2780,14 @@ function setupCommonEvents(){
   const setXPLv=document.getElementById('setXPLevels');if(setXPLv)setXPLv.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openXPLevelManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openShopItemsManager();});
   const setAllow=document.getElementById('setAllowance');if(setAllow)setAllow.addEventListener('click',openAllowanceSheet);
+  // Flash message + notifications event wiring
+  const btnFlash=document.getElementById('btnFlash');
+  if(btnFlash)btnFlash.addEventListener('click',openFlashCompose);
+  const setFlash=document.getElementById('setFlashMsg');
+  if(setFlash)setFlash.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openFlashCompose();});
+  const setNotifs=document.getElementById('setNotifs');
+  if(setNotifs)setNotifs.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openNotifSettings();});
+
   const setApproval=document.getElementById('setApprovalMode');if(setApproval)setApproval.addEventListener('click',()=>{    S.approvalMode=!S.approvalMode;
     if(!S.approvalMode){S.kids.forEach(k=>{k.pendingApprovals=[];});}
     document.body.classList.toggle('approval-mode',!!S.approvalMode);
@@ -3635,6 +3728,7 @@ if(!S.customTemplates)S.customTemplates=[];
 if(!S.customShopItems)S.customShopItems=[];
 if(!S.levelThresholds)S.levelThresholds={};
 if(!S.customLevels)S.customLevels=[];
+if(!S.flashMessages)S.flashMessages=[];
 // Migrate old per-kid customShopItems up to S (merge, dedup by id)
 S.kids.forEach(k=>{
   if(k.customShopItems&&k.customShopItems.length){
@@ -3651,6 +3745,9 @@ applyKidsMode();
 renderAll();
 checkAllowance();
 maybeShowWeeklyReport();
+updateFlashBadge();
+scheduleNotifCheck();
+if(kidsMode)setTimeout(checkFlashMessages,600);
 
 
 
@@ -3725,6 +3822,331 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 document.getElementById('btnInstall').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();const{outcome}=await deferredInstall.userChoice;deferredInstall=null;document.getElementById('installBanner').classList.remove('show');});
 document.getElementById('btnDismissInstall').addEventListener('click',()=>document.getElementById('installBanner').classList.remove('show'));
 window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+
+
+/* ══════════════════════════════════════════════
+   FLASH MESSAGES
+══════════════════════════════════════════════ */
+const FLASH_MOODS=[
+  {id:'praise',  emoji:'🎉',label:'Praise',   color:'var(--green)',  dark:'rgba(105,240,174,0.15)'},
+  {id:'reminder',emoji:'📋',label:'Reminder', color:'var(--blue)',   dark:'rgba(79,195,247,0.15)'},
+  {id:'heads-up',emoji:'⚠️',label:'Heads Up', color:'var(--orange)', dark:'rgba(255,183,77,0.15)'},
+  {id:'love',    emoji:'❤️',label:'Just Because',color:'#ff6b9d',   dark:'rgba(255,107,157,0.15)'},
+];
+
+function getMood(id){return FLASH_MOODS.find(m=>m.id===id)||FLASH_MOODS[0];}
+
+function updateFlashBadge(){
+  const badge=document.getElementById('flashBadge');
+  if(!badge)return;
+  if(kidsMode){badge.style.display='none';return;}
+  // Count messages where at least one recipient hasn't read it
+  const msgs=S.flashMessages||[];
+  let unreadCount=0;
+  msgs.forEach(msg=>{
+    const targets=msg.targetKidId?[msg.targetKidId]:(S.kids||[]).map(k=>k.id);
+    const readIds=(msg.readBy||[]).map(r=>r.kidId);
+    if(targets.some(id=>!readIds.includes(id)))unreadCount++;
+  });
+  badge.style.display=unreadCount>0?'flex':'none';
+  badge.textContent=unreadCount>9?'9+':String(unreadCount);
+}
+
+function openFlashCompose(){
+  let ov=document.getElementById('flashComposeOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='flashComposeOverlay';ov.className='overlay';
+  const msgs=(S.flashMessages||[]).slice().reverse().slice(0,10);
+  const histHTML=msgs.length?msgs.map(msg=>{
+    const mood=getMood(msg.mood);
+    const targets=msg.targetKidId?[msg.targetKidId]:(S.kids||[]).map(k=>k.id);
+    const readIds=(msg.readBy||[]).map(r=>r.kidId);
+    const allRead=targets.every(id=>readIds.includes(id));
+    const readNames=(msg.readBy||[]).map(r=>{const k=(S.kids||[]).find(x=>x.id===r.kidId);return k?k.name:'?';}).join(', ');
+    const targetName=msg.targetKidId?((S.kids||[]).find(k=>k.id===msg.targetKidId)?.name||'?'):'Everyone';
+    return `<div class="flash-hist-item">
+      <div class="fhi-emoji">${mood.emoji}</div>
+      <div class="fhi-info">
+        <div class="fhi-text">${escHtml(msg.text)}</div>
+        <div class="fhi-meta">To: ${escHtml(targetName)} · ${timeAgo(msg.sentAt)}</div>
+        <div class="${allRead?'fhi-read':'fhi-unread'}">${allRead?'✓ Read by '+escHtml(readNames):'⏳ Unread'}</div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px 0">No messages sent yet</div>';
+
+  const kidOpts=(S.kids||[]).map(k=>`<button class="flash-target-btn" data-kid="${k.id}">${escHtml(k.name)}</button>`).join('');
+
+  ov.innerHTML=`<div class="modal" style="max-width:400px">
+    <div class="m-hdr"><div class="m-title">&#x1F4E3; Flash Message</div><button class="m-close" onclick="document.getElementById('flashComposeOverlay').remove()">&#x2715;</button></div>
+    <div class="flash-compose-body">
+      <div>
+        <div class="ced-label">Mood</div>
+        <div class="flash-mood-row" id="fcMoodRow">
+          ${FLASH_MOODS.map(m=>`<button class="flash-mood-btn${m.id==='praise'?' active':''}" data-mood="${m.id}"><span class="fm-emoji">${m.emoji}</span><span class="fm-lbl">${m.label}</span></button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="ced-label">Message</div>
+        <textarea class="flash-compose-ta" id="fcText" placeholder="Type your message…" maxlength="280"></textarea>
+      </div>
+      <div>
+        <div class="ced-label">Send to</div>
+        <div class="flash-target-row" id="fcTargetRow">
+          <button class="flash-target-btn active" data-kid="all">Everyone</button>
+          ${kidOpts}
+        </div>
+      </div>
+      <button class="flash-send-btn" id="fcSendBtn">&#x1F4E4; Send Message</button>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div class="ced-label">Recent Messages</div><button id="fcClearBtn" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:10px;font-weight:800;border-radius:6px;padding:3px 8px;cursor:pointer">Clear All</button></div>
+        <div class="flash-history">${histHTML}</div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+
+  let selMood='praise', selKid='all';
+  ov.querySelectorAll('.flash-mood-btn').forEach(b=>{
+    b.addEventListener('click',()=>{selMood=b.dataset.mood;ov.querySelectorAll('.flash-mood-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');});
+  });
+  ov.querySelectorAll('.flash-target-btn').forEach(b=>{
+    b.addEventListener('click',()=>{selKid=b.dataset.kid;ov.querySelectorAll('.flash-target-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');});
+  });
+  const fcClearBtn=document.getElementById('fcClearBtn');
+  if(fcClearBtn)fcClearBtn.addEventListener('click',()=>{
+    if(!confirm('Clear all flash message history?'))return;
+    S.flashMessages=[];save();updateFlashBadge();ov.remove();
+  });
+  document.getElementById('fcSendBtn').addEventListener('click',()=>{
+    const text=document.getElementById('fcText').value.trim();
+    if(!text){document.getElementById('fcText').focus();return;}
+    if(!S.flashMessages)S.flashMessages=[];
+    S.flashMessages.push({id:uid(),text,mood:selMood,targetKidId:selKid==='all'?null:selKid,sentAt:Date.now(),readBy:[]});
+    // Keep last 50 messages
+    if(S.flashMessages.length>50)S.flashMessages=S.flashMessages.slice(-50);
+    save();updateFlashBadge();
+    ov.remove();
+    showInappNotif('📣','Message sent!','It will pop up when kids open the app.');
+  });
+  ov.classList.add('open');
+  setTimeout(()=>document.getElementById('fcText')?.focus(),120);
+}
+
+function escHtml(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+/* ── Show flash messages to kid (queue) ── */
+let _flashQueue=[];
+function checkFlashMessages(){
+  if(!kidsMode)return;
+  const k=kid();if(!k)return;
+  const msgs=(S.flashMessages||[]).filter(msg=>{
+    const targeted=!msg.targetKidId||msg.targetKidId===k.id;
+    const alreadyRead=(msg.readBy||[]).some(r=>r.kidId===k.id);
+    return targeted&&!alreadyRead;
+  });
+  if(!msgs.length)return;
+  _flashQueue=[...msgs];
+  showNextFlash();
+}
+
+function showNextFlash(){
+  if(!_flashQueue.length)return;
+  const msg=_flashQueue[0];
+  const mood=getMood(msg.mood);
+  let ov=document.getElementById('flashReadOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='flashReadOverlay';ov.className='flash-overlay';
+  const remaining=_flashQueue.length;
+  ov.innerHTML=`<div class="flash-modal">
+    <div class="flash-mood-banner" style="background:${mood.dark}">
+      <div class="flash-mood-emoji">${mood.emoji}</div>
+      <div class="flash-mood-label" style="color:${mood.color}">${mood.label}</div>
+    </div>
+    <div class="flash-msg-body">${escHtml(msg.text)}</div>
+    <div class="flash-from">&#x2014; From your parent &#x2014;</div>
+    ${remaining>1?`<div class="flash-queue-hint">${remaining-1} more message${remaining>2?'s':''} after this</div>`:''}
+    <button class="flash-read-btn" style="background:${mood.color};color:${mood.color==='var(--green)'?'#0a2a1a':'#0a1929'}">&#x2713; I've Read It</button>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>ov.classList.add('open'),10);
+  ov.querySelector('.flash-read-btn').addEventListener('click',()=>{
+    markFlashRead(msg.id);
+    _flashQueue.shift();
+    ov.classList.remove('open');
+    setTimeout(()=>{ov.remove();if(_flashQueue.length)showNextFlash();},220);
+  });
+}
+
+function markFlashRead(msgId){
+  const k=kid();if(!k)return;
+  const msg=(S.flashMessages||[]).find(m=>m.id===msgId);
+  if(!msg)return;
+  if(!msg.readBy)msg.readBy=[];
+  if(!msg.readBy.some(r=>r.kidId===k.id)){
+    msg.readBy.push({kidId:k.id,at:Date.now()});
+    save();updateFlashBadge();
+  }
+}
+
+/* ══════════════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════════════ */
+const NOTIF_SK='cq_notif';
+function getNotifSettings(){
+  try{const r=localStorage.getItem(NOTIF_SK);return r?JSON.parse(r):{kidsEnabled:false,kidsHour:16,kidsMinute:0,parentEnabled:false,parentHour:20,parentMinute:0};}
+  catch(e){return{kidsEnabled:false,kidsHour:16,kidsMinute:0,parentEnabled:false,parentHour:20,parentMinute:0};}
+}
+function saveNotifSettings(ns){localStorage.setItem(NOTIF_SK,JSON.stringify(ns));}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return 'unsupported';
+  if(Notification.permission==='granted')return 'granted';
+  if(Notification.permission==='denied')return 'denied';
+  const result=await Notification.requestPermission();
+  return result;
+}
+
+function fireNotification(title,body,tag,icon){
+  if(!('Notification' in window)||Notification.permission!=='granted')return false;
+  try{
+    if('serviceWorker' in navigator&&navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF',title,body,tag,icon:icon||'./icon-192.png'});
+    } else {
+      new Notification(title,{body,tag,icon:icon||'./icon-192.png'});
+    }
+    return true;
+  }catch(e){return false;}
+}
+
+function checkAndFireNotifs(){
+  const ns=getNotifSettings();
+  const now=new Date();
+  const hh=now.getHours(),mm=now.getMinutes();
+  const today=todayStr();
+
+  if(ns.kidsEnabled){
+    const lastKey='cq_notif_kids_last';
+    const lastDate=localStorage.getItem(lastKey)||'';
+    if(lastDate!==today&&hh===ns.kidsHour&&mm===ns.kidsMinute){
+      const fired=fireNotification('⏰ Chore Time!','Time to check your chores and earn tokens!','chore-quest-kids');
+      if(fired)localStorage.setItem(lastKey,today);
+      else showInappNotif('⏰','Chore Time!','Time to check your chores and earn tokens!');
+    }
+  }
+  if(ns.parentEnabled&&!kidsMode){
+    const pending=totalPending();
+    if(pending>0){
+      const lastKey='cq_notif_parent_last';
+      const lastDate=localStorage.getItem(lastKey)||'';
+      if(lastDate!==today&&hh===ns.parentHour&&mm===ns.parentMinute){
+        const fired=fireNotification('✍️ Approvals Pending',`${pending} chore${pending>1?'s':''} waiting for your approval.`,'chore-quest-parent');
+        if(fired)localStorage.setItem(lastKey,today);
+        else showInappNotif('✍️','Approvals Pending',`${pending} chore${pending>1?'s':''} waiting for your approval.`);
+      }
+    }
+  }
+}
+
+var _notifInterval=null;
+function scheduleNotifCheck(){
+  if(_notifInterval)clearInterval(_notifInterval);
+  _notifInterval=setInterval(checkAndFireNotifs,60000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkAndFireNotifs();});
+}
+
+function openNotifSettings(){
+  let ov=document.getElementById('notifOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='notifOverlay';ov.className='overlay';
+  const ns=getNotifSettings();
+  const perm='Notification' in window?Notification.permission:'unsupported';
+  const permBanner=perm==='default'?
+    `<div class="notif-perm-banner"><div class="notif-perm-txt">&#x1F514; Tap below to allow notifications. You'll get reminders even if the app is running in the background.</div><button class="notif-perm-btn" id="notifPermBtn">Allow Notifications</button></div>`:
+    perm==='denied'?`<div class="notif-blocked">&#x26D4; Notifications are blocked in your browser settings. To enable, tap the lock icon in your address bar and allow notifications for this site.</div>`:
+    perm==='unsupported'?`<div class="notif-blocked">&#x26A0;&#xFE0F; Your browser doesn't support notifications. Try installing this app to your home screen.</div>`:'';
+
+  ov.innerHTML=`<div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">&#x1F514; Notifications</div><button class="sheet-close" onclick="document.getElementById('notifOverlay').remove()">&#x2715;</button></div>
+    <div class="sheet-body">
+      ${permBanner}
+      <div class="notif-section-title">Daily Reminders</div>
+      <div class="notif-row">
+        <div class="notif-info">
+          <div class="notif-label">&#x1F9B8; Kids Reminder</div>
+          <div class="notif-desc">Remind kids to check their chores</div>
+          <div class="notif-time" id="kidsTimeRow" style="display:${ns.kidsEnabled?'flex':'none'}">
+            <input class="notif-time-inp" type="time" id="kidsTimeInp" value="${String(ns.kidsHour).padStart(2,'0')}:${String(ns.kidsMinute).padStart(2,'0')}">
+            <span class="notif-time-lbl">daily reminder time</span>
+          </div>
+        </div>
+        <button class="notif-toggle${ns.kidsEnabled?' on':''}" id="kidsToggle"></button>
+      </div>
+      <div class="notif-row">
+        <div class="notif-info">
+          <div class="notif-label">&#x270D;&#xFE0F; Parent Approval Reminder</div>
+          <div class="notif-desc">Remind you when chores are pending approval</div>
+          <div class="notif-time" id="parentTimeRow" style="display:${ns.parentEnabled?'flex':'none'}">
+            <input class="notif-time-inp" type="time" id="parentTimeInp" value="${String(ns.parentHour).padStart(2,'0')}:${String(ns.parentMinute).padStart(2,'0')}">
+            <span class="notif-time-lbl">daily reminder time</span>
+          </div>
+        </div>
+        <button class="notif-toggle${ns.parentEnabled?' on':''}" id="parentToggle"></button>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.6;background:var(--navy3);border-radius:8px;padding:8px 10px;">
+        &#x2139;&#xFE0F; Reminders fire at your chosen time each day. If the app isn't open, they'll appear when you next launch it.
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+
+  const permBtn=document.getElementById('notifPermBtn');
+  if(permBtn)permBtn.addEventListener('click',async()=>{
+    const r=await requestNotifPermission();
+    if(r==='granted'){permBtn.textContent='✓ Notifications allowed!';permBtn.style.background='var(--green)';setTimeout(()=>ov.remove(),800);}
+    else if(r==='denied'){permBtn.replaceWith(Object.assign(document.createElement('div'),{className:'notif-blocked',textContent:'Notifications blocked. Please allow them in your browser settings.'}));}
+  });
+
+  function saveFromUI(){
+    const ns2=getNotifSettings();
+    ns2.kidsEnabled=document.getElementById('kidsToggle').classList.contains('on');
+    ns2.parentEnabled=document.getElementById('parentToggle').classList.contains('on');
+    const kv=document.getElementById('kidsTimeInp').value.split(':');
+    ns2.kidsHour=Number(kv[0]||16);ns2.kidsMinute=Number(kv[1]||0);
+    const pv=document.getElementById('parentTimeInp').value.split(':');
+    ns2.parentHour=Number(pv[0]||20);ns2.parentMinute=Number(pv[1]||0);
+    saveNotifSettings(ns2);
+  }
+  document.getElementById('kidsToggle').addEventListener('click',function(){
+    this.classList.toggle('on');
+    document.getElementById('kidsTimeRow').style.display=this.classList.contains('on')?'flex':'none';
+    saveFromUI();
+  });
+  document.getElementById('parentToggle').addEventListener('click',function(){
+    this.classList.toggle('on');
+    document.getElementById('parentTimeRow').style.display=this.classList.contains('on')?'flex':'none';
+    saveFromUI();
+  });
+  ['kidsTimeInp','parentTimeInp'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('change',saveFromUI);
+  });
+  ov.classList.add('open');
+}
+
+/* ── In-app notification banner ── */
+var _inappTimer=null;
+function showInappNotif(icon,title,sub){
+  const el=document.getElementById('inappNotif');if(!el)return;
+  document.getElementById('inappNotifIcon').textContent=icon;
+  document.getElementById('inappNotifTitle').textContent=title;
+  document.getElementById('inappNotifSub').textContent=sub;
+  el.classList.add('show');
+  clearTimeout(_inappTimer);
+  _inappTimer=setTimeout(()=>el.classList.remove('show'),5000);
+}
+function dismissInappNotif(){
+  clearTimeout(_inappTimer);
+  document.getElementById('inappNotif')?.classList.remove('show');
+}
 
 /* ── SERVICE WORKER ── */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
