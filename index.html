@@ -428,8 +428,7 @@ body.kids-mode .cotw-btn { display:none!important }
 body.kids-mode .km-hdr-badge { display:flex!important }
 /* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
 body.kids-mode #setDB,
-body.kids-mode #setExport,
-body.kids-mode #setImport,
+body.kids-mode #setDataManager,
 body.kids-mode #setPin,
 body.kids-mode #setAddSection,
 body.kids-mode #setApprovalMode,
@@ -832,6 +831,50 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .inapp-notif-sub{font-size:10px;color:var(--muted);margin-top:1px;}
 .inapp-notif-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;flex-shrink:0;}
 
+
+/* ── DATA MANAGER OVERLAY ── */
+.dm-section { margin-bottom:14px; }
+.dm-section-title { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px; }
+.dm-card { background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;overflow:hidden; }
+.dm-row { display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background .15s; }
+.dm-row:not(:last-child){ border-bottom:1px solid var(--border); }
+.dm-row:hover{ background:rgba(255,255,255,.05); }
+.dm-row-icon { font-size:20px;flex-shrink:0;width:28px;text-align:center; }
+.dm-row-info { flex:1;min-width:0; }
+.dm-row-label { font-size:13px;font-weight:800;color:var(--text); }
+.dm-row-desc { font-size:11px;color:var(--muted);margin-top:1px; }
+.dm-row-arr { color:var(--muted);font-size:16px;flex-shrink:0; }
+.dm-row.disabled { opacity:.4;pointer-events:none; }
+.dm-divider { height:1px;background:var(--border);margin:14px 0; }
+.dm-confirm-box { background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:10px;padding:12px 14px;margin-top:10px; }
+.dm-confirm-text { font-size:12px;color:var(--text);margin-bottom:10px;line-height:1.5; }
+.dm-confirm-btns { display:flex;gap:8px; }
+.dm-confirm-btn { flex:1;padding:9px 0;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer; }
+.dm-confirm-btn.cancel { background:var(--navy2);color:var(--muted); }
+.dm-confirm-btn.danger { background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff; }
+.dm-no-pin-box { background:rgba(255,200,0,.07);border:1px solid rgba(255,200,0,.25);border-radius:10px;padding:12px 14px;text-align:center; }
+.dm-no-pin-text { font-size:12px;color:var(--text);margin-bottom:8px;line-height:1.5; }
+.dm-no-pin-btn { background:linear-gradient(135deg,var(--purple),var(--purple-dark,#6a1b9a));color:#fff;border:none;font-family:var(--font);font-size:12px;font-weight:800;border-radius:8px;padding:8px 18px;cursor:pointer; }
+
+
+/* ── PIN MANAGEMENT ── */
+.pm-card { background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px; }
+.pm-row { display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;transition:background .15s; }
+.pm-row:not(:last-child){ border-bottom:1px solid var(--border); }
+.pm-row:hover:not(.pm-row-disabled){ background:rgba(255,255,255,.05); }
+.pm-row-disabled { opacity:.35;pointer-events:none; }
+.pm-row-icon { font-size:20px;width:28px;text-align:center;flex-shrink:0; }
+.pm-row-info { flex:1; }
+.pm-row-label { font-size:13px;font-weight:800;color:var(--text); }
+.pm-row-label.danger { color:#ff6b6b; }
+.pm-row-desc { font-size:11px;color:var(--muted);margin-top:1px; }
+.pm-confirm-box { background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:10px;padding:12px 14px;margin-top:4px; }
+.pm-confirm-text { font-size:12px;color:var(--text);margin-bottom:10px;line-height:1.5; }
+.pm-confirm-btns { display:flex;gap:8px; }
+.pm-confirm-btn { flex:1;padding:9px 0;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer; }
+.pm-confirm-btn.cancel { background:var(--navy2);color:var(--muted); }
+.pm-confirm-btn.danger { background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff; }
+
 </style>
 </head>
 <body>
@@ -1019,17 +1062,17 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 </div>
 
 <!-- SUMMARY MODAL -->
-<div class="overlay" id="summaryOverlay">
+<div class="overlay" id="summaryOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal">
-    <div class="m-hdr"><div class="m-title">&#x1F4CA; All&#x2011;Time Summary</div><button class="m-close" id="btnSumClose">&#x2715;</button></div>
+    <div class="m-hdr"><div class="m-title">&#x1F4CA; All&#x2011;Time Summary</div><button class="m-close" id="btnSumClose" onclick="document.getElementById('summaryOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="m-body" id="sumBody"></div>
   </div>
 </div>
 
 <!-- SETTINGS MODAL -->
-<div class="overlay" id="settingsOverlay">
+<div class="overlay" id="settingsOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal" style="max-width:440px">
-    <div class="m-hdr"><div class="m-title">&#x2699;&#xFE0F; Settings</div><button class="m-close" id="btnSettingsClose">&#x2715;</button></div>
+    <div class="m-hdr"><div class="m-title">&#x2699;&#xFE0F; Settings</div><button class="m-close" id="btnSettingsClose" onclick="document.getElementById('settingsOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="m-body" style="padding:6px 18px 18px">
       <div class="settings-km-hint">&#x1F512; Kids Mode is on &mdash; limited options shown</div>
       <div class="setting-row" id="setDB"><span class="setting-icon">&#x2601;</span><div class="setting-info"><div class="setting-label">Cloud Database</div><div class="setting-desc">Connect Firebase to sync across devices</div></div></div>
@@ -1043,18 +1086,17 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
       <div class="setting-row" id="setAllowance"><span class="setting-icon">&#x1F4B0;</span><div class="setting-info"><div class="setting-label">Weekly Allowance</div><div class="setting-desc">Set automatic weekly token payouts per kid</div></div></div>
       <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing &mdash; kids can view chores &amp; check off tasks</div></div></div>
       <div class="setting-row" id="setApprovalMode"><span class="setting-icon">&#x270D;&#xFE0F;</span><div class="setting-info"><div class="setting-label">Require Parent Approval <span class="km-status-badge" id="approvalStatusBadge">Off</span></div><div class="setting-desc">Chore ticks in Kids Mode wait for your approval before awarding tokens</div></div></div>
-      <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">Parent PIN</div><div class="setting-desc">Set a 4-digit PIN to protect parent mode</div></div></div>
-      <div class="setting-row" id="setExport"><span class="setting-icon">&#x2B07;</span><div class="setting-info"><div class="setting-label">Export Data</div><div class="setting-desc">Download all data as a JSON backup file</div></div></div>
-      <div class="setting-row" id="setImport"><span class="setting-icon">&#x2B06;</span><div class="setting-info"><div class="setting-label">Import Data</div><div class="setting-desc">Restore from a JSON backup file</div></div></div>
+      <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">PIN Management</div><div class="setting-desc">Set, change or clear your parent PIN</div></div></div>
+      <div class="setting-row" id="setDataManager"><span class="setting-icon">&#x1F4BE;</span><div class="setting-info"><div class="setting-label">Import / Export</div><div class="setting-desc">Backup, restore, and manage connection details</div></div></div>
       <div class="setting-row danger" id="setReset"><span class="setting-icon">&#x267B;</span><div class="setting-info"><div class="setting-label">Reset Everything</div><div class="setting-desc">Delete all kids and data &mdash; cannot be undone</div></div></div>
     </div>
   </div>
 </div>
 
 <!-- HELP MODAL -->
-<div class="overlay" id="helpOverlay">
+<div class="overlay" id="helpOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal" style="max-width:580px">
-    <div class="m-hdr"><div class="m-title">&#x2753; How to Use Chore Quest</div><button class="m-close" id="btnHelpClose">&#x2715;</button></div>
+    <div class="m-hdr"><div class="m-title">&#x2753; How to Use Chore Quest</div><button class="m-close" id="btnHelpClose" onclick="document.getElementById('helpOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="m-body">
 
       <div class="help-section">
@@ -1143,9 +1185,9 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 </div>
 
 <!-- DB SETUP MODAL -->
-<div class="overlay" id="dbOverlay">
+<div class="overlay" id="dbOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="setup-modal">
-    <div class="m-hdr"><div class="m-title">&#x2601; Cloud Database</div><button class="m-close" id="btnDBClose">&#x2715;</button></div>
+    <div class="m-hdr"><div class="m-title">&#x2601; Cloud Database</div><button class="m-close" id="btnDBClose" onclick="document.getElementById('dbOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="setup-body">
       <div class="connected-box" id="connectedBox" style="display:none">
         <div class="connected-title">&#x2714; Connected to Firebase</div>
@@ -1187,9 +1229,9 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 </div>
 
 <!-- THEME OVERLAY -->
-<div class="overlay" id="themeOverlay">
+<div class="overlay" id="themeOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="sheet">
-    <div class="sheet-hdr"><div class="sheet-title">&#x1F3A8; Theme</div><button class="sheet-close" id="btnThemeClose">&#x2715;</button></div>
+    <div class="sheet-hdr"><div class="sheet-title">&#x1F3A8; Theme</div><button class="sheet-close" id="btnThemeClose" onclick="document.getElementById('themeOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="sheet-body">
       <p style="font-size:12px;color:var(--muted);margin-bottom:10px" id="themeKidName"></p>
       <div id="themeResetWrap" style="display:none;margin-bottom:10px">
@@ -2228,7 +2270,7 @@ function pinAction(){
     _pinTemp=_pinBuf;_pinBuf='';updatePinDots();
     openPinOverlay('confirm','Enter PIN again to confirm');
   } else if(_pinMode==='confirm'){
-    if(_pinBuf===_pinTemp){S.parentPin=_pinBuf;save();closePinOverlay();alert('PIN set! Kids Mode is now synced across all devices.');}
+    if(_pinBuf===_pinTemp){S.parentPin=_pinBuf;save();closePinOverlay();showInappNotif('🔒','PIN Set','Parent mode is now protected');}
     else{pinError('PINs do not match');_pinTemp='';_pinBuf='';updatePinDots();_pinMode='set';document.getElementById('pinTitle').textContent='\uD83D\uDD11 Set Parent PIN';document.getElementById('pinSub').textContent='Choose a 4-digit PIN';}
   }
 }
@@ -2573,8 +2615,6 @@ function setupCommonEvents(){
   const setAS=document.getElementById('setAddSection');if(setAS)setAS.addEventListener('click',()=>{const k=kid();if(!k){alert('Add a kid first!');return;}if(!k.customSections)k.customSections=[];k.customSections.push(mkCustomSection('Section '+(k.customSections.length+1)));save();renderAll();document.getElementById('settingsOverlay').classList.remove('open');});
   const b7=document.getElementById('btnSummary');if(b7)b7.addEventListener('click',openSummary);
   const btnRpt=document.getElementById('btnReport');if(btnRpt)btnRpt.addEventListener('click',openReportCard);
-  const b8=document.getElementById('btnSumClose');if(b8)b8.addEventListener('click',()=>document.getElementById('summaryOverlay').classList.remove('open'));
-  const so=document.getElementById('summaryOverlay');if(so)so.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   const mAdd=document.getElementById('btnMAdd');if(mAdd)mAdd.addEventListener('click',()=>{
     const k=kid();if(!k)return;const v=Number(document.getElementById('mAmt').value||0);if(!v)return;
     const n=document.getElementById('mNote').value.trim();
@@ -2612,8 +2652,6 @@ function setupCommonEvents(){
     const grp=document.getElementById('goalRewardPick');if(grp)grp.value='';save();renderRight();
   });
   // DB modal wiring
-  const btnDBClose=document.getElementById('btnDBClose');if(btnDBClose)btnDBClose.addEventListener('click',()=>document.getElementById('dbOverlay').classList.remove('open'));
-  const dbOv=document.getElementById('dbOverlay');if(dbOv)dbOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   const btnGenHID=document.getElementById('btnGenHID');if(btnGenHID)btnGenHID.addEventListener('click',()=>{document.getElementById('householdInput').value='cq-'+Math.random().toString(36).slice(2,7)+'-'+Math.random().toString(36).slice(2,7);});
   const btnConnect=document.getElementById('btnConnectDB');if(btnConnect)btnConnect.addEventListener('click',()=>{
     const raw=document.getElementById('fbConfigInput').value.trim();
@@ -2629,8 +2667,6 @@ function setupCommonEvents(){
   const btnSkip=document.getElementById('btnSkipDB');if(btnSkip)btnSkip.addEventListener('click',()=>document.getElementById('dbOverlay').classList.remove('open'));
   const btnDisc=document.getElementById('btnDisconnect');if(btnDisc)btnDisc.addEventListener('click',()=>{if(!confirm('Disconnect from cloud?'))return;disconnectFirebase();document.getElementById('dbOverlay').classList.remove('open');});
   const btnCopy=document.getElementById('btnCopyHID');if(btnCopy)btnCopy.addEventListener('click',()=>{navigator.clipboard.writeText(localStorage.getItem('cq_hid')||'').then(()=>{btnCopy.textContent='Copied!';setTimeout(()=>btnCopy.textContent='Copy',1500);});});
-  const btnTC=document.getElementById('btnThemeClose');if(btnTC)btnTC.addEventListener('click',()=>document.getElementById('themeOverlay').classList.remove('open'));
-  const thOv=document.getElementById('themeOverlay');if(thOv)thOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   // Kids mode header badge
   const kmBadge=document.getElementById('kmHdrBadge');if(kmBadge)kmBadge.addEventListener('click',()=>{ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} });
   // Kids Mode header button
@@ -2640,17 +2676,14 @@ function setupCommonEvents(){
   });
   // Settings modal
   const btnSet=document.getElementById('btnSettings');if(btnSet)btnSet.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.add('open'));
-  const btnSetClose=document.getElementById('btnSettingsClose');if(btnSetClose)btnSetClose.addEventListener('click',()=>document.getElementById('settingsOverlay').classList.remove('open'));
-  const setOv=document.getElementById('settingsOverlay');if(setOv)setOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   const setDB=document.getElementById('setDB');if(setDB)setDB.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openDBModal();});
   const setThemeRow=document.getElementById('setTheme');if(setThemeRow)setThemeRow.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openThemePicker();});
   const setKMRow=document.getElementById('setKidsMode');if(setKMRow)setKMRow.addEventListener('click',()=>{
     if(kidsMode){ const pin=S.parentPin||''; if(pin){document.getElementById('settingsOverlay').classList.remove('open');openPinOverlay('unlock');}else{exitKidsMode();document.getElementById('settingsOverlay').classList.remove('open');} }
     else{ document.getElementById('settingsOverlay').classList.remove('open'); enterKidsMode(); }
   });
-  const setPinRow=document.getElementById('setPin');if(setPinRow)setPinRow.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openPinOverlay('set');});
-  const setExp=document.getElementById('setExport');if(setExp)setExp.addEventListener('click',()=>{const k=kid();const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(k?.name?.trim()||'chore')+'-quest.json';a.click();});
-  const setImp=document.getElementById('setImport');if(setImp)setImp.addEventListener('click',doImport);
+  const setPinRow=document.getElementById('setPin');if(setPinRow)setPinRow.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openPinMgmt();});
+  const setDM=document.getElementById('setDataManager');if(setDM)setDM.addEventListener('click',()=>{const so=document.getElementById('settingsOverlay');if(so)so.classList.remove('open');openDataManager();});
   const setAch=document.getElementById('setAchievements');if(setAch)setAch.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openAchievementManager();});
   const setXPLv=document.getElementById('setXPLevels');if(setXPLv)setXPLv.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openXPLevelManager();});
   const setShop=document.getElementById('setShopItems');if(setShop)setShop.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openShopItemsManager();});
@@ -2668,14 +2701,8 @@ function setupCommonEvents(){
   const btnApprovals=document.getElementById('btnApprovals');if(btnApprovals)btnApprovals.addEventListener('click',openApprovalPanel);
   const setRst=document.getElementById('setReset');if(setRst)setRst.addEventListener('click',()=>{document.getElementById('settingsOverlay').classList.remove('open');openResetConfirm();});
   // Templates
-  const btnTplClose=document.getElementById('btnTplClose');
-  if(btnTplClose)btnTplClose.addEventListener('click',()=>document.getElementById('templatesOverlay').classList.remove('open'));
-  const tplOv=document.getElementById('templatesOverlay');
-  if(tplOv)tplOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
   // Help modal
   const btnHelp=document.getElementById('btnHelp');if(btnHelp)btnHelp.addEventListener('click',()=>document.getElementById('helpOverlay').classList.add('open'));
-  const btnHelpClose=document.getElementById('btnHelpClose');if(btnHelpClose)btnHelpClose.addEventListener('click',()=>document.getElementById('helpOverlay').classList.remove('open'));
-  const helpOv=document.getElementById('helpOverlay');if(helpOv)helpOv.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
 }
 
 function doImport(){
@@ -2702,6 +2729,326 @@ function openDBModal(){
   else{const raw=localStorage.getItem('cq_fbcfg');if(raw){const fi=document.getElementById('fbConfigInput');if(fi)fi.value=JSON.stringify(JSON.parse(raw),null,2);}const hid=localStorage.getItem('cq_hid');if(hid){const hi=document.getElementById('householdInput');if(hi)hi.value=hid;}}
   document.getElementById('dbOverlay').classList.add('open');
 }
+
+
+/* ══════════════════════════════════════════════
+   DATA MANAGER
+══════════════════════════════════════════════ */
+
+/* PIN gate — calls cb() after successful verification.
+   If no PIN set, shows a "set PIN first" prompt inside the data manager body. */
+let _pinCb=null;
+function pinVerify(cb,subtitle){
+  if(!S.parentPin){
+    // No PIN set — show inline prompt in DM
+    const body=document.getElementById('dmBody');
+    if(body){
+      body.innerHTML=`
+        <div class="dm-no-pin-box">
+          <div class="dm-no-pin-text">&#x1F512; A Parent PIN is required before importing or exporting data.<br>Please set one first.</div>
+          <button class="dm-no-pin-btn" onclick="openPinOverlay('set');document.getElementById('dmOverlay').classList.remove('open')">Set PIN Now</button>
+        </div>`;
+    }
+    return;
+  }
+  _pinCb=cb;
+  openPinOverlay('verify', subtitle||'Enter PIN to continue');
+}
+
+/* Extend pinAction with 'verify' mode */
+const _origPinAction=pinAction;
+pinAction=function(){
+  if(_pinBuf.length<4){document.getElementById('pinErr').textContent='Enter all 4 digits';return;}
+  const stored=S.parentPin||'';
+  if(_pinMode==='verify'){
+    if(_pinBuf===stored){
+      closePinOverlay();
+      const cb=_pinCb;_pinCb=null;
+      if(cb)cb();
+    } else { pinError('Wrong PIN'); }
+    return;
+  }
+  _origPinAction();
+};
+
+function openDataManager(){
+  renderDMHome();
+  document.getElementById('dmOverlay').classList.add('open');
+}
+
+function renderDMHome(){
+  const body=document.getElementById('dmBody');if(!body)return;
+  const connected=!!db;
+  body.innerHTML=`
+    <div class="dm-section">
+      <div class="dm-section-title">Export</div>
+      <div class="dm-card">
+        <div class="dm-row" onclick="dmFlow('export-data')">
+          <div class="dm-row-icon">&#x1F4C4;</div>
+          <div class="dm-row-info"><div class="dm-row-label">App Data</div><div class="dm-row-desc">Download all kids, chores &amp; settings as JSON</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row${connected?'':' disabled'}" onclick="dmFlow('export-connection')" id="dmExportConnRow">
+          <div class="dm-row-icon">&#x2601;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Connection Details</div><div class="dm-row-desc">${connected?'Export Firebase config &amp; Household ID':'Connect to Firebase first'}</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row${connected?'':' disabled'}" onclick="dmFlow('export-all')" id="dmExportAllRow">
+          <div class="dm-row-icon">&#x1F4E6;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Export Everything</div><div class="dm-row-desc">${connected?'Full backup — data + connection in one file':'Connect to Firebase first'}</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+      </div>
+    </div>
+    <div class="dm-divider"></div>
+    <div class="dm-section">
+      <div class="dm-section-title">Import</div>
+      <div class="dm-card">
+        <div class="dm-row" onclick="dmFlow('import-data')">
+          <div class="dm-row-icon">&#x1F4C2;</div>
+          <div class="dm-row-info"><div class="dm-row-label">App Data</div><div class="dm-row-desc">Restore from JSON — replaces all current data</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row" onclick="dmFlow('import-connection')">
+          <div class="dm-row-icon">&#x1F517;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Connection Details</div><div class="dm-row-desc">Switch Firebase database &amp; re-sync</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function dmFlow(action){
+  pinVerify(()=>{
+    if(action==='export-data')    doExportData();
+    else if(action==='export-connection') doExportConnection();
+    else if(action==='export-all')        doExportAll();
+    else if(action==='import-data')       dmConfirmImportData();
+    else if(action==='import-connection') dmImportConnectionPick();
+  }, action.startsWith('export') ? 'Enter PIN to export' : 'Enter PIN to import');
+}
+
+/* ── EXPORT ── */
+function doExportData(){
+  const k=kid();
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(k?.name?.trim()||'chore')+'-quest-data.json';a.click();
+  showInappNotif('📤','Data Exported','JSON file downloaded');
+  document.getElementById('dmOverlay').classList.remove('open');
+}
+
+function doExportConnection(){
+  const cfg=localStorage.getItem('cq_fbcfg');
+  const hid=localStorage.getItem('cq_hid');
+  if(!cfg||!hid){showInappNotif('⚠️','Not Connected','No Firebase connection to export');return;}
+  const payload={firebaseConfig:JSON.parse(cfg),householdId:hid};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='chore-quest-connection.json';a.click();
+  showInappNotif('📤','Connection Exported','Firebase config downloaded');
+  document.getElementById('dmOverlay').classList.remove('open');
+}
+
+function doExportAll(){
+  const cfg=localStorage.getItem('cq_fbcfg');
+  const hid=localStorage.getItem('cq_hid');
+  if(!cfg||!hid){showInappNotif('⚠️','Not Connected','No Firebase connection to export');return;}
+  const payload={type:'chore-quest-full-backup',data:S,firebaseConfig:JSON.parse(cfg),householdId:hid};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='chore-quest-full-backup.json';a.click();
+  showInappNotif('📦','Full Backup Exported','Data + connection downloaded');
+  document.getElementById('dmOverlay').classList.remove('open');
+}
+
+/* ── IMPORT DATA ── */
+function dmConfirmImportData(){
+  const body=document.getElementById('dmBody');if(!body)return;
+  body.innerHTML=`
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F4C2; Import App Data</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Choose a <strong>.json</strong> backup file. <span style="color:#ff7043;font-weight:700">All current data will be fully replaced.</span></p>
+    <div class="dm-confirm-box">
+      <div class="dm-confirm-text">&#x26A0;&#xFE0F; This cannot be undone. Make sure you have a backup if needed.</div>
+      <div class="dm-confirm-btns">
+        <button class="dm-confirm-btn cancel" onclick="renderDMHome()">Cancel</button>
+        <button class="dm-confirm-btn danger" onclick="doImportDataPick()">Choose File &amp; Replace</button>
+      </div>
+    </div>`;
+}
+
+function doImportDataPick(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/json';
+  inp.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.addEventListener('load',ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        let newS;
+        // Detect full-backup format
+        if(parsed.type==='chore-quest-full-backup'&&parsed.data){
+          newS=parsed.data;
+        } else if(parsed.daily&&!parsed.kids){
+          // Legacy single-kid format
+          const k=mkKid(parsed.childName||'Imported');
+          k.daily=parsed.daily||[];k.bonus=parsed.bonus||[];k.rewards=parsed.rewards||[];k.tokens=parsed.tokens||[];
+          newS={kids:[k],activeId:k.id};
+        } else if(parsed.kids){
+          newS=parsed;
+        } else { throw new Error('Unrecognised format'); }
+        S=newS;
+        if(!S.kids)S.kids=[];
+        if(!S.customTemplates)S.customTemplates=[];
+        if(!S.flashMessages)S.flashMessages=[];
+        save();renderAll();
+        document.getElementById('dmOverlay').classList.remove('open');
+        showInappNotif('📥','Data Imported','All data replaced successfully');
+      }catch(err){alert('Invalid or unrecognised JSON file.\n'+err.message);}
+    });reader.readAsText(f);
+  });inp.click();
+}
+
+/* ── IMPORT CONNECTION ── */
+let _pendingConnData=null;
+function dmImportConnectionPick(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/json';
+  inp.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.addEventListener('load',ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        let cfg,hid;
+        if(parsed.type==='chore-quest-full-backup'){
+          cfg=parsed.firebaseConfig;hid=parsed.householdId;
+        } else if(parsed.firebaseConfig&&parsed.householdId){
+          cfg=parsed.firebaseConfig;hid=parsed.householdId;
+        } else { throw new Error('No Firebase credentials found in this file'); }
+        _pendingConnData={cfg,hid};
+        dmConfirmImportConnection(hid);
+      }catch(err){alert('Invalid connection file.\n'+err.message);}
+    });reader.readAsText(f);
+  });inp.click();
+}
+
+function dmConfirmImportConnection(hid){
+  const body=document.getElementById('dmBody');if(!body)return;
+  body.innerHTML=`
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F517; Import Connection Details</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Connecting to household:</p>
+    <p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px">${escHtml(hid)}</p>
+    <div class="dm-confirm-box">
+      <div class="dm-confirm-text">&#x26A0;&#xFE0F; <strong>All local data will be cleared</strong> and replaced with data from the new database. This cannot be undone.</div>
+      <div class="dm-confirm-btns">
+        <button class="dm-confirm-btn cancel" onclick="_pendingConnData=null;renderDMHome()">Cancel</button>
+        <button class="dm-confirm-btn danger" onclick="doImportConnectionApply()">Connect &amp; Replace</button>
+      </div>
+    </div>`;
+}
+
+function doImportConnectionApply(){
+  const body=document.getElementById('dmBody');
+  if(!_pendingConnData){renderDMHome();return;}
+  const {cfg,hid}=_pendingConnData;_pendingConnData=null;
+  // Show connecting state
+  if(body)body.innerHTML=`<p style="text-align:center;padding:32px 0;font-size:13px;color:var(--muted)">&#x1F504; Connecting to database\u2026</p>`;
+  // Clear local state but keep S in memory until onSnapshot fires
+  S={kids:[],activeId:null,customTemplates:[],customShopItems:[],approvalMode:false,levelThresholds:{},customLevels:[],flashMessages:[],parentPin:S.parentPin||''};
+  saveLocal();
+  // Disconnect existing
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
+  db=null;
+  // Set a flag so first onSnapshot knows to close the overlay
+  window._dmConnectingOverlay=true;
+  const ok=connectFirebase(cfg,hid);
+  if(!ok){
+    if(body)body.innerHTML=`<div class="dm-confirm-box"><div class="dm-confirm-text" style="color:#ff7043">&#x274C; Failed to connect. Check the config and try again.</div><div class="dm-confirm-btns"><button class="dm-confirm-btn cancel" onclick="renderDMHome()">Back</button></div></div>`;
+  }
+}
+
+/* Hook into startListener to close DM overlay on first successful snap */
+const _origStartListener=startListener;
+startListener=function(hid){
+  _origStartListener(hid);
+};
+/* We patch onSnapshot success by intercepting saveLocal+renderAll in the listener.
+   Instead, we intercept the flag in renderAll */
+const _origRenderAll=renderAll;
+renderAll=function(){
+  _origRenderAll();
+  if(window._dmConnectingOverlay){
+    window._dmConnectingOverlay=false;
+    document.getElementById('dmOverlay').classList.remove('open');
+    showInappNotif('🔗','Connected!','Data synced from new database');
+  }
+};
+
+
+
+/* ── PIN MANAGEMENT ── */
+function openPinMgmt(){
+  renderPinMgmtHome();
+  document.getElementById('pinMgmtOverlay').classList.add('open');
+}
+function closePinMgmt(){
+  document.getElementById('pinMgmtOverlay').classList.remove('open');
+}
+function renderPinMgmtHome(){
+  const body=document.getElementById('pinMgmtBody');if(!body)return;
+  const hasPin=!!S.parentPin;
+  body.innerHTML=`
+    <div class="pm-card">
+      <div class="pm-row" onclick="pinMgmtSetPin()">
+        <div class="pm-row-icon">&#x270F;&#xFE0F;</div>
+        <div class="pm-row-info">
+          <div class="pm-row-label">${hasPin?'Change PIN':'Set PIN'}</div>
+          <div class="pm-row-desc">${hasPin?'Replace your current 4-digit PIN':'Choose a 4-digit PIN to protect parent mode'}</div>
+        </div>
+        <div style="color:var(--muted);font-size:16px">&#x203A;</div>
+      </div>
+      <div class="pm-row${hasPin?'':' pm-row-disabled'}" onclick="${hasPin?'pinMgmtClearConfirm()':''}">
+        <div class="pm-row-icon">&#x1F513;</div>
+        <div class="pm-row-info">
+          <div class="pm-row-label danger">Clear PIN</div>
+          <div class="pm-row-desc">${hasPin?'Remove PIN — parent mode will be unprotected':'No PIN is currently set'}</div>
+        </div>
+        <div style="color:var(--muted);font-size:16px">&#x203A;</div>
+      </div>
+    </div>
+    ${hasPin?'<p style="font-size:11px;color:var(--muted);text-align:center">&#x1F512; PIN currently set</p>':'<p style="font-size:11px;color:var(--muted);text-align:center">No PIN set &mdash; parent mode is unprotected</p>'}`;
+}
+function pinMgmtSetPin(){
+  closePinMgmt();
+  openPinOverlay('set');
+}
+function pinMgmtClearConfirm(){
+  // Require existing PIN verification first
+  _pinCb=()=>{
+    // Show inline confirmation in pin mgmt body
+    const body=document.getElementById('pinMgmtBody');if(!body)return;
+    document.getElementById('pinMgmtOverlay').classList.add('open');
+    body.innerHTML=`
+      <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F513; Clear Parent PIN</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Are you sure? Parent mode will be <strong style="color:#ff6b6b">unprotected</strong> — anyone can edit chores and settings.</p>
+      <div class="pm-confirm-box">
+        <div class="pm-confirm-text">&#x26A0;&#xFE0F; Kids Mode will still work but cannot be locked with a PIN.</div>
+        <div class="pm-confirm-btns">
+          <button class="pm-confirm-btn cancel" onclick="renderPinMgmtHome()">Cancel</button>
+          <button class="pm-confirm-btn danger" onclick="pinMgmtDoClear()">Yes, Clear PIN</button>
+        </div>
+      </div>`;
+  };
+  openPinOverlay('verify','Enter current PIN to continue');
+}
+function pinMgmtDoClear(){
+  S.parentPin='';
+  save();
+  closePinMgmt();
+  showInappNotif('🔓','PIN Cleared','Parent mode is now unprotected');
+}
+
 
 /* ── ESCAPE KEY ── */
 document.addEventListener('keydown',e=>{
@@ -3888,6 +4235,26 @@ function dismissInappNotif(){clearTimeout(_inappTimer);document.getElementById('
 
 </script>
 
+
+<!-- DATA MANAGER OVERLAY -->
+<div class="overlay" id="dmOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><div class="sheet-title">&#x1F4BE; Import / Export</div><button class="sheet-close" id="btnDMClose" onclick="document.getElementById('dmOverlay').classList.remove('open')">&#x2715;</button></div>
+    <div class="sheet-body" id="dmBody">
+      <!-- rendered by openDataManager() -->
+    </div>
+  </div>
+</div>
+
+
+<!-- PIN MANAGEMENT OVERLAY -->
+<div class="overlay" id="pinMgmtOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:400px">
+    <div class="m-hdr"><div class="m-title">&#x1F511; PIN Management</div><button class="m-close" id="btnPinMgmtClose" onclick="document.getElementById('pinMgmtOverlay').classList.remove('open')">&#x2715;</button></div>
+    <div class="m-body" style="padding:14px 18px 18px" id="pinMgmtBody"></div>
+  </div>
+</div>
+
 <!-- PIN OVERLAY -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
@@ -3920,7 +4287,7 @@ function dismissInappNotif(){clearTimeout(_inappTimer);document.getElementById('
 
 
 <!-- TEMPLATES OVERLAY -->
-<div class="overlay" id="templatesOverlay">
+<div class="overlay" id="templatesOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal" style="max-width:520px">
     <div class="m-hdr">
       <div class="m-title">&#x1F4CB; Chore Templates</div>
