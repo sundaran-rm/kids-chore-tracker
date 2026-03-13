@@ -349,6 +349,19 @@ body.kids-mode .approval-badge{display:none!important}
 .pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+/* Inline PIN entry widget (DM / DB modals) */
+.ipin-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:4px 0}
+.ipin-title{font-size:13px;font-weight:800;color:var(--text);text-align:center}
+.ipin-sub{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;margin-top:-6px}
+.ipin-dots{display:flex;gap:10px;justify-content:center}
+.ipin-dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all .12s}
+.ipin-dot.filled{background:var(--blue);border-color:var(--blue);box-shadow:0 0 6px rgba(79,195,247,.5)}
+.ipin-dot.error{background:var(--red);border-color:var(--red)}
+.ipin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:220px}
+.ipin-key{background:var(--navy3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:16px;font-weight:700;border-radius:9px;padding:11px 4px;cursor:pointer;transition:background .1s}
+.ipin-key:active{background:rgba(79,195,247,.15);border-color:var(--blue)}
+.ipin-key.del{font-size:13px;color:var(--muted)}
+.ipin-err{font-size:11px;color:var(--red);font-weight:700;min-height:16px;text-align:center}
 .pin-key{height:52px;border-radius:12px;border:1px solid var(--border);background:var(--navy3);
   color:var(--text);font-family:var(--display);font-size:20px;cursor:pointer;transition:all .12s;}
 .pin-key:hover{background:rgba(79,195,247,0.08);border-color:var(--blue)}
@@ -3141,7 +3154,24 @@ function doExportConnection(){
   const cfg=localStorage.getItem('cq_fbcfg');
   const hid=localStorage.getItem('cq_hid');
   if(!cfg||!hid){showInappNotif('⚠️','Not Connected','No Firebase connection to export');return;}
-  const payload={firebaseConfig:JSON.parse(cfg),householdId:hid};
+  // A PIN is required — connection file must always be passcode-protected
+  if(!S.parentPin){
+    const body=document.getElementById('dmBody');
+    if(body){
+      body.innerHTML=`
+        <div class="dm-no-pin-box">
+          <div class="dm-no-pin-text">&#x1F512; A Parent PIN is required before exporting connection details.<br><br>The connection file contains your Firebase credentials and must always be passcode-protected.</div>
+          <button class="dm-no-pin-btn" onclick="openPinOverlay('set');document.getElementById('dmOverlay').classList.remove('open')">Set PIN Now</button>
+        </div>`;
+    }
+    return;
+  }
+  const payload={
+    type:'chore-quest-connection',
+    firebaseConfig:JSON.parse(cfg),
+    householdId:hid,
+    householdPin:S.parentPin
+  };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='chore-quest-connection.json';a.click();
@@ -3218,17 +3248,32 @@ function dmImportConnectionPick(){
     reader.addEventListener('load',ev=>{
       try{
         const parsed=JSON.parse(ev.target.result);
-        let cfg,hid;
+        let cfg,hid,householdPin='';
         if(parsed.type==='chore-quest-full-backup'){
           cfg=parsed.firebaseConfig;hid=parsed.householdId;
+          householdPin=parsed.data?.parentPin||'';
         } else if(parsed.firebaseConfig&&parsed.householdId){
           cfg=parsed.firebaseConfig;hid=parsed.householdId;
+          householdPin=parsed.householdPin||'';
         } else { throw new Error('No Firebase credentials found in this file'); }
-        _pendingConnData={cfg,hid};
-        dmConfirmImportConnection(hid);
-      }catch(err){alert('Invalid connection file.\n'+err.message);}
+        _pendingConnData={cfg,hid,householdPin};
+        dmImportConnVerifyPin(hid,householdPin);
+      }catch(err){alert('Invalid connection file. '+err.message);}
     });reader.readAsText(f);
   });inp.click();
+}
+
+function dmImportConnVerifyPin(hid,householdPin){
+  const body=document.getElementById('dmBody');if(!body)return;
+  // If the target household has no PIN, skip straight to confirm
+  if(!householdPin){ dmConfirmImportConnection(hid); return; }
+  renderInlinePinEntry(body,{
+    title:'&#x1F511; Enter Household PIN',
+    subtitle:`Verify your identity for <strong>${escHtml(hid)}</strong>`,
+    expectedPin:householdPin,
+    onSuccess:()=>dmConfirmImportConnection(hid),
+    onCancel:()=>{_pendingConnData=null;renderDMHome();}
+  });
 }
 
 function dmConfirmImportConnection(hid){
@@ -3320,6 +3365,73 @@ function doImportAllApply(){
   if(!ok){
     if(body)body.innerHTML=`<div class="dm-confirm-box"><div class="dm-confirm-text" style="color:#ff7043">&#x274C; Failed to connect. Check the config and try again.</div><div class="dm-confirm-btns"><button class="dm-confirm-btn cancel" onclick="renderDMHome()">Back</button></div></div>`;
   }
+}
+
+/* ── INLINE PIN ENTRY WIDGET ──────────────────────────────────────────
+   Renders a self-contained PIN keypad inside any container element.
+   opts = { title, subtitle, expectedPin, onSuccess, onCancel }
+   • expectedPin ''  → no PIN protection, call onSuccess immediately
+   • expectedPin set → verify; call onSuccess only on match            */
+function renderInlinePinEntry(container, opts){
+  const expected = opts.expectedPin || '';
+  if(!expected){ opts.onSuccess(); return; } // no PIN on target → proceed
+  // Store everything on window so inline onclick handlers can reach them
+  window._ipinOpts = opts;
+  window._ipinBuf  = '';
+  window._ipinExp  = expected;
+  window._ipinKey  = function(k){
+    if(window._ipinBuf.length>=4)return;
+    window._ipinBuf+=k;
+    _ipinUpdateDots();
+    const errEl=document.getElementById('ipinErr');if(errEl)errEl.textContent='';
+    if(window._ipinBuf.length===4)setTimeout(_ipinSubmit,120);
+  };
+  window._ipinDel = function(){
+    window._ipinBuf=window._ipinBuf.slice(0,-1);
+    _ipinUpdateDots();
+    const errEl=document.getElementById('ipinErr');if(errEl)errEl.textContent='';
+  };
+  window._ipinCancel = function(){
+    const cb=window._ipinOpts?.onCancel;
+    window._ipinOpts=null;window._ipinBuf='';window._ipinExp='';
+    if(cb)cb();
+  };
+  function _ipinUpdateDots(){
+    for(let i=0;i<4;i++){
+      const d=document.getElementById('ipd'+i);
+      if(d)d.className='ipin-dot'+(i<window._ipinBuf.length?' filled':'');
+    }
+  }
+  function _ipinSubmit(){
+    if(window._ipinBuf===window._ipinExp){
+      const cb=window._ipinOpts?.onSuccess;
+      window._ipinOpts=null;window._ipinExp='';window._ipinBuf='';
+      if(cb)cb();
+    } else {
+      const errEl=document.getElementById('ipinErr');
+      if(errEl)errEl.textContent='Wrong PIN \u2014 try again';
+      for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.add('error');}
+      setTimeout(()=>{
+        window._ipinBuf='';_ipinUpdateDots();
+        for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.remove('error');}
+      },600);
+    }
+  }
+  container.innerHTML=`<div class="ipin-wrap">
+    <div class="ipin-title">${opts.title||'&#x1F511; Enter PIN'}</div>
+    ${opts.subtitle?`<div class="ipin-sub">${opts.subtitle}</div>`:''}
+    <div class="ipin-dots" id="ipinDots">
+      <div class="ipin-dot" id="ipd0"></div><div class="ipin-dot" id="ipd1"></div>
+      <div class="ipin-dot" id="ipd2"></div><div class="ipin-dot" id="ipd3"></div>
+    </div>
+    <div class="ipin-err" id="ipinErr"></div>
+    <div class="ipin-keypad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="ipin-key" onclick="window._ipinKey('${n}')">${n}</button>`).join('')}
+      <button class="ipin-key del" onclick="window._ipinCancel()">&#x2715;</button>
+      <button class="ipin-key" onclick="window._ipinKey('0')">0</button>
+      <button class="ipin-key del" onclick="window._ipinDel()">&#x232B;</button>
+    </div>
+  </div>`;
 }
 
 /* Hook into startListener to close DM overlay on first successful snap */
@@ -3692,13 +3804,13 @@ async function dbSwitchToHousehold(newHid){
   // Check if household exists in Firestore
   const body=document.getElementById('dbModalBody');
   if(body)body.innerHTML=`<div class="db-loading">&#x1F50D; Checking household&hellip;</div>`;
-  let exists=false;
+  let snap=null;
   try{
-    const snap=await db.collection('chorequest').doc(newHid).get();
-    exists=snap.exists&&snap.data()&&Array.isArray(snap.data().data?.kids);
+    snap=await db.collection('chorequest').doc(newHid).get();
   }catch(e){console.error(e);}
+  const exists=!!(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().data?.kids));
   if(!exists){
-    // Warn: this will create a brand-new household
+    // Warn: this will create a brand-new household (no PIN gate — it's a fresh HID)
     if(body){
       document.getElementById('dbOverlay').classList.add('open');
       body.innerHTML=`
@@ -3717,23 +3829,44 @@ async function dbSwitchToHousehold(newHid){
     }
     return;
   }
-  // Household exists — show standard confirmation
-  if(body){
-    document.getElementById('dbOverlay').classList.add('open');
-    body.innerHTML=`
-      <button class="db-btn ghost" style="margin-bottom:10px" onclick="_dbShowSwitchUI()">&#x2190; Back</button>
-      <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F504; Switch Household?</p>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Switching to:</p>
-      <p style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px">${escHtml(newHid)}</p>
-      <div class="db-confirm-box">
-        <div class="db-confirm-text">&#x26A0;&#xFE0F; Your local data will be <strong>fully replaced</strong> with data from this household. This device's current data will be lost.</div>
-        <div class="db-confirm-btns">
-          <button class="db-confirm-btn cancel" onclick="_dbShowSwitchUI()">Cancel</button>
-          <button class="db-confirm-btn danger" onclick="dbDoSwitch('${escHtml(newHid)}')">Switch</button>
-        </div>
-      </div>`;
-  }
+  // Household exists — read its PIN then gate on it
+  const targetPin=(snap.data()?.data?.parentPin)||'';
+  _dbShowSwitchConfirm(newHid, targetPin);
 }
+
+function _dbShowSwitchConfirm(newHid, targetPin){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  document.getElementById('dbOverlay').classList.add('open');
+  if(!targetPin){
+    // No PIN on target — show standard confirm immediately
+    _dbRenderSwitchConfirm(body, newHid);
+    return;
+  }
+  // Target has a PIN — show inline PIN entry first
+  renderInlinePinEntry(body,{
+    title:'&#x1F511; Enter Household PIN',
+    subtitle:`Verify your identity for <strong>${escHtml(newHid)}</strong>`,
+    expectedPin:targetPin,
+    onSuccess:()=>_dbRenderSwitchConfirm(body, newHid),
+    onCancel:()=>_dbShowSwitchUI()
+  });
+}
+
+function _dbRenderSwitchConfirm(body, newHid){
+  body.innerHTML=`
+    <button class="db-btn ghost" style="margin-bottom:10px" onclick="_dbShowSwitchUI()">&#x2190; Back</button>
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F504; Switch Household?</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Switching to:</p>
+    <p style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px">${escHtml(newHid)}</p>
+    <div class="db-confirm-box">
+      <div class="db-confirm-text">&#x26A0;&#xFE0F; Your local data will be <strong>fully replaced</strong> with data from this household. This device's current data will be lost.</div>
+      <div class="db-confirm-btns">
+        <button class="db-confirm-btn cancel" onclick="_dbShowSwitchUI()">Cancel</button>
+        <button class="db-confirm-btn danger" onclick="dbDoSwitch('${escHtml(newHid)}')">Switch</button>
+      </div>
+    </div>`;
+}
+
 function dbDoSwitch(newHid){
   document.getElementById('dbOverlay').classList.remove('open');
   if(fbUnsub){fbUnsub();fbUnsub=null;}
