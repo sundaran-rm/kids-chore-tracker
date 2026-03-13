@@ -612,13 +612,18 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .install-btn{background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff;border:none;font-family:var(--font);font-size:12px;font-weight:800;border-radius:8px;padding:7px 12px;cursor:pointer;flex-shrink:0}
 .dismiss-btn{background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0}
 
+.no-kid-msg{text-align:center;padding:60px 20px;color:var(--muted)}
+.no-kid-msg h2{font-family:var(--display);font-size:22px;color:var(--text);margin-bottom:8px}
+.no-kid-msg p{font-size:13px;margin-bottom:20px}
+.no-kid-msg button{background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff;font-family:var(--font);font-size:14px;font-weight:800;border:none;border-radius:11px;padding:11px 22px;cursor:pointer}
+
 /* Kids mode PWA overrides */
+body.kids-mode .kd-theme-dot { display:block!important }
 body.kids-mode .kd-add-row,
 body.kids-mode .kd-del,
-body.kids-mode .kd-theme-dot { display:block!important }
+body.kids-mode #btnAddKidBig { display:none!important }
 body.kids-mode .kd-name-inp { pointer-events:none!important }
 body.kids-mode #btnKidsLock { display:flex!important }
-body.kids-mode .km-badge { display:flex!important }
 /* Kids mode — settings overlay: hide everything except Theme + Kids Mode */
 body.kids-mode #setDB,
 body.kids-mode #setAddSection,
@@ -943,6 +948,8 @@ body.kids-mode .settings-km-hint { display:block!important }
 .dm-row-desc { font-size:11px;color:var(--muted);margin-top:1px; }
 .dm-row-arr { color:var(--muted);font-size:16px;flex-shrink:0; }
 .dm-row.disabled { opacity:.4;pointer-events:none; }
+.dm-row.danger-row:hover{ background:rgba(255,80,80,.05); }
+.dm-row.danger-row:active{ background:rgba(255,80,80,.08); }
 .dm-divider { height:1px;background:var(--border);margin:14px 0; }
 .dm-confirm-box { background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:10px;padding:12px 14px;margin-top:10px; }
 .dm-confirm-text { font-size:12px;color:var(--text);margin-bottom:10px;line-height:1.5; }
@@ -1020,7 +1027,6 @@ body.kids-mode .settings-km-hint { display:block!important }
       <span class="kpb-chevron">&#x25BE;</span>
     </button>
     <div class="hdr-right">
-      <div class="km-badge" id="kmBadge"><div class="km-dot"></div>Kids</div>
       <div class="sync-icon-btn" id="syncPill" title="Synced">
         <div class="si-ring"><div class="si-dot" id="syncDot"></div></div>
       </div>
@@ -1061,6 +1067,7 @@ body.kids-mode .settings-km-hint { display:block!important }
     <button id="btnAddKidBig">+ Add First Kid</button>
   </div>
 
+  <div id="mainGrid" style="display:none">
   <!-- CHORES TAB -->
   <div class="tab-pane active" id="paneChores">
     <!-- XP HEADER BAR -->
@@ -1210,7 +1217,8 @@ body.kids-mode .settings-km-hint { display:block!important }
       </div>
     </div>
   </div>
-</div>
+  </div><!-- /mainGrid -->
+</div><!-- /mainContent -->
 
 <!-- BOTTOM TAB BAR -->
 <div class="tabbar" id="tabbar" style="display:none">
@@ -1241,20 +1249,20 @@ body.kids-mode .settings-km-hint { display:block!important }
     <div class="sheet-hdr"><div class="sheet-title">&#x2699;&#xFE0F; Settings</div><button class="sheet-close" id="btnSettingsClose" onclick="document.getElementById('settingsOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="sheet-body">
       <div class="settings-km-hint">&#x1F512; Kids Mode is on — limited options shown</div>
-      <div class="setting-row" id="setAddSection"><span class="setting-icon">&#x2795;</span><div class="setting-info"><div class="setting-label">Add Custom Section</div><div class="setting-desc">Create a new named chore group</div></div></div>
       <div class="setting-row" id="setDB"><span class="setting-icon">&#x2601;</span><div class="setting-info"><div class="setting-label">Cloud Database</div><div class="setting-desc">Sync across devices with Firebase</div></div></div>
-      <div class="setting-row" id="setDataManager"><span class="setting-icon">&#x1F4BE;</span><div class="setting-info"><div class="setting-label">Import / Export</div><div class="setting-desc">Backup, restore, and manage connection details</div></div></div>
-      <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing — kids can view chores &amp; rewards</div></div></div>
-      <div class="setting-row" id="setApprovalMode"><span class="setting-icon">&#x270D;&#xFE0F;</span><div class="setting-info"><div class="setting-label">Require Parent Approval <span class="km-status-badge" id="approvalStatusBadge">Off</span></div><div class="setting-desc">Chore ticks in Kids Mode wait for your approval before awarding tokens</div></div></div>
       <div class="setting-row" id="setTheme"><span class="setting-icon">&#x1F3A8;</span><div class="setting-info"><div class="setting-label">Change Theme</div><div class="setting-desc" id="themeSettingDesc">Personalise with Galaxy, Dino, Princess &amp; more</div></div></div>
-      <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">PIN Management</div><div class="setting-desc">Set, change or clear your parent PIN</div></div></div>
+      <div class="setting-row" id="setAddSection"><span class="setting-icon">&#x2728;</span><div class="setting-info"><div class="setting-label">Add Custom Section</div><div class="setting-desc">Create a named chore group (e.g. Homework, Pet Care)</div></div></div>
       <div class="setting-row" id="setAchievements"><span class="setting-icon">&#x1F3C5;</span><div class="setting-info"><div class="setting-label">Achievements &amp; Badges</div><div class="setting-desc">Edit badge thresholds and create custom achievements</div></div></div>
       <div class="setting-row" id="setXPLevels"><span class="setting-icon">&#x26A1;</span><div class="setting-info"><div class="setting-label">XP Levels</div><div class="setting-desc">Edit level thresholds and create custom levels</div></div></div>
       <div class="setting-row" id="setShopItems"><span class="setting-icon">&#x1F6CD;</span><div class="setting-info"><div class="setting-label">Reward Shop Items</div><div class="setting-desc">Edit default costs and add custom shop items</div></div></div>
       <div class="setting-row" id="setFlashMsg"><span class="setting-icon">&#x1F4E3;</span><div class="setting-info"><div class="setting-label">Flash Message</div><div class="setting-desc">Send a message that pops up in Kids Mode</div></div></div>
       <div class="setting-row" id="setNotifs"><span class="setting-icon">&#x1F514;</span><div class="setting-info"><div class="setting-label">Notifications</div><div class="setting-desc">Reminders for kids &amp; parent approvals</div></div></div>
       <div class="setting-row" id="setAllowance"><span class="setting-icon">&#x1F4B0;</span><div class="setting-info"><div class="setting-label">Weekly Allowance</div><div class="setting-desc">Set automatic weekly token payouts per kid</div></div></div>
-      <div class="setting-row danger" id="setReset"><span class="setting-icon">&#x267B;</span><div class="setting-info"><div class="setting-label">Reset Everything</div><div class="setting-desc">Delete all kids and data</div></div></div>
+      <div class="setting-row km-row" id="setKidsMode"><span class="setting-icon">&#x1F512;</span><div class="setting-info"><div class="setting-label">Kids Mode <span class="km-status-badge" id="kmStatusBadge">Off</span></div><div class="setting-desc">Lock editing — kids can view chores &amp; check off tasks</div></div></div>
+      <div class="setting-row" id="setApprovalMode"><span class="setting-icon">&#x270D;&#xFE0F;</span><div class="setting-info"><div class="setting-label">Require Parent Approval <span class="km-status-badge" id="approvalStatusBadge">Off</span></div><div class="setting-desc">Chore ticks in Kids Mode wait for your approval before awarding tokens</div></div></div>
+      <div class="setting-row" id="setPin"><span class="setting-icon">&#x1F511;</span><div class="setting-info"><div class="setting-label">PIN Management</div><div class="setting-desc">Set, change or clear your parent PIN</div></div></div>
+      <div class="setting-row" id="setDataManager"><span class="setting-icon">&#x1F4BE;</span><div class="setting-info"><div class="setting-label">Import / Export</div><div class="setting-desc">Backup, restore, and manage connection details</div></div></div>
+      <div class="setting-row danger" id="setReset"><span class="setting-icon">&#x267B;</span><div class="setting-info"><div class="setting-label">Reset Everything</div><div class="setting-desc">Delete all kids and data &mdash; cannot be undone</div></div></div>
     </div>
   </div>
 </div>
@@ -1337,49 +1345,51 @@ body.kids-mode .settings-km-hint { display:block!important }
     <div class="sheet-hdr"><div class="sheet-title">&#x2753; How to Use Chore Quest</div><button class="sheet-close" id="btnHelpClose" onclick="document.getElementById('helpOverlay').classList.remove('open')">&#x2715;</button></div>
     <div class="sheet-body" style="padding:14px 16px 22px">
 
+
       <div class="help-section">
         <div class="help-section-title">&#x1F9D2; Managing Kids</div>
-        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a kid</div><div class="help-item-desc">Tap the kid picker (top bar) &rarr; <strong>+ Add Kid</strong>. Each kid gets their own chores, tokens, streak, and rewards.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F3A8;</div><div class="help-item-text"><div class="help-item-title">Switch theme</div><div class="help-item-desc">Tap the kid picker &rarr; tap the coloured dot next to a name to pick Galaxy, Dino, Princess, Ocean, or Unicorn.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a kid</div><div class="help-item-desc">Tap the kid picker in the top bar &rarr; <strong>+ Add Kid</strong>. Each kid gets their own chores, tokens, streak, badges, and rewards.</div></div></div>
         <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Rename a kid</div><div class="help-item-desc">Tap the kid picker, then tap the name text and type a new one. Saves automatically.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3A8;</div><div class="help-item-text"><div class="help-item-title">Parent theme</div><div class="help-item-desc">Go to <strong>Settings &rarr; Change Theme</strong> to set the parent-controlled theme for the active kid. Choose Galaxy, Dino, Princess, Ocean, or Unicorn.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3A8;</div><div class="help-item-text"><div class="help-item-title">Kids theme (separate)</div><div class="help-item-desc">In <strong>Kids Mode</strong>, each kid can tap the coloured dot next to their name in the kid picker to choose their own theme. The kids theme overrides the parent theme while in Kids Mode.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F5D1;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Remove a kid</div><div class="help-item-desc">Tap the kid picker, then tap the ✕ icon next to their name (at least 2 kids required to remove one).</div></div></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">&#x2600;&#xFE0F; Chores Tab</div>
-        <div class="help-item"><div class="help-item-icon">&#x2714;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Tick off a chore</div><div class="help-item-desc">Tap the circle button on any chore to mark it done. Tokens are added instantly. Use ↩ to undo.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4DD;</div><div class="help-item-text"><div class="help-item-title">Chore instructions (tap)</div><div class="help-item-desc">If a chore has instructions set, the chore name appears with a dotted underline. <strong>Tap the name</strong> to expand and show the instructions below it. Tap again to collapse.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a chore</div><div class="help-item-desc">Tap <strong>+ Add</strong> in any section. The edit modal opens — set the name, tokens, difficulty, schedule days, and instructions.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4C5;</div><div class="help-item-text"><div class="help-item-title">Scheduling</div><div class="help-item-desc">Open the ✏️ edit modal and tap day buttons (S M T W T F S) to set which days the chore appears. Greyed = not today.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F7E1;</div><div class="help-item-text"><div class="help-item-title">Difficulty badge</div><div class="help-item-desc">Tap the coloured badge (🟢 Easy / 🟡 Med / 🔴 Hard) to cycle difficulty. Reset to None via the ✏️ edit modal.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Chore of the Week</div><div class="help-item-desc">Tap ⭐ on a chore to set it as Chore of the Week — earns 2× tokens all week. Gold border shows which one it is.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4CB;</div><div class="help-item-text"><div class="help-item-title">Templates</div><div class="help-item-desc">Tap the 📋 button in Daily Tasks to load a ready-made chore pack. Save your own with 💾 Save.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x2728;</div><div class="help-item-text"><div class="help-item-title">Custom sections</div><div class="help-item-desc">Tap ➕ Section in the header to add a named chore group (e.g. "Homework"). Drag ☰ to reorder.</div></div></div>
+        <div class="help-section-title">&#x2600;&#xFE0F; Chores &amp; Tasks</div>
+        <div class="help-item"><div class="help-item-icon">&#x2795;</div><div class="help-item-text"><div class="help-item-title">Add a chore</div><div class="help-item-desc">Tap <strong>+ Add</strong> in any section header. The edit modal opens — set name, tokens, difficulty, schedule days, and optional instructions.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2714;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Tick off a chore</div><div class="help-item-desc">Tap the circle on the right of a chore to mark it done. Tokens and XP are added instantly. Tap ↩ to undo.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4DD;</div><div class="help-item-text"><div class="help-item-title">Chore instructions</div><div class="help-item-desc">If a chore has instructions set, its name shows with a dotted underline. <strong>Tap the name</strong> to expand and show the instructions — useful in Kids Mode so kids know exactly what&apos;s expected.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4C5;</div><div class="help-item-text"><div class="help-item-title">Set a schedule</div><div class="help-item-desc">Open the ✏️ edit modal and tap day buttons (S M T W T F S) to choose which days the chore appears. Greyed-out chores are not scheduled for today.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F7E1;</div><div class="help-item-text"><div class="help-item-title">Difficulty badge</div><div class="help-item-desc">Tap the coloured badge (&#x1F7E2; Easy / &#x1F7E1; Med / &#x1F534; Hard) to cycle difficulty. Reset to None via the ✏️ edit modal. Difficulty is hidden from kids in Kids Mode.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Chore of the Week</div><div class="help-item-desc">Tap ⭐ on a chore to set it as Chore of the Week — earns <strong>2&times; tokens</strong> all week. The gold border highlights which chore it is.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x26A1;</div><div class="help-item-text"><div class="help-item-title">Bonus chores</div><div class="help-item-desc">One-off or extra chores with no fixed schedule. Great for special tasks, extra effort, or tasks added on the fly.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4CB;</div><div class="help-item-text"><div class="help-item-title">Templates</div><div class="help-item-desc">Tap the &#x1F4CB; button in Daily Tasks to load a ready-made chore pack. Save your own packs with the &#x1F4BE; Save button next to each section.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2728;</div><div class="help-item-text"><div class="help-item-title">Custom sections</div><div class="help-item-desc">Go to <strong>Settings &rarr; Add Custom Section</strong> to create named chore groups (e.g. &ldquo;Homework&rdquo;, &ldquo;Pet Care&rdquo;). Drag ☰ to reorder chores within and between sections.</div></div></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">&#x1F381; Rewards Tab</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F381;</div><div class="help-item-text"><div class="help-item-title">Add rewards</div><div class="help-item-desc">Tap <strong>+ Add</strong> in the Rewards section. Set a name and token cost. Tap <strong>Redeem</strong> to spend tokens.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F6CD;</div><div class="help-item-text"><div class="help-item-title">Reward Shop</div><div class="help-item-desc">Tap <strong>🛍 Shop</strong> to browse suggested rewards by category. Customise items and costs in <strong>Settings &rarr; Reward Shop Items</strong>.</div></div></div>
-      </div>
-
-      <div class="help-section">
-        <div class="help-section-title">&#x1F4B0; Wallet Tab</div>
-        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Token balance</div><div class="help-item-desc">The gold coin shows total tokens. Earn them by ticking chores; spend them by redeeming rewards.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Manual adjustments</div><div class="help-item-desc">Tap <strong>+ Add</strong> or <strong>− Remove</strong> to give bonus tokens or make corrections. Add a note for the history.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F3AF;</div><div class="help-item-text"><div class="help-item-title">Goals</div><div class="help-item-desc">Set a savings goal and link it to a reward to show a progress bar towards something the kid is working towards.</div></div></div>
+        <div class="help-section-title">&#x2B50; Tokens &amp; Rewards</div>
+        <div class="help-item"><div class="help-item-icon">&#x2B50;</div><div class="help-item-text"><div class="help-item-title">Earning tokens</div><div class="help-item-desc">Tokens are earned automatically when chores are ticked. The gold coin shows the running total. Undo removes the tokens.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F381;</div><div class="help-item-text"><div class="help-item-title">Redeeming rewards</div><div class="help-item-desc">Add rewards (e.g. &ldquo;Movie Night &ndash; 50&#x2605;&rdquo;) in the Rewards section. Tap <strong>Redeem</strong> to spend tokens when a reward is earned.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F6CD;</div><div class="help-item-text"><div class="help-item-title">Reward Shop</div><div class="help-item-desc">Tap <strong>&#x1F6CD; Shop</strong> in the Rewards header to browse suggested rewards by category. Customise items and costs in <strong>Settings &rarr; Reward Shop Items</strong>.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3AF;</div><div class="help-item-text"><div class="help-item-title">Goals</div><div class="help-item-desc">Set a savings goal in the Wallet section — link it to a reward to show a progress bar towards something specific. Enable Savings Lock to prevent token spending until the goal is met.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x270F;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Manual adjustments</div><div class="help-item-desc">Use <strong>+ Add</strong> / <strong>&minus; Remove</strong> in the Wallet to give bonus tokens or make corrections. Add a note to explain why — it appears in the history.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4B0;</div><div class="help-item-text"><div class="help-item-title">Weekly Allowance</div><div class="help-item-desc">Go to <strong>Settings &rarr; Weekly Allowance</strong> to set an automatic weekly token payout for each kid on a chosen day.</div></div></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x1F4AA; XP &amp; Levels</div>
         <div class="help-item"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">XP progress bar</div><div class="help-item-desc">The bar at the top of the Chores tab shows the current level and XP progress. XP is earned by completing chores; undo reduces it. Spending tokens on rewards does <strong>not</strong> reduce XP.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F331;</div><div class="help-item-text"><div class="help-item-title">Levels</div><div class="help-item-desc">6 levels: 🌱 Rookie → ⭐ Helper → 🌟 Star → 🏆 Champion → 👑 Legend → 🔮 Master.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F331;</div><div class="help-item-text"><div class="help-item-title">Levels</div><div class="help-item-desc">6 levels: &#x1F331; Rookie &rarr; &#x2B50; Helper &rarr; &#x1F31F; Star &rarr; &#x1F3C6; Champion &rarr; &#x1F451; Legend &rarr; &#x1F52E; Master. Each has an emoji and name shown in the XP bar.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2699;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Customise levels</div><div class="help-item-desc">Go to <strong>Settings &rarr; XP Levels</strong> to change the XP thresholds for each level or create entirely custom levels with your own names and emoji.</div></div></div>
       </div>
 
       <div class="help-section">
-        <div class="help-section-title">&#x1F4CA; Stats Tab</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks &amp; streak chart</div><div class="help-item-desc">Increases each day at least one chore is completed. Miss a day and it resets. The 30-day streak history chart is in the <strong>Earned</strong> section.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">Tap a badge to see its name and requirement in the native tooltip. Earned badges show the date they were unlocked. Thresholds shown reflect any custom edits made in Settings.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x2699;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Customise achievements</div><div class="help-item-desc"><strong>Settings &rarr; Achievements &amp; Badges</strong>: change thresholds for numeric badges and create custom ones based on total chores, streak days, or tokens. Changes are per kid. Raising a threshold removes badges the kid no longer qualifies for.</div></div></div>
+        <div class="help-section-title">&#x1F525; Streaks &amp; Achievements</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F525;</div><div class="help-item-text"><div class="help-item-title">Streaks</div><div class="help-item-desc">A streak increases each day at least one chore is completed. Miss a day and it resets. The personal best is saved separately. The 30-day streak chart lives in the Stats tab.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">Tap any badge to see its name, requirement, and — if earned — the date it was unlocked. Thresholds shown reflect any custom edits made in Settings.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2699;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Customise achievements</div><div class="help-item-desc">Go to <strong>Settings &rarr; Achievements &amp; Badges</strong> to change thresholds for numeric badges and create custom ones. Raising a threshold removes badges the kid no longer qualifies for. Settings are per kid.</div></div></div>
         <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">
           <div style="display:grid;grid-template-columns:26px 1fr;gap:6px 10px;align-items:start">
             <span style="font-size:18px;line-height:1.3">&#x1F31F;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">First Steps</span> <span style="font-size:10px;color:var(--muted)">— Complete your very first chore</span></div>
@@ -1398,29 +1408,31 @@ body.kids-mode .settings-km-hint { display:block!important }
             <span style="font-size:18px;line-height:1.3">&#x1F3AF;</span><div><span style="font-size:11px;font-weight:800;color:var(--text)">Goal Getter</span> <span style="font-size:10px;color:var(--muted)">— Set a savings goal in the Wallet</span></div>
           </div>
         </div>
-        <div class="help-item" style="margin-top:8px"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">Charts</div><div class="help-item-desc">Weekly and monthly charts show token earnings (with 30-day streak history) in the <strong>Earned</strong> section, and redemptions in <strong>Redeemed</strong>.</div></div></div>
+        <div class="help-item" style="margin-top:8px"><div class="help-item-icon">&#x1F4C8;</div><div class="help-item-text"><div class="help-item-title">Stats &amp; Charts</div><div class="help-item-desc">The Stats tab shows weekly and monthly token-earning charts, your 30-day streak history, redemption history, and the full achievements grid.</div></div></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x1F512; Kids Mode &amp; PIN</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F512;</div><div class="help-item-text"><div class="help-item-title">Enable Kids Mode</div><div class="help-item-desc">Go to Settings &rarr; Kids Mode. Editing controls hide — kids can only view, tick chores, and tap chore names to read instructions.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F511;</div><div class="help-item-text"><div class="help-item-title">Set a PIN</div><div class="help-item-desc">Settings &rarr; Parent PIN. A 4-digit PIN protects Kids Mode from being turned off. Syncs across all devices.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F513;</div><div class="help-item-text"><div class="help-item-title">Unlock</div><div class="help-item-desc">Tap the green <strong>Kids</strong> badge in the top bar, enter your PIN, and parent controls return.</div></div></div>
-      </div>
-
-      <div class="help-section">
-        <div class="help-section-title">&#x2611; Settings</div>
-        <div class="help-item"><div class="help-item-icon">&#x1F3C5;</div><div class="help-item-text"><div class="help-item-title">Achievements &amp; Badges</div><div class="help-item-desc">Edit thresholds for numeric badges and create custom achievements. Changes are per kid. Raising a threshold removes badges no longer met.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F6CD;</div><div class="help-item-text"><div class="help-item-title">Reward Shop Items</div><div class="help-item-desc">Override the suggested token cost for any shop item and add your own custom items. Changes are per kid.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F512;</div><div class="help-item-text"><div class="help-item-title">Enable Kids Mode</div><div class="help-item-desc">Go to <strong>Settings &rarr; Kids Mode</strong>. All editing controls hide — kids can view chores, tick them off, tap names to read instructions, and browse their rewards. Add/edit controls are fully hidden.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x270D;&#xFE0F;</div><div class="help-item-text"><div class="help-item-title">Require Parent Approval</div><div class="help-item-desc">Enable via <strong>Settings &rarr; Require Parent Approval</strong>. When on, chore ticks in Kids Mode go into a pending queue. You review and approve or reject them from the hourglass button in the header. Tokens only award after approval.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F511;</div><div class="help-item-text"><div class="help-item-title">Set a PIN</div><div class="help-item-desc">Go to <strong>Settings &rarr; PIN Management</strong>. A 4-digit PIN protects Kids Mode and sensitive settings from being changed by kids. The PIN syncs across all devices via Firebase.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F513;</div><div class="help-item-text"><div class="help-item-title">Unlock Kids Mode</div><div class="help-item-desc">Tap the &#x1F512; lock button in the top bar, enter your PIN, and parent controls return immediately.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4E3;</div><div class="help-item-text"><div class="help-item-title">Flash Messages</div><div class="help-item-desc">Go to <strong>Settings &rarr; Flash Message</strong> to send a pop-up message that appears the next time Kids Mode is opened. Great for reminders or surprises. The &#x1F4E3; icon in the header shows a badge when a message is waiting.</div></div></div>
       </div>
 
       <div class="help-section">
         <div class="help-section-title">&#x2601; Cloud Sync</div>
-        <div class="help-item"><div class="help-item-icon">&#x2601;</div><div class="help-item-text"><div class="help-item-title">Connect Firebase</div><div class="help-item-desc">Settings &rarr; Cloud Database. Follow the 4-step guide to link a free Firebase project (~5 mins).</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F4F1;</div><div class="help-item-text"><div class="help-item-title">Link devices</div><div class="help-item-desc">Use the same <strong>Household ID</strong> on every device. Chores, tokens, badges, templates, and PIN sync in real time.</div></div></div>
-        <div class="help-item"><div class="help-item-icon">&#x1F7E2;</div><div class="help-item-text"><div class="help-item-title">Sync status</div><div class="help-item-desc">The dot icon in the top bar shows status: green = synced, yellow = saving, orange = offline, red = error.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x2601;</div><div class="help-item-text"><div class="help-item-title">Connect Firebase</div><div class="help-item-desc">Go to <strong>Settings &rarr; Cloud Database</strong> and follow the 4-step guide to link a free Firebase project. Takes about 5 minutes. All data then syncs in real time.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4F1;</div><div class="help-item-text"><div class="help-item-title">Link devices</div><div class="help-item-desc">Use the same <strong>Household ID</strong> on every device (phone, tablet, desktop). Chores, tokens, badges, templates, PIN, and settings all sync instantly.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F504;</div><div class="help-item-text"><div class="help-item-title">Household management</div><div class="help-item-desc">Inside Cloud Database settings you can: <strong>Rename</strong> your household ID, <strong>Switch</strong> to a different household, <strong>Browse</strong> all households in your Firebase, and <strong>Delete</strong> a household permanently. All actions are PIN-protected.</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F7E2;</div><div class="help-item-text"><div class="help-item-title">Sync status</div><div class="help-item-desc">The dot icon in the top bar shows sync state — green = synced, yellow = saving, orange = offline pending, red = error. Tap it to see the household ID or sync details.</div></div></div>
       </div>
 
+      <div class="help-section">
+        <div class="help-section-title">&#x1F4BE; Import &amp; Export</div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4E4;</div><div class="help-item-text"><div class="help-item-title">Export</div><div class="help-item-desc">Go to <strong>Settings &rarr; Import / Export</strong>. You can export App Data only (all kids and chores as JSON), Connection Details only (Firebase config for linking another device), or Everything (full backup including both).</div></div></div>
+        <div class="help-item"><div class="help-item-icon">&#x1F4E5;</div><div class="help-item-text"><div class="help-item-title">Import</div><div class="help-item-desc">Import App Data to restore a JSON backup (replaces all current data), Import Connection Details to switch this device to a different Firebase household, or Import Everything to fully restore a complete backup including the Firebase connection.</div></div></div>
+      </div>
       <div class="help-tip"><strong>Tip:</strong> Tap a chore name with a dotted underline to reveal its instructions. Drag ☰ on any chore or reward to reorder it. Tap a section header to collapse it and save screen space.</div>
     </div>
   </div>
@@ -3095,6 +3107,11 @@ function renderDMHome(){
           <div class="dm-row-info"><div class="dm-row-label">Connection Details</div><div class="dm-row-desc">Switch Firebase database &amp; re-sync</div></div>
           <div class="dm-row-arr">&#x203A;</div>
         </div>
+        <div class="dm-row" onclick="dmFlow('import-all')">
+          <div class="dm-row-icon">&#x1F4E6;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Import Everything</div><div class="dm-row-desc">Restore data + Firebase connection from a full backup</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
       </div>
     </div>`;
 }
@@ -3106,6 +3123,7 @@ function dmFlow(action){
     else if(action==='export-all')        doExportAll();
     else if(action==='import-data')       dmConfirmImportData();
     else if(action==='import-connection') dmImportConnectionPick();
+    else if(action==='import-all')        dmImportAllPick();
   }, action.startsWith('export') ? 'Enter PIN to export' : 'Enter PIN to import', {requirePin:true});
 }
 
@@ -3249,6 +3267,61 @@ function doImportConnectionApply(){
   }
 }
 
+/* ── IMPORT EVERYTHING ── */
+function dmImportAllPick(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/json';
+  inp.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    const reader=new FileReader();
+    reader.addEventListener('load',ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        if(parsed.type!=='chore-quest-full-backup'||!parsed.data||!parsed.firebaseConfig||!parsed.householdId){
+          throw new Error('This file is not a full backup. Use "Import App Data" or "Import Connection Details" instead.');
+        }
+        _pendingConnData={cfg:parsed.firebaseConfig,hid:parsed.householdId,fullBackupData:parsed.data};
+        dmConfirmImportAll(parsed.householdId,(parsed.data.kids||[]).map(k=>k.name||'Kid').join(', ')||'no kids');
+      }catch(err){alert('Invalid backup file. '+err.message);}
+    });reader.readAsText(f);
+  });inp.click();
+}
+function dmConfirmImportAll(hid,kidNames){
+  const body=document.getElementById('dmBody');if(!body)return;
+  body.innerHTML=`
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F4E6; Import Full Backup</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Restoring household:</p>
+    <p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:4px">${escHtml(hid)}</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Kids: ${escHtml(kidNames)}</p>
+    <div class="dm-confirm-box">
+      <div class="dm-confirm-text">&#x26A0;&#xFE0F; This will <strong>replace all local data</strong> and reconnect to the Firebase household from the backup. Cannot be undone.</div>
+      <div class="dm-confirm-btns">
+        <button class="dm-confirm-btn cancel" onclick="_pendingConnData=null;renderDMHome()">Cancel</button>
+        <button class="dm-confirm-btn danger" onclick="doImportAllApply()">Restore &amp; Connect</button>
+      </div>
+    </div>`;
+}
+function doImportAllApply(){
+  const body=document.getElementById('dmBody');
+  if(!_pendingConnData||!_pendingConnData.fullBackupData){renderDMHome();return;}
+  const {cfg,hid,fullBackupData}=_pendingConnData;_pendingConnData=null;
+  if(body)body.innerHTML=`<p style="text-align:center;padding:32px 0;font-size:13px;color:var(--muted)">&#x1F504; Restoring backup…</p>`;
+  // Pre-load S with the backup data so it writes to the new household on first connect
+  S=fullBackupData;
+  if(!S.kids)S.kids=[];
+  if(!S.customTemplates)S.customTemplates=[];
+  if(!S.customShopItems)S.customShopItems=[];
+  if(!S.flashMessages)S.flashMessages=[];
+  saveLocal();
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
+  db=null;
+  window._dmConnectingOverlay=true;
+  const ok=connectFirebase(cfg,hid);
+  if(!ok){
+    if(body)body.innerHTML=`<div class="dm-confirm-box"><div class="dm-confirm-text" style="color:#ff7043">&#x274C; Failed to connect. Check the config and try again.</div><div class="dm-confirm-btns"><button class="dm-confirm-btn cancel" onclick="renderDMHome()">Back</button></div></div>`;
+  }
+}
+
 /* Hook into startListener to close DM overlay on first successful snap */
 const _origStartListener=startListener;
 startListener=function(hid){
@@ -3365,25 +3438,47 @@ function renderDBConnected(body){
   const hid=localStorage.getItem('cq_hid')||'';
   body.innerHTML=`
     <div class="db-hid-card">
-      <div class="db-hid-label">&#x2714; Connected &mdash; Household</div>
+      <div class="db-hid-label">&#x2714; Connected</div>
       <div class="db-hid-value">${escHtml(hid)}</div>
       <div class="db-btn-row">
         <button class="db-btn ghost" onclick="dbCopyHID()">&#x1F4CB; Copy ID</button>
         <button class="db-btn primary" onclick="dbPinGate(()=>dbBrowseHouseholds(),'Enter PIN to browse households')">&#x1F4C2; Browse</button>
       </div>
     </div>
-    <div class="db-divider"></div>
-    <div class="db-section-title">Actions</div>
-    <div class="db-btn-row" style="flex-direction:column;gap:7px">
-      <button class="db-btn ghost" style="width:100%;text-align:left" onclick="dbRenameConfirm()">&#x270F;&#xFE0F; Rename Household</button>
-      <button class="db-btn warn" style="width:100%;text-align:left" onclick="dbSwitchConfirm()">&#x1F504; Switch Household</button>
-      <button class="db-btn danger" style="width:100%;text-align:left" onclick="dbDeleteCurrentConfirm()">&#x1F5D1; Delete This Household</button>
+    <div class="dm-section">
+      <div class="dm-section-title">Household</div>
+      <div class="dm-card">
+        <div class="dm-row" onclick="dbRenameConfirm()">
+          <div class="dm-row-icon">&#x270F;&#xFE0F;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Rename Household</div><div class="dm-row-desc">Change the household ID in Firebase</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row" onclick="dbSwitchConfirm()">
+          <div class="dm-row-icon">&#x1F504;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Switch Household</div><div class="dm-row-desc">Connect to a different household</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row danger-row" onclick="dbDeleteCurrentConfirm()">
+          <div class="dm-row-icon">&#x1F5D1;</div>
+          <div class="dm-row-info"><div class="dm-row-label" style="color:var(--red)">Delete This Household</div><div class="dm-row-desc">Permanently remove from Firebase</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+      </div>
     </div>
-    <div class="db-divider"></div>
-    <div class="db-section-title">Connection</div>
-    <div class="db-btn-row" style="flex-direction:column;gap:7px">
-      <button class="db-btn ghost" style="width:100%;text-align:left" onclick="dbDisconnectConfirm()">&#x1F50C; Disconnect (keep config)</button>
-      <button class="db-btn danger" style="width:100%;text-align:left" onclick="dbClearConfigConfirm()">&#x1F9F9; Disconnect &amp; Clear Config</button>
+    <div class="dm-section">
+      <div class="dm-section-title">Connection</div>
+      <div class="dm-card">
+        <div class="dm-row" onclick="dbDisconnectConfirm()">
+          <div class="dm-row-icon">&#x1F50C;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Disconnect</div><div class="dm-row-desc">Stop syncing — keeps config for reconnect</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row danger-row" onclick="dbClearConfigConfirm()">
+          <div class="dm-row-icon">&#x1F9F9;</div>
+          <div class="dm-row-info"><div class="dm-row-label" style="color:var(--red)">Disconnect &amp; Clear Config</div><div class="dm-row-desc">Remove all Firebase credentials from device</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+      </div>
     </div>`;
 }
 
@@ -3396,12 +3491,22 @@ function renderDBSavedConfig(body,cfg,hid){
       <div class="db-saved-cfg-label">&#x1F4BE; Saved Firebase Config</div>
       <div class="db-saved-cfg-val">Project: ${escHtml(proj)}${hid?`<br>Last household: <strong>${escHtml(hid)}</strong>`:''}</div>
     </div>
-    <div class="db-btn-row" style="margin-bottom:12px;gap:7px">
-      <button class="db-btn primary" style="flex:1" onclick="dbReconnect()">&#x1F504; Reconnect</button>
-      <button class="db-btn danger" onclick="dbClearConfigConfirm()">&#x1F9F9; Clear</button>
+    <div class="dm-section" style="margin-top:8px">
+      <div class="dm-card">
+        <div class="dm-row" onclick="dbReconnect()">
+          <div class="dm-row-icon">&#x1F504;</div>
+          <div class="dm-row-info"><div class="dm-row-label">Reconnect</div><div class="dm-row-desc">Resume syncing with saved config</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+        <div class="dm-row danger-row" onclick="dbClearConfigConfirm()">
+          <div class="dm-row-icon">&#x1F9F9;</div>
+          <div class="dm-row-info"><div class="dm-row-label" style="color:var(--red)">Clear Config</div><div class="dm-row-desc">Remove all Firebase credentials from device</div></div>
+          <div class="dm-row-arr">&#x203A;</div>
+        </div>
+      </div>
     </div>
     <div class="db-divider"></div>
-    <div class="db-section-title">Or connect a different config</div>
+    <div class="db-section-title" style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px">Or connect a different config</div>
     ${dbSetupFormHTML()}`;
 }
 
@@ -4637,7 +4742,7 @@ function renderSIMCustom(k){
 }
 
 /* ── BOOT ── */
-if(S.kids.length===0){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();}
+if(S.kids.length===0&&!localStorage.getItem(SK)){const k=mkKid('Kid 1');S.kids=[k];S.activeId=k.id;save();} // Only auto-create on true first install
 if(!S.activeId)S.activeId=S.kids[0]?.id||null;
 if(!S.customTemplates)S.customTemplates=[];
 if(!S.customShopItems)S.customShopItems=[];
