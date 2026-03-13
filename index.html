@@ -2924,11 +2924,41 @@ function doExportData(){
   document.getElementById('dmOverlay').classList.remove('open');
 }
 
+/* ── EXPORT ENCRYPTION (Web Crypto / AES-GCM) ─────────────────────────
+   Key derived from PIN via PBKDF2 (310 000 iterations, SHA-256).
+   Exported file: { type, v:1, salt, iv, data } — all opaque base64.
+   No config, no PIN, no plaintext is visible in the file.            */
+function _b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function _unb64(s){ return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
+async function _deriveKey(pin, salt){
+  const enc=new TextEncoder();
+  const base=await crypto.subtle.importKey('raw',enc.encode(pin),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},
+    base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function encryptForExport(obj, pin){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv  =crypto.getRandomValues(new Uint8Array(12));
+  const key =await _deriveKey(pin, salt);
+  const plain=new TextEncoder().encode(JSON.stringify(obj));
+  const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plain);
+  return {type:'cq-encrypted',v:1,salt:_b64(salt),iv:_b64(iv),data:_b64(cipher)};
+}
+async function decryptFromExport(enc, pin){
+  if(enc.v!==1)throw new Error('Unknown encryption version');
+  const key=await _deriveKey(pin,_unb64(enc.salt));
+  let plain;
+  try{
+    plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:_unb64(enc.iv)},key,_unb64(enc.data));
+  }catch(e){ throw new Error('Wrong PIN or corrupted file'); }
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
 function doExportConnection(){
   const cfg=localStorage.getItem('cq_fbcfg');
   const hid=localStorage.getItem('cq_hid');
   if(!cfg||!hid){showInappNotif('⚠️','Not Connected','No Firebase connection to export');return;}
-  // A PIN is required — connection file must always be passcode-protected
   if(!S.parentPin){
     const body=document.getElementById('dmBody');
     if(body){
@@ -2940,29 +2970,40 @@ function doExportConnection(){
     }
     return;
   }
-  const payload={
-    type:'chore-quest-connection',
-    firebaseConfig:JSON.parse(cfg),
-    householdId:hid,
-    householdPin:S.parentPin
-  };
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='chore-quest-connection.json';a.click();
-  showInappNotif('📤','Connection Exported','Firebase config downloaded');
-  document.getElementById('dmOverlay').classList.remove('open');
+  // Encrypt the full payload — file contains only opaque ciphertext
+  const plain={firebaseConfig:JSON.parse(cfg),householdId:hid,householdPin:S.parentPin};
+  encryptForExport(plain, S.parentPin).then(enc=>{
+    const blob=new Blob([JSON.stringify(enc)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='chore-quest-connection.json';a.click();
+    showInappNotif('📤','Connection Exported','Encrypted file downloaded');
+    document.getElementById('dmOverlay').classList.remove('open');
+  }).catch(e=>{showInappNotif('⚠️','Export Failed',e.message);});
 }
 
 function doExportAll(){
   const cfg=localStorage.getItem('cq_fbcfg');
   const hid=localStorage.getItem('cq_hid');
   if(!cfg||!hid){showInappNotif('⚠️','Not Connected','No Firebase connection to export');return;}
-  const payload={type:'chore-quest-full-backup',data:S,firebaseConfig:JSON.parse(cfg),householdId:hid};
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='chore-quest-full-backup.json';a.click();
-  showInappNotif('📦','Full Backup Exported','Data + connection downloaded');
-  document.getElementById('dmOverlay').classList.remove('open');
+  if(!S.parentPin){
+    const body=document.getElementById('dmBody');
+    if(body){
+      body.innerHTML=`
+        <div class="dm-no-pin-box">
+          <div class="dm-no-pin-text">&#x1F512; A Parent PIN is required to export a full backup.<br><br>Full backups contain your Firebase credentials and must always be encrypted.</div>
+          <button class="dm-no-pin-btn" onclick="openPinOverlay('set');document.getElementById('dmOverlay').classList.remove('open')">Set PIN Now</button>
+        </div>`;
+    }
+    return;
+  }
+  const plain={type:'chore-quest-full-backup',data:S,firebaseConfig:JSON.parse(cfg),householdId:hid,householdPin:S.parentPin};
+  encryptForExport(plain, S.parentPin).then(enc=>{
+    const blob=new Blob([JSON.stringify(enc)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='chore-quest-full-backup.json';a.click();
+    showInappNotif('📦','Full Backup Exported','Encrypted file downloaded');
+    document.getElementById('dmOverlay').classList.remove('open');
+  }).catch(e=>{showInappNotif('⚠️','Export Failed',e.message);});
 }
 
 /* ── IMPORT DATA ── */
@@ -3022,31 +3063,87 @@ function dmImportConnectionPick(){
     reader.addEventListener('load',ev=>{
       try{
         const parsed=JSON.parse(ev.target.result);
-        let cfg,hid,householdPin='';
-        if(parsed.type==='chore-quest-full-backup'){
-          cfg=parsed.firebaseConfig;hid=parsed.householdId;
-          householdPin=parsed.data?.parentPin||'';
-        } else if(parsed.firebaseConfig&&parsed.householdId){
-          cfg=parsed.firebaseConfig;hid=parsed.householdId;
-          householdPin=parsed.householdPin||'';
-        } else { throw new Error('No Firebase credentials found in this file'); }
-        _pendingConnData={cfg,hid,householdPin};
-        dmImportConnVerifyPin(hid,householdPin);
+        const body=document.getElementById('dmBody');if(!body)return;
+        if(parsed.type==='cq-encrypted'){
+          _dmDecryptConnFlow(body, parsed);
+        } else {
+          // Legacy plaintext file
+          let cfg,hid,householdPin='';
+          if(parsed.firebaseConfig&&parsed.householdId){
+            cfg=parsed.firebaseConfig;hid=parsed.householdId;
+            householdPin=parsed.householdPin||'';
+          } else { throw new Error('No Firebase credentials found in this file'); }
+          _pendingConnData={cfg,hid,householdPin};
+          if(!householdPin){ dmConfirmImportConnection(hid); return; }
+          renderInlinePinEntry(body,{
+            title:'&#x1F511; Enter Household PIN',
+            subtitle:`Verify your identity for <strong>${escHtml(hid)}</strong>`,
+            expectedPin:householdPin,
+            onSuccess:()=>dmConfirmImportConnection(hid),
+            onCancel:()=>{_pendingConnData=null;renderDMHome();}
+          });
+        }
       }catch(err){alert('Invalid connection file. '+err.message);}
     });reader.readAsText(f);
   });inp.click();
 }
 
-function dmImportConnVerifyPin(hid,householdPin){
-  const body=document.getElementById('dmBody');if(!body)return;
-  // If the target household has no PIN, skip straight to confirm
-  if(!householdPin){ dmConfirmImportConnection(hid); return; }
-  renderInlinePinEntry(body,{
-    title:'&#x1F511; Enter Household PIN',
-    subtitle:`Verify your identity for <strong>${escHtml(hid)}</strong>`,
-    expectedPin:householdPin,
-    onSuccess:()=>dmConfirmImportConnection(hid),
-    onCancel:()=>{_pendingConnData=null;renderDMHome();}
+/* Decrypt-attempt flow: renders PIN keypad, tries decryption on submit */
+function _dmDecryptConnFlow(body, encData){
+  window._ipinOpts={onCancel:()=>renderDMHome()};
+  window._ipinBuf='';window._ipinExp='__decrypt__';
+  window._ipinKey=function(k){
+    if(window._ipinBuf.length>=4)return;
+    window._ipinBuf+=k;
+    _dmIpinUpdateDots();
+    const e=document.getElementById('ipinErr');if(e)e.textContent='';
+    if(window._ipinBuf.length===4)setTimeout(()=>_dmTryDecryptConn(encData),120);
+  };
+  window._ipinDel=function(){
+    window._ipinBuf=window._ipinBuf.slice(0,-1);
+    _dmIpinUpdateDots();
+    const e=document.getElementById('ipinErr');if(e)e.textContent='';
+  };
+  window._ipinCancel=function(){renderDMHome();};
+  function _dmIpinUpdateDots(){
+    for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.className='ipin-dot'+(i<window._ipinBuf.length?' filled':'');}
+  }
+  body.innerHTML=`<div class="ipin-wrap">
+    <div class="ipin-title">&#x1F511; Enter File PIN</div>
+    <div class="ipin-sub">This connection file is encrypted.<br>Enter the PIN it was exported with.</div>
+    <div class="ipin-dots">
+      <div class="ipin-dot" id="ipd0"></div><div class="ipin-dot" id="ipd1"></div>
+      <div class="ipin-dot" id="ipd2"></div><div class="ipin-dot" id="ipd3"></div>
+    </div>
+    <div class="ipin-err" id="ipinErr"></div>
+    <div class="ipin-keypad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="ipin-key" onclick="window._ipinKey('${n}')">${n}</button>`).join('')}
+      <button class="ipin-key del" onclick="window._ipinCancel()">&#x2715;</button>
+      <button class="ipin-key" onclick="window._ipinKey('0')">0</button>
+      <button class="ipin-key del" onclick="window._ipinDel()">&#x232B;</button>
+    </div>
+  </div>`;
+}
+function _dmTryDecryptConn(encData){
+  const pin=window._ipinBuf;
+  window._ipinBuf='';
+  // Reset dots
+  for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.className='ipin-dot';}
+  decryptFromExport(encData, pin).then(plain=>{
+    let cfg,hid,householdPin='';
+    if(plain.firebaseConfig&&plain.householdId){
+      cfg=plain.firebaseConfig;hid=plain.householdId;
+      householdPin=plain.householdPin||'';
+    } else { throw new Error('Decrypted file has no Firebase credentials'); }
+    _pendingConnData={cfg,hid,householdPin};
+    dmConfirmImportConnection(hid);
+  }).catch(()=>{
+    const e=document.getElementById('ipinErr');
+    if(e)e.textContent='Wrong PIN \u2014 try again';
+    for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.add('error');}
+    setTimeout(()=>{
+      for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.remove('error');}
+    },600);
   });
 }
 
@@ -3095,14 +3192,75 @@ function dmImportAllPick(){
     reader.addEventListener('load',ev=>{
       try{
         const parsed=JSON.parse(ev.target.result);
+        const body=document.getElementById('dmBody');if(!body)return;
+        if(parsed.type==='cq-encrypted'){
+          _dmDecryptAllFlow(body, parsed);
+          return;
+        }
+        // Legacy plaintext full backup
         if(parsed.type!=='chore-quest-full-backup'||!parsed.data||!parsed.firebaseConfig||!parsed.householdId){
           throw new Error('This file is not a full backup. Use "Import App Data" or "Import Connection Details" instead.');
         }
-        _pendingConnData={cfg:parsed.firebaseConfig,hid:parsed.householdId,fullBackupData:parsed.data};
-        dmConfirmImportAll(parsed.householdId,(parsed.data.kids||[]).map(k=>k.name||'Kid').join(', ')||'no kids');
+        _dmApplyFullBackup(parsed);
       }catch(err){alert('Invalid backup file. '+err.message);}
     });reader.readAsText(f);
   });inp.click();
+}
+
+function _dmDecryptAllFlow(body, encData){
+  window._ipinOpts={onCancel:()=>renderDMHome()};
+  window._ipinBuf='';
+  window._ipinKey=function(k){
+    if(window._ipinBuf.length>=4)return;
+    window._ipinBuf+=k;
+    _dmAllIpinDots();
+    const e=document.getElementById('ipinErr');if(e)e.textContent='';
+    if(window._ipinBuf.length===4)setTimeout(()=>_dmTryDecryptAll(encData),120);
+  };
+  window._ipinDel=function(){
+    window._ipinBuf=window._ipinBuf.slice(0,-1);
+    _dmAllIpinDots();
+    const e=document.getElementById('ipinErr');if(e)e.textContent='';
+  };
+  window._ipinCancel=function(){renderDMHome();};
+  function _dmAllIpinDots(){
+    for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.className='ipin-dot'+(i<window._ipinBuf.length?' filled':'');}
+  }
+  body.innerHTML=`<div class="ipin-wrap">
+    <div class="ipin-title">&#x1F511; Enter Backup PIN</div>
+    <div class="ipin-sub">This backup is encrypted.<br>Enter the PIN it was exported with.</div>
+    <div class="ipin-dots">
+      <div class="ipin-dot" id="ipd0"></div><div class="ipin-dot" id="ipd1"></div>
+      <div class="ipin-dot" id="ipd2"></div><div class="ipin-dot" id="ipd3"></div>
+    </div>
+    <div class="ipin-err" id="ipinErr"></div>
+    <div class="ipin-keypad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="ipin-key" onclick="window._ipinKey('${n}')">${n}</button>`).join('')}
+      <button class="ipin-key del" onclick="window._ipinCancel()">&#x2715;</button>
+      <button class="ipin-key" onclick="window._ipinKey('0')">0</button>
+      <button class="ipin-key del" onclick="window._ipinDel()">&#x232B;</button>
+    </div>
+  </div>`;
+}
+function _dmTryDecryptAll(encData){
+  const pin=window._ipinBuf;
+  window._ipinBuf='';
+  for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.className='ipin-dot';}
+  decryptFromExport(encData, pin).then(plain=>{
+    if(plain.type!=='chore-quest-full-backup'||!plain.data||!plain.firebaseConfig||!plain.householdId){
+      throw new Error('Decrypted content is not a valid full backup');
+    }
+    _dmApplyFullBackup(plain);
+  }).catch(()=>{
+    const e=document.getElementById('ipinErr');
+    if(e)e.textContent='Wrong PIN \u2014 try again';
+    for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.add('error');}
+    setTimeout(()=>{for(let i=0;i<4;i++){const d=document.getElementById('ipd'+i);if(d)d.classList.remove('error');}},600);
+  });
+}
+function _dmApplyFullBackup(parsed){
+  _pendingConnData={cfg:parsed.firebaseConfig,hid:parsed.householdId,fullBackupData:parsed.data};
+  dmConfirmImportAll(parsed.householdId,(parsed.data.kids||[]).map(k=>k.name||'Kid').join(', ')||'no kids');
 }
 function dmConfirmImportAll(hid,kidNames){
   const body=document.getElementById('dmBody');if(!body)return;
