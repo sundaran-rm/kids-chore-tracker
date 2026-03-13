@@ -875,6 +875,39 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .pm-confirm-btn.cancel { background:var(--navy2);color:var(--muted); }
 .pm-confirm-btn.danger { background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff; }
 
+
+/* ── DB MODAL DYNAMIC ── */
+.db-section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:12px 0 6px}
+.db-hid-card{background:rgba(105,240,174,.06);border:1px solid rgba(105,240,174,.28);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.db-hid-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.db-hid-value{font-size:15px;font-weight:800;color:var(--green);word-break:break-all;margin-bottom:8px}
+.db-btn-row{display:flex;gap:7px;flex-wrap:wrap}
+.db-btn{padding:7px 12px;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.db-btn.primary{background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff}
+.db-btn.ghost{background:var(--navy3);border:1px solid var(--border);color:var(--text)}
+.db-btn.warn{background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);color:#ffb74d}
+.db-btn.danger{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.3);color:var(--red)}
+.db-btn.danger-solid{background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff}
+.db-btn:disabled{opacity:.4;pointer-events:none}
+.db-divider{height:1px;background:var(--border);margin:12px 0}
+.db-hh-list{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.db-hh-row{background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.db-hh-info{flex:1;min-width:0}
+.db-hh-id{font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.db-hh-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.db-hh-acts{display:flex;gap:5px;flex-shrink:0}
+.db-loading{text-align:center;padding:24px 0;font-size:12px;color:var(--muted)}
+.db-empty{text-align:center;padding:20px 0;font-size:12px;color:var(--muted)}
+.db-saved-cfg{background:rgba(79,195,247,.06);border:1px solid rgba(79,195,247,.25);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+.db-saved-cfg-label{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:2px}
+.db-saved-cfg-val{font-size:11px;color:var(--muted);word-break:break-all}
+.db-confirm-box{background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:10px;padding:12px 14px;margin-top:8px}
+.db-confirm-text{font-size:12px;color:var(--text);margin-bottom:10px;line-height:1.5}
+.db-confirm-btns{display:flex;gap:8px}
+.db-confirm-btn{flex:1;padding:9px 0;border:none;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer}
+.db-confirm-btn.cancel{background:var(--navy2);color:var(--muted)}
+.db-confirm-btn.danger{background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff}
+
 </style>
 </head>
 <body>
@@ -1188,43 +1221,7 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 <div class="overlay" id="dbOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="setup-modal">
     <div class="m-hdr"><div class="m-title">&#x2601; Cloud Database</div><button class="m-close" id="btnDBClose" onclick="document.getElementById('dbOverlay').classList.remove('open')">&#x2715;</button></div>
-    <div class="setup-body">
-      <div class="connected-box" id="connectedBox" style="display:none">
-        <div class="connected-title">&#x2714; Connected to Firebase</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Real-time sync active. Share your Household ID with another device to share data.</p>
-        <p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:0">Household ID</p>
-        <div class="hid-row"><span class="hid-val" id="connectedHID"></span><button class="copy-btn" id="btnCopyHID">Copy</button></div>
-        <button class="setup-btn danger" id="btnDisconnect">Disconnect</button>
-      </div>
-      <div id="setupForm">
-        <div class="setup-step">
-          <div class="step-head"><div class="step-num">1</div><div class="step-title">Create a free Firebase project</div></div>
-          <p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> &#x2192; <strong>Add project</strong>. Disable Google Analytics.</p>
-        </div>
-        <div class="setup-step">
-          <div class="step-head"><div class="step-num">2</div><div class="step-title">Add a Web App &amp; copy the config</div></div>
-          <p>Click the <code>&lt;/&gt;</code> Web icon &#x2192; register &#x2192; copy the <code>firebaseConfig</code> object:</p>
-          <textarea class="cfg-textarea" id="fbConfigInput" placeholder='{"apiKey":"AIzaSy...","projectId":"your-app",...}'></textarea>
-          <div class="cfg-err" id="cfgErr">Invalid config &#x2014; paste the full { ... } object from Firebase.</div>
-        </div>
-        <div class="setup-step">
-          <div class="step-head"><div class="step-num">3</div><div class="step-title">Enable Firestore Database</div></div>
-          <p>Firebase Console &#x2192; <strong>Build &#x2192; Firestore Database &#x2192; Create database</strong> &#x2192; Start in test mode.</p>
-        </div>
-        <div class="setup-step">
-          <div class="step-head"><div class="step-num">4</div><div class="step-title">Set your Household ID</div></div>
-          <p>Same ID on all devices to sync. Generate one or type your own.</p>
-          <div class="setup-row">
-            <input class="setup-input" id="householdInput" placeholder="e.g. smith-family-2024"/>
-            <button class="setup-btn ghost" id="btnGenHID">Generate</button>
-          </div>
-        </div>
-        <div class="setup-actions">
-          <button class="setup-btn" id="btnConnectDB">Connect &amp; Sync</button>
-          <button class="skip-link" id="btnSkipDB">Skip &#x2014; keep local only</button>
-        </div>
-      </div>
-    </div>
+    <div class="setup-body" id="dbModalBody"></div>
   </div>
 </div>
 
@@ -1398,7 +1395,17 @@ function setSyncUI(cls,label){
   const p=document.getElementById('syncPill');
   if(!p)return;
   p.className='sync-pill'+(cls?' '+cls:'');
-  document.getElementById('syncLabel').textContent=label;
+  const lbl=document.getElementById('syncLabel');
+  if(lbl)lbl.textContent=label;
+  // Show household ID in tooltip when synced
+  if(cls==='synced'){
+    const hid=localStorage.getItem('cq_hid')||'';
+    p.title=hid?('Synced ✓  •  '+hid):'Synced ✓';
+    p.style.cursor='default';
+  } else {
+    p.title=label||'';
+    p.style.cursor='';
+  }
 }
 function connectFirebase(cfg,hid){
   try{
@@ -1416,9 +1423,11 @@ function startListener(hid){
   fbUnsub=db.collection('chorequest').doc(hid).onSnapshot(snap=>{
     if(snap.exists){
       const d=snap.data();
-      if(d._writeToken&&d._writeToken===pendingWriteToken){setSyncUI('synced','Synced \u2713');return;}
+      if(d._writeToken&&d._writeToken===pendingWriteToken&&!window._dbSwitchingHousehold){setSyncUI('synced','Synced \u2713');return;}
       const remote=d.data;
-      if(remote&&JSON.stringify(remote)!==JSON.stringify(S)){
+      if(remote&&(window._dbSwitchingHousehold||JSON.stringify(remote)!==JSON.stringify(S))){
+        window._dbSwitchingHousehold=false;
+        window._dbHouseholdSwitchDone=true;
         S=remote;
         if(!S.kids)S.kids=[];
         if(!S.customTemplates)S.customTemplates=[];
@@ -1431,15 +1440,23 @@ function startListener(hid){
         saveLocal();renderAll();updateFlashBadge();
         if(kidsMode)checkFlashMessages();
       }
-    }else{save();}
+    }else{
+      if(window._dbSwitchingHousehold){
+        window._dbSwitchingHousehold=false;
+        window._dbHouseholdSwitchDone=true;
+      }
+      // Guard: only save if db is still live. Prevents re-creating a just-deleted doc
+      // in the edge case where onSnapshot fires before unsubscribe completes.
+      if(db)save();
+    }
     setSyncUI('synced','Synced \u2713');
   },err=>{console.error(err);setSyncUI(isOnline?'error':'pending',isOnline?'Sync failed':'Offline');});
 }
 function disconnectFirebase(){
   if(fbUnsub){fbUnsub();fbUnsub=null;}
-  firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
   db=null;pendingWriteToken=null;hasPendingSave=false;
-  localStorage.removeItem('cq_fbcfg');localStorage.removeItem('cq_hid');
+  // Keep cq_fbcfg and cq_hid — use dbDoClearConfig() to fully wipe
   setSyncUI('','Local only');
 }
 (function(){const raw=localStorage.getItem('cq_fbcfg'),hid=localStorage.getItem('cq_hid');if(raw&&hid){try{connectFirebase(JSON.parse(raw),hid);}catch(e){localStorage.removeItem('cq_fbcfg');}}})();
@@ -1951,27 +1968,51 @@ function renderCharts(k){
 }
 
 function openResetConfirm(){
-  const kidNames=(S.kids||[]).map(k=>k.name).join(', ')||'no kids';
-  let ov=document.getElementById('resetConfirmOverlay');if(ov)ov.remove();
-  ov=document.createElement('div');ov.id='resetConfirmOverlay';ov.className='overlay';
-  ov.innerHTML=`<div class="modal" style="max-width:400px;text-align:center">
-    <div class="m-hdr"><div class="m-title" style="color:var(--red)">&#x26A0;&#xFE0F; Reset Everything?</div><button class="m-close" onclick="document.getElementById('resetConfirmOverlay').remove()">&#x2715;</button></div>
-    <div class="m-body" style="padding:16px 20px 22px;display:flex;flex-direction:column;gap:14px">
-      <p style="font-size:13px;color:var(--text);line-height:1.6">This will permanently delete <strong>all kids, chores, tokens, badges and history</strong> for:<br><span style="color:var(--yellow);font-weight:700">${kidNames}</span><br><br>This <strong>cannot be undone.</strong></p>
-      <p style="font-size:12px;color:var(--red);font-weight:700">Are you absolutely sure?</p>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button class="setup-btn ghost" onclick="document.getElementById('resetConfirmOverlay').remove()">Cancel</button>
-        <button class="setup-btn danger" onclick="doResetEverything()">Yes, Delete Everything</button>
+  pinVerify(()=>{
+    const kidNames=(S.kids||[]).map(k=>k.name).join(', ')||'no kids';
+    const isConnected=!!db;
+    const hid=localStorage.getItem('cq_hid')||'';
+    let ov=document.getElementById('resetConfirmOverlay');if(ov)ov.remove();
+    ov=document.createElement('div');ov.id='resetConfirmOverlay';ov.className='overlay';
+    ov.setAttribute('onclick',"if(event.target===this)this.remove()");
+    ov.innerHTML=`<div class="modal" style="max-width:400px">
+      <div class="m-hdr"><div class="m-title" style="color:var(--red)">&#x26A0;&#xFE0F; Reset Everything</div><button class="m-close" onclick="document.getElementById('resetConfirmOverlay').remove()">&#x2715;</button></div>
+      <div class="m-body" style="padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px">
+        <p style="font-size:13px;color:var(--text);line-height:1.6">Permanently delete <strong>all kids, chores, tokens, badges and history</strong> for:<br><span style="color:var(--yellow);font-weight:700">${kidNames}</span></p>
+        <p style="font-size:12px;color:var(--muted);line-height:1.5">Local data will be cleared and Firebase config will be removed from this device.</p>
+        ${isConnected?`<label style="display:flex;align-items:center;gap:9px;cursor:pointer;background:rgba(255,80,80,.07);border:1px solid rgba(255,80,80,.25);border-radius:9px;padding:10px 12px">
+          <input type="checkbox" id="resetCloudChk" style="width:16px;height:16px;cursor:pointer;accent-color:var(--red)">
+          <span style="font-size:12px;font-weight:700;color:var(--red)">Also delete household <em>${hid}</em> from Firebase</span>
+        </label>`:''}
+        <p style="font-size:12px;color:var(--red);font-weight:700;text-align:center">This cannot be undone.</p>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="setup-btn ghost" onclick="document.getElementById('resetConfirmOverlay').remove()">Cancel</button>
+          <button class="setup-btn danger" onclick="doResetEverything()">Reset Everything</button>
+        </div>
       </div>
-    </div>
-  </div>`;
-  document.body.appendChild(ov);ov.classList.add('open');
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    </div>`;
+    document.body.appendChild(ov);ov.classList.add('open');
+  },'Enter PIN to reset');
 }
-function doResetEverything(){
-  S={kids:[],activeId:null,customShopItems:[]};
-  save();renderAll();
+async function doResetEverything(){
+  const deleteCloud=!!(document.getElementById('resetCloudChk')?.checked);
+  const hid=localStorage.getItem('cq_hid')||'';
+  // Delete cloud first (while db is still connected)
+  if(deleteCloud&&db&&hid){
+    try{await db.collection('chorequest').doc(hid).delete();}catch(e){console.error('Cloud delete failed',e);}
+  }
+  // Fully disconnect + clear config
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
+  db=null;pendingWriteToken=null;hasPendingSave=false;
+  localStorage.removeItem('cq_fbcfg');localStorage.removeItem('cq_hid');
+  setSyncUI('','Local only');
+  // Clear local state
+  S={kids:[],activeId:null,customTemplates:[],customShopItems:[],approvalMode:false,
+     levelThresholds:{},customLevels:[],flashMessages:[],parentPin:''};
+  saveLocal();renderAll();
   const ov=document.getElementById('resetConfirmOverlay');if(ov)ov.remove();
+  showInappNotif('🗑️','Reset Complete','All data and config cleared');
 }
 function addKid(){const k=mkKid('Kid '+(S.kids.length+1));S.kids.push(k);S.activeId=k.id;save();renderAll();}
 function removeKid(id){
@@ -2097,7 +2138,7 @@ function openSummary(){
    {v:totalDone,kk:'Chores Done',c:CC.blue},
    {v:bLbl,kk:'Best Day',c:CC.blue,sm:true},{v:streak+'\uD83D\uDD25',kk:'Streak',c:CC.orange},
    {v:(k.bestStreak||0)+'\uD83C\uDFC6',kk:'Best Streak',c:CC.yellow},
-   {v:(lv.e+' '+lv.n),kk:'Level',c:CC.purple,sm:true},{v:badgeCount+' / '+((BADGES.length+(k.customBadges||[]).length)),kk:'Badges',c:CC.yellow}
+   {v:(lv.emoji+' '+lv.name),kk:'Level',c:CC.purple,sm:true},{v:badgeCount+' / '+((BADGES.length+(k.customBadges||[]).length)),kk:'Badges',c:CC.yellow}
   ].forEach(s=>{
     const c=document.createElement('div');c.className='stat-card';
     const vv=document.createElement('div');vv.className='stat-val';vv.style.color=s.c;vv.style.fontSize=s.sm?'11px':'22px';vv.textContent=s.v;
@@ -2652,21 +2693,6 @@ function setupCommonEvents(){
     const grp=document.getElementById('goalRewardPick');if(grp)grp.value='';save();renderRight();
   });
   // DB modal wiring
-  const btnGenHID=document.getElementById('btnGenHID');if(btnGenHID)btnGenHID.addEventListener('click',()=>{document.getElementById('householdInput').value='cq-'+Math.random().toString(36).slice(2,7)+'-'+Math.random().toString(36).slice(2,7);});
-  const btnConnect=document.getElementById('btnConnectDB');if(btnConnect)btnConnect.addEventListener('click',()=>{
-    const raw=document.getElementById('fbConfigInput').value.trim();
-    const hid=document.getElementById('householdInput').value.trim();
-    const err=document.getElementById('cfgErr');err.classList.remove('show');
-    if(!hid){alert('Please enter or generate a Household ID.');return;}
-    let cfg;
-    try{let c=raw.replace(/\/\/.*$/gm,'').replace(/,\s*([}\]])/g,'$1').replace(/([{,]\s*)(\w+)\s*:/g,'$1"$2":').replace(/'/g,'"');cfg=JSON.parse(c.startsWith('{')?c:raw);if(!cfg.apiKey||!cfg.projectId)throw new Error();}
-    catch(e){err.classList.add('show');return;}
-    if(connectFirebase(cfg,hid)){document.getElementById('dbOverlay').classList.remove('open');}
-    else{err.textContent='Connection failed \u2014 check config.';err.classList.add('show');}
-  });
-  const btnSkip=document.getElementById('btnSkipDB');if(btnSkip)btnSkip.addEventListener('click',()=>document.getElementById('dbOverlay').classList.remove('open'));
-  const btnDisc=document.getElementById('btnDisconnect');if(btnDisc)btnDisc.addEventListener('click',()=>{if(!confirm('Disconnect from cloud?'))return;disconnectFirebase();document.getElementById('dbOverlay').classList.remove('open');});
-  const btnCopy=document.getElementById('btnCopyHID');if(btnCopy)btnCopy.addEventListener('click',()=>{navigator.clipboard.writeText(localStorage.getItem('cq_hid')||'').then(()=>{btnCopy.textContent='Copied!';setTimeout(()=>btnCopy.textContent='Copy',1500);});});
   // Kids mode header badge
   const kmBadge=document.getElementById('kmHdrBadge');if(kmBadge)kmBadge.addEventListener('click',()=>{ const pin=S.parentPin||''; if(pin){openPinOverlay('unlock');}else{exitKidsMode();} });
   // Kids Mode header button
@@ -2721,14 +2747,7 @@ function doImport(){
   });inp.click();
 }
 
-function openDBModal(){
-  const connected=!!db;
-  document.getElementById('connectedBox').style.display=connected?'block':'none';
-  const sf=document.getElementById('setupForm');if(sf)sf.style.display=connected?'none':'block';
-  if(connected){const ch=document.getElementById('connectedHID');if(ch)ch.textContent=localStorage.getItem('cq_hid')||'';}
-  else{const raw=localStorage.getItem('cq_fbcfg');if(raw){const fi=document.getElementById('fbConfigInput');if(fi)fi.value=JSON.stringify(JSON.parse(raw),null,2);}const hid=localStorage.getItem('cq_hid');if(hid){const hi=document.getElementById('householdInput');if(hi)hi.value=hid;}}
-  document.getElementById('dbOverlay').classList.add('open');
-}
+
 
 
 /* ══════════════════════════════════════════════
@@ -2738,21 +2757,57 @@ function openDBModal(){
 /* PIN gate — calls cb() after successful verification.
    If no PIN set, shows a "set PIN first" prompt inside the data manager body. */
 let _pinCb=null;
-function pinVerify(cb,subtitle){
+/* opts.requirePin=true → block if no PIN set (Data Manager flows)
+   default            → proceed directly if no PIN configured     */
+function pinVerify(cb,subtitle,opts){
   if(!S.parentPin){
-    // No PIN set — show inline prompt in DM
-    const body=document.getElementById('dmBody');
-    if(body){
-      body.innerHTML=`
-        <div class="dm-no-pin-box">
-          <div class="dm-no-pin-text">&#x1F512; A Parent PIN is required before importing or exporting data.<br>Please set one first.</div>
-          <button class="dm-no-pin-btn" onclick="openPinOverlay('set');document.getElementById('dmOverlay').classList.remove('open')">Set PIN Now</button>
-        </div>`;
+    if(opts&&opts.requirePin){
+      // DM-specific: must set a PIN before using data manager
+      const body=document.getElementById('dmBody');
+      if(body){
+        body.innerHTML=`
+          <div class="dm-no-pin-box">
+            <div class="dm-no-pin-text">&#x1F512; A Parent PIN is required before importing or exporting data.<br>Please set one first.</div>
+            <button class="dm-no-pin-btn" onclick="openPinOverlay('set');document.getElementById('dmOverlay').classList.remove('open')">Set PIN Now</button>
+          </div>`;
+      } else {
+        showInappNotif('🔒','PIN Required','Set a Parent PIN first (Settings → PIN Management)');
+      }
+      return;
     }
+    // No PIN configured — action is unprotected, proceed directly
+    cb();
     return;
   }
   _pinCb=cb;
   openPinOverlay('verify', subtitle||'Enter PIN to continue');
+}
+
+/* DB-specific PIN gate:
+   - No PIN set  → shows "Set PIN" prompt inside dbModalBody
+   - PIN set     → verify via pinOverlay then run cb()           */
+function dbPinGate(cb,subtitle){
+  if(!S.parentPin){
+    const body=document.getElementById('dbModalBody');
+    if(!body)return;
+    document.getElementById('dbOverlay').classList.add('open');
+    body.innerHTML=`
+      <div class="db-confirm-box" style="border-color:rgba(79,195,247,.35);background:rgba(79,195,247,.06)">
+        <div class="db-confirm-text" style="color:var(--text)">
+          &#x1F512; <strong>Parent PIN required</strong><br>
+          <span style="font-size:11px;color:var(--muted);line-height:1.6">Cloud database settings are protected by your Parent PIN. Set one now to continue.</span>
+        </div>
+        <div class="db-confirm-btns">
+          <button class="db-confirm-btn cancel" onclick="renderDBModal()">Cancel</button>
+          <button class="db-confirm-btn" style="background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff"
+            onclick="document.getElementById('dbOverlay').classList.remove('open');openPinOverlay('set')">
+            Set PIN Now
+          </button>
+        </div>
+      </div>`;
+    return;
+  }
+  pinVerify(cb, subtitle||'Enter PIN to continue');
 }
 
 /* Extend pinAction with 'verify' mode */
@@ -2825,7 +2880,7 @@ function dmFlow(action){
     else if(action==='export-all')        doExportAll();
     else if(action==='import-data')       dmConfirmImportData();
     else if(action==='import-connection') dmImportConnectionPick();
-  }, action.startsWith('export') ? 'Enter PIN to export' : 'Enter PIN to import');
+  }, action.startsWith('export') ? 'Enter PIN to export' : 'Enter PIN to import', {requirePin:true});
 }
 
 /* ── EXPORT ── */
@@ -2983,6 +3038,11 @@ renderAll=function(){
     document.getElementById('dmOverlay').classList.remove('open');
     showInappNotif('🔗','Connected!','Data synced from new database');
   }
+  if(window._dbHouseholdSwitchDone){
+    window._dbHouseholdSwitchDone=false;
+    document.getElementById('dbOverlay').classList.remove('open');
+    showInappNotif('🔄','Switched!','Now syncing '+( localStorage.getItem('cq_hid')||''));
+  }
 };
 
 
@@ -3047,6 +3107,415 @@ function pinMgmtDoClear(){
   save();
   closePinMgmt();
   showInappNotif('🔓','PIN Cleared','Parent mode is now unprotected');
+}
+
+
+
+/* ══════════════════════════════════════════════
+   CLOUD DATABASE MODAL
+══════════════════════════════════════════════ */
+function openDBModal(){
+  renderDBModal();
+  document.getElementById('dbOverlay').classList.add('open');
+}
+
+function renderDBModal(){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  const cfg=localStorage.getItem('cq_fbcfg');
+  const savedHid=localStorage.getItem('cq_hid');
+  const connected=!!db;
+
+  if(connected){
+    renderDBConnected(body);
+  } else if(cfg){
+    renderDBSavedConfig(body,cfg,savedHid);
+  } else {
+    renderDBSetup(body);
+  }
+}
+
+/* ── CONNECTED STATE ── */
+function renderDBConnected(body){
+  const hid=localStorage.getItem('cq_hid')||'';
+  body.innerHTML=`
+    <div class="db-hid-card">
+      <div class="db-hid-label">&#x2714; Connected &mdash; Household</div>
+      <div class="db-hid-value">${escHtml(hid)}</div>
+      <div class="db-btn-row">
+        <button class="db-btn ghost" onclick="dbCopyHID()">&#x1F4CB; Copy ID</button>
+        <button class="db-btn primary" onclick="dbPinGate(()=>dbBrowseHouseholds(),'Enter PIN to browse households')">&#x1F4C2; Browse</button>
+      </div>
+    </div>
+    <div class="db-divider"></div>
+    <div class="db-section-title">Actions</div>
+    <div class="db-btn-row" style="flex-direction:column;gap:7px">
+      <button class="db-btn ghost" style="width:100%;text-align:left" onclick="dbRenameConfirm()">&#x270F;&#xFE0F; Rename Household</button>
+      <button class="db-btn warn" style="width:100%;text-align:left" onclick="dbSwitchConfirm()">&#x1F504; Switch Household</button>
+      <button class="db-btn danger" style="width:100%;text-align:left" onclick="dbDeleteCurrentConfirm()">&#x1F5D1; Delete This Household</button>
+    </div>
+    <div class="db-divider"></div>
+    <div class="db-section-title">Connection</div>
+    <div class="db-btn-row" style="flex-direction:column;gap:7px">
+      <button class="db-btn ghost" style="width:100%;text-align:left" onclick="dbDisconnectConfirm()">&#x1F50C; Disconnect (keep config)</button>
+      <button class="db-btn danger" style="width:100%;text-align:left" onclick="dbClearConfigConfirm()">&#x1F9F9; Disconnect &amp; Clear Config</button>
+    </div>`;
+}
+
+/* ── CONFIG SAVED BUT NOT CONNECTED ── */
+function renderDBSavedConfig(body,cfg,hid){
+  let proj='unknown';
+  try{proj=JSON.parse(cfg).projectId||'unknown';}catch(e){}
+  body.innerHTML=`
+    <div class="db-saved-cfg">
+      <div class="db-saved-cfg-label">&#x1F4BE; Saved Firebase Config</div>
+      <div class="db-saved-cfg-val">Project: ${escHtml(proj)}${hid?`<br>Last household: <strong>${escHtml(hid)}</strong>`:''}</div>
+    </div>
+    <div class="db-btn-row" style="margin-bottom:12px;gap:7px">
+      <button class="db-btn primary" style="flex:1" onclick="dbReconnect()">&#x1F504; Reconnect</button>
+      <button class="db-btn danger" onclick="dbClearConfigConfirm()">&#x1F9F9; Clear</button>
+    </div>
+    <div class="db-divider"></div>
+    <div class="db-section-title">Or connect a different config</div>
+    ${dbSetupFormHTML()}`;
+}
+
+/* ── FRESH SETUP ── */
+function renderDBSetup(body){
+  body.innerHTML=dbSetupFormHTML();
+}
+
+function dbSetupFormHTML(){
+  const raw=localStorage.getItem('cq_fbcfg');
+  const hid=localStorage.getItem('cq_hid');
+  let prefillCfg='',prefillHid='';
+  if(raw)try{prefillCfg=JSON.stringify(JSON.parse(raw),null,2);}catch(e){}
+  if(hid)prefillHid=hid;
+  return `
+    <div class="setup-step" style="margin-bottom:8px"><div class="step-head"><div class="step-num">1</div><div class="step-title">Create Firebase project</div></div><p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> &rarr; Add project.</p></div>
+    <div class="setup-step" style="margin-bottom:8px"><div class="step-head"><div class="step-num">2</div><div class="step-title">Add Web App &amp; paste config</div></div><p>Click <code>&lt;/&gt;</code> &rarr; register &rarr; copy the <code>firebaseConfig</code>:</p><textarea class="cfg-textarea" id="fbConfigInput" placeholder='{"apiKey":"...","projectId":"..."}'>${escHtml(prefillCfg)}</textarea><div class="cfg-err" id="cfgErr">Invalid config.</div></div>
+    <div class="setup-step" style="margin-bottom:8px"><div class="step-head"><div class="step-num">3</div><div class="step-title">Enable Firestore</div></div><p>Firebase Console &rarr; Build &rarr; Firestore Database &rarr; Create in test mode.</p></div>
+    <div class="setup-step" style="margin-bottom:8px"><div class="step-head"><div class="step-num">4</div><div class="step-title">Set Household ID</div></div><div class="setup-row"><input class="setup-input" id="householdInput" placeholder="e.g. smith-family" value="${escHtml(prefillHid)}"/><button class="setup-btn ghost" onclick="document.getElementById('householdInput').value='cq-'+Math.random().toString(36).slice(2,7)+'-'+Math.random().toString(36).slice(2,7)">Generate</button></div></div>
+    <div class="setup-actions"><button class="setup-btn" onclick="dbConnect()">Connect &amp; Sync</button><button class="skip-link" onclick="document.getElementById('dbOverlay').classList.remove('open')">Skip</button></div>`;
+}
+
+/* ── ACTIONS ── */
+function dbCopyHID(){
+  const hid=localStorage.getItem('cq_hid')||'';
+  navigator.clipboard.writeText(hid).then(()=>showInappNotif('📋','Copied!','Household ID copied to clipboard'));
+}
+
+function dbConnect(){
+  const raw=(document.getElementById('fbConfigInput')?.value||'').trim();
+  const hid=(document.getElementById('householdInput')?.value||'').trim();
+  const errEl=document.getElementById('cfgErr');
+  if(errEl)errEl.classList.remove('show');
+  if(!hid){showInappNotif('⚠️','Missing ID','Please enter or generate a Household ID');return;}
+  let cfg;
+  try{
+    let c=raw.replace(/\/\/.*$/gm,'').replace(/,\s*([}\]])/g,'$1').replace(/([{,]\s*)(\w+)\s*:/g,'$1"$2":').replace(/'/g,'"');
+    cfg=JSON.parse(c.startsWith('{')?c:raw);
+    if(!cfg.apiKey||!cfg.projectId)throw new Error();
+  }catch(e){if(errEl){errEl.textContent='Invalid config — paste the full {...} object.';errEl.classList.add('show');}return;}
+  if(connectFirebase(cfg,hid)){
+    document.getElementById('dbOverlay').classList.remove('open');
+    showInappNotif('🔗','Connected!','Syncing with '+hid);
+  } else {
+    if(errEl){errEl.textContent='Connection failed — check your config.';errEl.classList.add('show');}
+  }
+}
+
+function dbReconnect(){
+  const raw=localStorage.getItem('cq_fbcfg');
+  const hid=localStorage.getItem('cq_hid');
+  if(!raw||!hid)return;
+  try{
+    const cfg=JSON.parse(raw);
+    if(connectFirebase(cfg,hid)){
+      document.getElementById('dbOverlay').classList.remove('open');
+      showInappNotif('🔗','Reconnected!','Syncing with '+hid);
+    } else {
+      showInappNotif('⚠️','Failed','Could not reconnect — check config');
+    }
+  }catch(e){showInappNotif('⚠️','Error','Saved config is invalid');}
+}
+
+function dbDisconnect(){
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
+  db=null;pendingWriteToken=null;hasPendingSave=false;
+  // Keep cq_fbcfg and cq_hid in localStorage
+  setSyncUI('','Local only');
+  renderDBModal();
+  showInappNotif('🔌','Disconnected','Config saved — reconnect any time');
+}
+
+function dbDisconnectConfirm(){
+  dbPinGate(()=>{
+    const body=document.getElementById('dbModalBody');if(!body)return;
+    document.getElementById('dbOverlay').classList.add('open');
+    body.innerHTML=`
+      <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F50C; Disconnect from Cloud</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Stop syncing this device. Your Firebase config and Household ID will be kept locally so you can reconnect at any time.</p>
+      <div class="db-confirm-box">
+        <div class="db-confirm-text">&#x2139;&#xFE0F; Your data in Firebase is <strong>not deleted</strong> — other devices stay connected.</div>
+        <div class="db-confirm-btns">
+          <button class="db-confirm-btn cancel" onclick="renderDBModal()">Cancel</button>
+          <button class="db-confirm-btn danger" onclick="dbDisconnect()">Disconnect</button>
+        </div>
+      </div>`;
+  },'Enter PIN to disconnect');
+}
+function dbClearConfigConfirm(){
+  dbPinGate(()=>{
+    const body=document.getElementById('dbModalBody');if(!body)return;
+    document.getElementById('dbOverlay').classList.add('open');
+    body.innerHTML=`
+      <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F9F9; Clear Firebase Config</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">This will disconnect and <strong style="color:#ff6b6b">remove all saved config from this device</strong>. You will need to re-enter your Firebase credentials to reconnect.</p>
+      <div class="db-confirm-box">
+        <div class="db-confirm-text">&#x26A0;&#xFE0F; Your data in Firebase is not affected — only local config is cleared.</div>
+        <div class="db-confirm-btns">
+          <button class="db-confirm-btn cancel" onclick="renderDBModal()">Cancel</button>
+          <button class="db-confirm-btn danger" onclick="dbDoClearConfig()">Clear Config</button>
+        </div>
+      </div>`;
+  },'Enter PIN to clear config');
+}
+
+function dbDoClearConfig(){
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(e){}
+  db=null;pendingWriteToken=null;hasPendingSave=false;
+  localStorage.removeItem('cq_fbcfg');localStorage.removeItem('cq_hid');
+  setSyncUI('','Local only');
+  document.getElementById('dbOverlay').classList.remove('open');
+  showInappNotif('🧹','Config Cleared','Firebase config removed from this device');
+}
+
+/* ── BROWSE HOUSEHOLDS ── */
+async function dbBrowseHouseholds(){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  body.innerHTML=`
+    <button class="db-btn ghost" style="margin-bottom:10px" onclick="renderDBConnected(document.getElementById('dbModalBody'))">&#x2190; Back</button>
+    <div class="db-section-title">Households in this Firebase</div>
+    <div class="db-loading" id="hhLoadingMsg">&#x1F504; Loading households&hellip;</div>
+    <div class="db-hh-list" id="hhList"></div>`;
+  try{
+    const snap=await db.collection('chorequest').get();
+    const currentHid=localStorage.getItem('cq_hid')||'';
+    const rows=[];
+    snap.forEach(doc=>{
+      const d=doc.data();
+      // Only show compatible records (must have a data.kids array)
+      if(!d.data||!Array.isArray(d.data.kids))return;
+      const kids=d.data.kids||[];
+      const kidNames=kids.map(k=>k.name||'Kid').join(', ')||'No kids';
+      rows.push({id:doc.id,kidCount:kids.length,kidNames,isCurrent:doc.id===currentHid});
+    });
+    const loadEl=document.getElementById('hhLoadingMsg');
+    if(loadEl)loadEl.style.display='none';
+    const listEl=document.getElementById('hhList');if(!listEl)return;
+    if(!rows.length){listEl.innerHTML='<div class="db-empty">No compatible households found.</div>';return;}
+    rows.forEach(row=>{
+      const div=document.createElement('div');div.className='db-hh-row';
+      div.innerHTML=`
+        <div class="db-hh-info">
+          <div class="db-hh-id">${escHtml(row.id)}${row.isCurrent?' <span style="font-size:10px;color:var(--green);font-weight:700">&#x2714; current</span>':''}</div>
+          <div class="db-hh-meta">${row.kidCount} kid${row.kidCount!==1?'s':''}: ${escHtml(row.kidNames)}</div>
+        </div>
+        <div class="db-hh-acts">
+          ${!row.isCurrent?`<button class="db-btn primary" onclick="dbSwitchToHousehold('${escHtml(row.id)}')">Switch</button>`:''}
+          <button class="db-btn danger" onclick="dbDeleteHousehold('${escHtml(row.id)}','${escHtml(row.kidNames)}')">&#x1F5D1;</button>
+        </div>`;
+      listEl.appendChild(div);
+    });
+  }catch(e){
+    console.error(e);
+    const loadEl=document.getElementById('hhLoadingMsg');
+    if(loadEl)loadEl.innerHTML='<span style="color:var(--red)">&#x274C; Failed to load households.</span>';
+  }
+}
+
+/* ── SWITCH HOUSEHOLD ── */
+function dbSwitchConfirm(){
+  dbPinGate(()=>_dbShowSwitchUI(),'Enter PIN to switch household');
+}
+function _dbShowSwitchUI(){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  document.getElementById('dbOverlay').classList.add('open');
+  body.innerHTML=`
+    <button class="db-btn ghost" style="margin-bottom:10px" onclick="renderDBConnected(document.getElementById('dbModalBody'))">&#x2190; Back</button>
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F504; Switch Household</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Enter a Household ID to switch to. All local data will be <strong style="color:#ff6b6b">fully replaced</strong> with data from that household.</p>
+    <div class="setup-row" style="margin-bottom:10px">
+      <input class="setup-input" id="switchHidInput" placeholder="e.g. jones-family"/>
+      <button class="db-btn primary" onclick="dbSwitchToHousehold(document.getElementById('switchHidInput').value.trim())">Switch</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted)">Or <button class="skip-link" onclick="dbBrowseHouseholds()" style="font-size:11px">browse available households</button></p>`;
+}
+
+async function dbSwitchToHousehold(newHid){
+  if(!newHid){showInappNotif('⚠️','Missing ID','Please enter a Household ID');return;}
+  const currentHid=localStorage.getItem('cq_hid')||'';
+  if(newHid===currentHid){showInappNotif('ℹ️','Same Household','Already connected to this household');return;}
+  // Check if household exists in Firestore
+  const body=document.getElementById('dbModalBody');
+  if(body)body.innerHTML=`<div class="db-loading">&#x1F50D; Checking household&hellip;</div>`;
+  let exists=false;
+  try{
+    const snap=await db.collection('chorequest').doc(newHid).get();
+    exists=snap.exists&&snap.data()&&Array.isArray(snap.data().data?.kids);
+  }catch(e){console.error(e);}
+  if(!exists){
+    // Warn: this will create a brand-new household
+    if(body){
+      document.getElementById('dbOverlay').classList.add('open');
+      body.innerHTML=`
+        <button class="db-btn ghost" style="margin-bottom:10px" onclick="_dbShowSwitchUI()">&#x2190; Back</button>
+        <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x2728; Create New Household?</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Household ID:</p>
+        <p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px">${escHtml(newHid)}</p>
+        <div class="db-confirm-box" style="border-color:rgba(255,183,77,.35);background:rgba(255,183,77,.06)">
+          <div class="db-confirm-text" style="color:var(--text)">&#x26A0;&#xFE0F; No household with this name was found.<br><br>
+            <strong>Switching to it will create a new, empty household</strong> in Firebase and your current local data will be synced to it. Other devices will not be affected.</div>
+          <div class="db-confirm-btns">
+            <button class="db-confirm-btn cancel" onclick="_dbShowSwitchUI()">Cancel</button>
+            <button class="db-confirm-btn" style="background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff" onclick="dbDoSwitch('${escHtml(newHid)}')">Create &amp; Switch</button>
+          </div>
+        </div>`;
+    }
+    return;
+  }
+  // Household exists — show standard confirmation
+  if(body){
+    document.getElementById('dbOverlay').classList.add('open');
+    body.innerHTML=`
+      <button class="db-btn ghost" style="margin-bottom:10px" onclick="_dbShowSwitchUI()">&#x2190; Back</button>
+      <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F504; Switch Household?</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Switching to:</p>
+      <p style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px">${escHtml(newHid)}</p>
+      <div class="db-confirm-box">
+        <div class="db-confirm-text">&#x26A0;&#xFE0F; Your local data will be <strong>fully replaced</strong> with data from this household. This device's current data will be lost.</div>
+        <div class="db-confirm-btns">
+          <button class="db-confirm-btn cancel" onclick="_dbShowSwitchUI()">Cancel</button>
+          <button class="db-confirm-btn danger" onclick="dbDoSwitch('${escHtml(newHid)}')">Switch</button>
+        </div>
+      </div>`;
+  }
+}
+function dbDoSwitch(newHid){
+  document.getElementById('dbOverlay').classList.remove('open');
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  localStorage.setItem('cq_hid',newHid);
+  window._dbSwitchingHousehold=true;
+  setSyncUI('syncing','Switching\u2026');
+  startListener(newHid);
+}
+
+/* ── DELETE HOUSEHOLD ── */
+function dbDeleteCurrentConfirm(){
+  const hid=localStorage.getItem('cq_hid')||'';
+  dbDeleteHousehold(hid,'current household');
+}
+
+function dbDeleteHousehold(hid,label){
+  dbPinGate(()=>_dbShowDeleteConfirm(hid),'Enter PIN to delete household');
+}
+function _dbShowDeleteConfirm(hid){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  document.getElementById('dbOverlay').classList.add('open');
+  body.innerHTML=`
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x1F5D1; Delete Household</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Household:</p>
+    <p style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:12px">${escHtml(hid)}</p>
+    <div class="db-confirm-box">
+      <div class="db-confirm-text">&#x26A0;&#xFE0F; <strong>This permanently deletes all data in this household from Firebase.</strong> This cannot be undone. Local data on this device is not affected.</div>
+      <div class="db-confirm-btns">
+        <button class="db-confirm-btn cancel" onclick="renderDBModal()">Cancel</button>
+        <button class="db-confirm-btn danger" onclick="dbDoDeleteHousehold('${escHtml(hid)}')">Delete Permanently</button>
+      </div>
+    </div>`;
+}
+
+async function dbDoDeleteHousehold(hid){
+  const body=document.getElementById('dbModalBody');
+  if(body)body.innerHTML=`<div class="db-loading">&#x1F5D1; Deleting&hellip;</div>`;
+  const currentHid=localStorage.getItem('cq_hid')||'';
+  const isDeletingCurrent=(hid===currentHid);
+  try{
+    // Stop listener BEFORE deleting the doc.
+    // Deleting first fires onSnapshot(snap.exists=false) → else→save() → re-creates the doc.
+    if(isDeletingCurrent&&fbUnsub){fbUnsub();fbUnsub=null;}
+    // Delete the document (listener already dead for current HID)
+    const dbRef=db;
+    await dbRef.collection('chorequest').doc(hid).delete();
+    if(isDeletingCurrent){
+      db=null;pendingWriteToken=null;hasPendingSave=false;
+      try{firebase.apps.slice().forEach(a=>a.delete().catch(()=>{}));}catch(err){}
+      // Clear cq_hid so boot auto-connect cannot reattach to this deleted household.
+      // Keep cq_fbcfg so user can connect to a different household later.
+      localStorage.removeItem('cq_hid');
+      setSyncUI('','Local only');
+      document.getElementById('dbOverlay').classList.remove('open');
+    } else {
+      renderDBModal();
+    }
+    showInappNotif('🗑️','Deleted','Household '+hid+' removed from Firebase');
+  }catch(e){
+    console.error(e);
+    if(isDeletingCurrent&&!db){
+      setSyncUI('','Local only');
+      document.getElementById('dbOverlay').classList.remove('open');
+    } else {
+      renderDBModal();
+    }
+    showInappNotif('⚠️','Failed','Could not delete — '+e.message);
+  }
+}
+
+/* ── RENAME HOUSEHOLD ── */
+function dbRenameConfirm(){
+  dbPinGate(()=>_dbShowRenameUI(),'Enter PIN to rename household');
+}
+function _dbShowRenameUI(){
+  const hid=localStorage.getItem('cq_hid')||'';
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  document.getElementById('dbOverlay').classList.add('open');
+  body.innerHTML=`
+    <button class="db-btn ghost" style="margin-bottom:10px" onclick="renderDBConnected(document.getElementById('dbModalBody'))">&#x2190; Back</button>
+    <p style="font-size:13px;font-weight:800;margin-bottom:8px">&#x270F;&#xFE0F; Rename Household</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Current name:</p>
+    <p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:12px">${escHtml(hid)}</p>
+    <div class="setup-row" style="margin-bottom:10px">
+      <input class="setup-input" id="renameHidInput" placeholder="New household name" value="${escHtml(hid)}"/>
+      <button class="db-btn primary" onclick="dbDoRename(document.getElementById('renameHidInput').value.trim())">Rename</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.5">&#x2139;&#xFE0F; Renaming copies all data to the new name and deletes the old record in Firebase.</p>`;
+  setTimeout(()=>{const inp=document.getElementById('renameHidInput');if(inp){inp.select();}},80);
+}
+async function dbDoRename(newHid){
+  const oldHid=localStorage.getItem('cq_hid')||'';
+  if(!newHid){showInappNotif('⚠️','Missing','Please enter a new household name');return;}
+  if(newHid===oldHid){showInappNotif('ℹ️','No change','New name is the same as current');return;}
+  const body=document.getElementById('dbModalBody');
+  if(body)body.innerHTML=`<div class="db-loading">&#x270F;&#xFE0F; Renaming to <strong>${escHtml(newHid)}</strong>&hellip;</div>`;
+  try{
+    // Write current data to new doc
+    const token='rename_'+Date.now();
+    await db.collection('chorequest').doc(newHid).set({data:S,_writeToken:token,_renamedFrom:oldHid,_renamedAt:Date.now()});
+    // Delete old doc
+    await db.collection('chorequest').doc(oldHid).delete();
+    // Stop old listener, update stored HID, start new listener
+    if(fbUnsub){fbUnsub();fbUnsub=null;}
+    localStorage.setItem('cq_hid',newHid);
+    startListener(newHid);
+    document.getElementById('dbOverlay').classList.remove('open');
+    showInappNotif('✏️','Renamed','Household is now: '+newHid);
+  }catch(e){
+    console.error(e);
+    showInappNotif('⚠️','Failed','Could not rename household');
+    renderDBModal();
+  }
 }
 
 
