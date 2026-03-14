@@ -1729,6 +1729,7 @@ function calcStreak(k){
   return streak;
 }
 function refreshStreak(k){
+  // Only Daily Tasks section (k.daily) counts toward the streak — bonus and custom sections are excluded
   const today=todayStr();
   const sched=k.daily.filter(c=>scheduledToday(c));
   const allDone=sched.length>0&&sched.every(c=>c.lastDone===today);
@@ -1875,7 +1876,7 @@ function buildChoreCard(grp,secId,idx,item,k){
     const baseT=Number(item.tokens||0);const multi=isCOTW(item.id)?2:1;const awarded=baseT*multi;
     const note=(item.title||'Task')+' ('+grp+')'+(multi>1?' \u2B502\u00D7':'');
     k.tokens.unshift({amount:awarded,note,timestamp:Date.now()});
-    refreshStreak(k);save();playTick();
+    if(grp==='daily')refreshStreak(k);save();playTick();
     const r=chk.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);
     renderAll();
   });
@@ -1887,7 +1888,7 @@ function buildChoreCard(grp,secId,idx,item,k){
     item.lastDone=null;if(item.completions)item.completions=item.completions.filter(d=>d!==today);
     const baseT=Number(item.tokens||0);const multi=isCOTW(item.id)?2:1;
     k.tokens.unshift({amount:-(baseT*multi),note:'Undo: '+(item.title||'Task'),timestamp:Date.now()});
-    refreshStreak(k);save();renderAll();
+    if(grp==='daily')refreshStreak(k);save();renderAll();
   });
 
   /* edit button */
@@ -4041,7 +4042,38 @@ function dbDeleteCurrentConfirm(){
 }
 
 function dbDeleteHousehold(hid,label){
-  dbPinGate(()=>_dbShowDeleteConfirm(hid),'Enter PIN to delete household');
+  const currentHid=localStorage.getItem('cq_hid')||'';
+  const isCurrent=(hid===currentHid);
+  if(isCurrent){
+    // Deleting current household — gate on current PIN
+    dbPinGate(()=>_dbShowDeleteConfirm(hid),'Enter PIN to delete this household');
+  } else {
+    // Deleting from Browse — user already passed PIN gate to get here, go straight to target PIN
+    _dbFetchAndGateDeletePin(hid);
+  }
+}
+async function _dbFetchAndGateDeletePin(hid){
+  const body=document.getElementById('dbModalBody');if(!body)return;
+  document.getElementById('dbOverlay').classList.add('open');
+  body.innerHTML=`<div class="db-loading">&#x1F50D; Checking household&hellip;</div>`;
+  let targetPin='';
+  try{
+    const snap=await db.collection('chorequest').doc(hid).get();
+    targetPin=(snap.exists&&snap.data()?.data?.parentPin)||'';
+  }catch(e){console.error(e);}
+  if(!targetPin){
+    // No PIN on target — show confirm directly
+    _dbShowDeleteConfirm(hid);
+    return;
+  }
+  // Ask user to enter the target household's PIN
+  renderInlinePinEntry(body,{
+    title:'&#x1F511; Enter Household PIN',
+    subtitle:`Enter the PIN for <strong>${escHtml(hid)}</strong> to confirm deletion`,
+    expectedPin:targetPin,
+    onSuccess:()=>_dbShowDeleteConfirm(hid),
+    onCancel:()=>dbBrowseHouseholds()
+  });
 }
 function _dbShowDeleteConfirm(hid){
   const body=document.getElementById('dbModalBody');if(!body)return;
@@ -4053,7 +4085,7 @@ function _dbShowDeleteConfirm(hid){
     <div class="db-confirm-box">
       <div class="db-confirm-text">&#x26A0;&#xFE0F; <strong>This permanently deletes all data in this household from Firebase.</strong> This cannot be undone. Local data on this device is not affected.</div>
       <div class="db-confirm-btns">
-        <button class="db-confirm-btn cancel" onclick="renderDBModal()">Cancel</button>
+        <button class="db-confirm-btn cancel" onclick="dbBrowseHouseholds()">Cancel</button>
         <button class="db-confirm-btn danger" onclick="dbDoDeleteHousehold('${escHtml(hid)}')">Delete Permanently</button>
       </div>
     </div>`;
