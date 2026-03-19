@@ -1541,6 +1541,13 @@ body.kids-mode #btnKidsHelp{display:flex!important}
 </div>
 
 <script>
+/* ── CRITICAL: capture beforeinstallprompt IMMEDIATELY before any other JS ── */
+window.__pwaInstallEvent = null;
+window.addEventListener('beforeinstallprompt', function _earlyCapture(e){
+  e.preventDefault();
+  window.__pwaInstallEvent = e;
+  window.removeEventListener('beforeinstallprompt', _earlyCapture);
+});
 
 
 /* ── CONSTANTS ── */
@@ -5685,7 +5692,14 @@ const _pwa = {
       localStorage.setItem(this.K_OUTCOME,'uninstalled');
     }
 
-    // Listen for native prompt
+    // Use pre-captured event (fired before script finished parsing)
+    if(window.__pwaInstallEvent){
+      this.deferred = window.__pwaInstallEvent;
+      window.__pwaInstallEvent = null;
+      if(this._canShowBanner()) this._showBanner('native');
+      this._updateSettingsRow();
+    }
+    // Also listen for future events (e.g. after dismissal)
     window.addEventListener('beforeinstallprompt', e=>{
       e.preventDefault();
       this.deferred = e;
@@ -5749,14 +5763,6 @@ const _pwa = {
   },
 
   async install(){
-    // Wait up to 3s for beforeinstallprompt if not yet fired (Android timing)
-    if(!this.deferred && !this.isIOS){
-      await new Promise(resolve=>{
-        const t=setTimeout(resolve,3000);
-        const onPrompt=()=>{clearTimeout(t);resolve();};
-        window.addEventListener('beforeinstallprompt',onPrompt,{once:true});
-      });
-    }
     if(this.deferred){
       try{
         this.deferred.prompt();

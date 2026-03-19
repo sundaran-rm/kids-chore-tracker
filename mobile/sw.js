@@ -1,4 +1,4 @@
-const CACHE = 'chore-quest-v7';
+const CACHE = 'chore-quest-v8';
 const ASSETS = [
   './index.html',
   './manifest.json',
