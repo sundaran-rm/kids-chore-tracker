@@ -5749,20 +5749,33 @@ const _pwa = {
   },
 
   async install(){
+    // Wait up to 3s for beforeinstallprompt if not yet fired (Android timing)
+    if(!this.deferred && !this.isIOS){
+      await new Promise(resolve=>{
+        const t=setTimeout(resolve,3000);
+        const onPrompt=()=>{clearTimeout(t);resolve();};
+        window.addEventListener('beforeinstallprompt',onPrompt,{once:true});
+      });
+    }
     if(this.deferred){
-      this.deferred.prompt();
-      const {outcome} = await this.deferred.userChoice;
-      this.deferred = null;
-      this.hideBanner();
-      if(outcome==='accepted'){
-        localStorage.setItem(this.K_INSTALLED,'1');
-        localStorage.setItem(this.K_OUTCOME,'installed');
-        localStorage.removeItem(this.K_DISMISSED);
-        localStorage.removeItem(this.K_DIS_COUNT);
-        showInappNotif('&#x1F4F2;','Installed!','Chore Quest added to your home screen');
+      try{
+        this.deferred.prompt();
+        const {outcome} = await this.deferred.userChoice;
+        this.deferred = null;
+        this.hideBanner();
+        if(outcome==='accepted'){
+          localStorage.setItem(this.K_INSTALLED,'1');
+          localStorage.setItem(this.K_OUTCOME,'installed');
+          localStorage.removeItem(this.K_DISMISSED);
+          localStorage.removeItem(this.K_DIS_COUNT);
+          showInappNotif('&#x1F4F2;','Installed!','Chore Quest added to your home screen');
+        }
+      }catch(err){
+        // prompt() can only be called once — show manual fallback
+        this.showManualInstructions();
       }
     } else {
-      // No native prompt — show manual instructions
+      // No native prompt available — show manual instructions
       this.showManualInstructions();
     }
     this._updateSettingsRow();
@@ -5834,7 +5847,7 @@ const _pwa = {
           ? 'App was removed — tap to reinstall'
           : this.deferred ? 'Add to home screen for offline access'
           : this.isIOS ? 'Instructions to add to your home screen'
-          : 'Add to home screen for offline access';
+          : 'Open menu → Add to Home Screen to install';
       }
     }
   }
