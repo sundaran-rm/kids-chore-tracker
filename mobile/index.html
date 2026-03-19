@@ -1089,6 +1089,10 @@ body.kids-mode #btnKidsHelp{display:flex!important}
 .kh-text{}
 .kh-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
 .kh-desc{font-size:12px;color:var(--muted);line-height:1.5}
+/* ── Install Manager ── */
+.install-banner.reinstall .install-txt{color:var(--yellow)}
+.pwa-inst-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;font-size:13px;color:var(--text);line-height:1.5}
+.pwa-inst-num{background:var(--blue);color:#fff;font-size:11px;font-weight:800;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 </style>
 </head>
 <body>
@@ -3249,6 +3253,7 @@ const SETTINGS_CATS = {
     rows: [
       { id:'setDB',          icon:'&#x2601;',  label:'Cloud Database', desc:()=>'Sync across devices with Firebase' },
       { id:'setDataManager', icon:'&#x1F4BE;', label:'Import / Export', desc:()=>'Backup, restore, manage connection details' },
+      { id:'setPwaInstall',  icon:'&#x1F4F2;', label:'Install App',      desc:()=>'Add to home screen for offline access', pwaOnly:true },
       { id:'setReset',       icon:'&#x267B;',  label:'Reset Everything', desc:()=>'Delete all kids and data \u2014 cannot be undone', danger:true },
     ]
   }
@@ -3262,6 +3267,7 @@ function openSettingsCat(cat){
   if(!body)return;
   body.innerHTML='';
   cfg.rows.forEach(row=>{
+    if(row.pwaOnly&&window.matchMedia('(display-mode:standalone)').matches)return;
     const el=document.createElement('div');
     el.className='setting-row'+(row.danger?' danger':'')+(row.kmRow?' km-row':'');
     el.id=row.id;
@@ -3341,6 +3347,7 @@ function _settingsRowAction(id){
   else if(id==='setFlashMsg')  { closeSub(); openFlashCompose(); }
   else if(id==='setDB')          { closeSub(); openDBModal(); }
   else if(id==='setDataManager') { closeSub(); openDataManager(); }
+  else if(id==='setPwaInstall') { closeAllSettings(); if(_pwa.deferred)_pwa.install(); else _pwa.showManualInstructions(); }
   else if(id==='setReset')       { closeSub(); openResetConfirm(); }
 }
 
@@ -5638,12 +5645,210 @@ document.querySelectorAll('.tab').forEach(t=>{
   });
 });
 
-/* ── PWA INSTALL ── */
-let deferredInstall=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.getElementById('installBanner').classList.add('show');});
-document.getElementById('btnInstall').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();const{outcome}=await deferredInstall.userChoice;deferredInstall=null;document.getElementById('installBanner').classList.remove('show');});
-document.getElementById('btnDismissInstall').addEventListener('click',()=>document.getElementById('installBanner').classList.remove('show'));
-window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+/* ══════════════════════════════════════════════
+   PWA INSTALL MANAGER
+   Handles: native prompt, iOS instructions, 
+   uninstall detection, smart re-show, settings row
+══════════════════════════════════════════════ */
+const _pwa = {
+  deferred: null,
+  K_INSTALLED:  'cq_pwa_installed',
+  K_DISMISSED:  'cq_install_dismissed_at',
+  K_DIS_COUNT:  'cq_install_dismiss_count',
+  K_OUTCOME:    'cq_install_outcome',
+
+  get isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+  },
+  get isIOS(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  },
+  get isAndroid(){ return /Android/.test(navigator.userAgent); },
+
+  init(){
+    if(this.isStandalone){
+      // Running as installed PWA — record it, keep banner hidden
+      localStorage.setItem(this.K_INSTALLED,'1');
+      localStorage.setItem(this.K_OUTCOME,'installed');
+      this._updateSettingsRow();
+      return;
+    }
+
+    // Browser mode — detect if previously installed (uninstall happened)
+    const wasInstalled = localStorage.getItem(this.K_INSTALLED)==='1';
+    if(wasInstalled){
+      // Uninstall detected: reset dismiss state so banner shows fresh
+      localStorage.removeItem(this.K_INSTALLED);
+      localStorage.removeItem(this.K_DISMISSED);
+      localStorage.removeItem(this.K_DIS_COUNT);
+      localStorage.setItem(this.K_OUTCOME,'uninstalled');
+    }
+
+    // Listen for native prompt
+    window.addEventListener('beforeinstallprompt', e=>{
+      e.preventDefault();
+      this.deferred = e;
+      if(this._canShowBanner()) this._showBanner('native');
+      this._updateSettingsRow();
+    });
+
+    // iOS: no beforeinstallprompt — show instructions after short delay
+    if(this.isIOS && this._canShowBanner()){
+      setTimeout(()=>this._showBanner('ios'), 1500);
+    }
+
+    // Re-check when user returns to tab
+    document.addEventListener('visibilitychange',()=>{
+      if(!document.hidden) this._onVisible();
+    });
+
+    // Wire buttons
+    this._wireButtons();
+    this._updateSettingsRow();
+  },
+
+  _canShowBanner(){
+    const lastDismiss = parseInt(localStorage.getItem(this.K_DISMISSED)||'0');
+    if(!lastDismiss) return true; // never dismissed
+    const count = parseInt(localStorage.getItem(this.K_DIS_COUNT)||'0');
+    // Cooldown: 1st dismiss=1d, 2nd=3d, 3rd+=7d
+    const cooldown = count<=1?1:count<=2?3:7;
+    return (Date.now()-lastDismiss)/86400000 >= cooldown;
+  },
+
+  _showBanner(type){
+    const banner = document.getElementById('installBanner');
+    if(!banner) return;
+    const txt = banner.querySelector('.install-txt');
+    const btn = banner.querySelector('#btnInstall');
+    const wasUninstalled = localStorage.getItem(this.K_OUTCOME)==='uninstalled';
+
+    if(type==='ios'){
+      if(txt) txt.innerHTML = '&#x1F4F1; Add to Home Screen: tap <strong>Share &#x1F4E4;</strong> &rarr; <strong>Add to Home Screen</strong>';
+      if(btn) btn.style.display='none';
+    } else {
+      const label = wasUninstalled ? '&#x1F4F2; Reinstall Chore Quest' : '&#x1F4F2; Install Chore Quest as an app!';
+      if(txt) txt.innerHTML = label;
+      if(btn) btn.style.display='';
+      if(btn) btn.textContent = wasUninstalled ? 'Reinstall' : 'Install';
+    }
+    banner.dataset.pwaType = type;
+    banner.classList.add('show');
+  },
+
+  hideBanner(){
+    document.getElementById('installBanner')?.classList.remove('show');
+  },
+
+  dismiss(){
+    this.hideBanner();
+    const count = parseInt(localStorage.getItem(this.K_DIS_COUNT)||'0')+1;
+    localStorage.setItem(this.K_DISMISSED, String(Date.now()));
+    localStorage.setItem(this.K_DIS_COUNT, String(count));
+  },
+
+  async install(){
+    if(this.deferred){
+      this.deferred.prompt();
+      const {outcome} = await this.deferred.userChoice;
+      this.deferred = null;
+      this.hideBanner();
+      if(outcome==='accepted'){
+        localStorage.setItem(this.K_INSTALLED,'1');
+        localStorage.setItem(this.K_OUTCOME,'installed');
+        localStorage.removeItem(this.K_DISMISSED);
+        localStorage.removeItem(this.K_DIS_COUNT);
+        showInappNotif('&#x1F4F2;','Installed!','Chore Quest added to your home screen');
+      }
+    } else {
+      // No native prompt — show manual instructions
+      this.showManualInstructions();
+    }
+    this._updateSettingsRow();
+  },
+
+  showManualInstructions(){
+    let ov=document.getElementById('pwaInstructOverlay');if(ov)ov.remove();
+    ov=document.createElement('div');ov.id='pwaInstructOverlay';ov.className='overlay';ov.style.zIndex='9000';
+    const isIOS=this.isIOS;
+    const isSafari=!isIOS&&/Safari/.test(navigator.userAgent)&&!/Chrome/.test(navigator.userAgent);
+    const isFirefox=/Firefox/.test(navigator.userAgent);
+
+    let steps,icon;
+    if(isIOS){
+      icon='&#x1F34E;';
+      steps=`<div class="pwa-inst-step"><span class="pwa-inst-num">1</span>Tap the <strong>Share</strong> button &#x1F4E4; at the bottom of Safari</div>
+             <div class="pwa-inst-step"><span class="pwa-inst-num">2</span>Scroll down and tap <strong>Add to Home Screen</strong></div>
+             <div class="pwa-inst-step"><span class="pwa-inst-num">3</span>Tap <strong>Add</strong> in the top right corner</div>`;
+    } else if(isFirefox){
+      icon='&#x1F98A;';
+      steps=`<div class="pwa-inst-step"><span class="pwa-inst-num">1</span>Tap the <strong>&#x22EE; menu</strong> in the bottom bar</div>
+             <div class="pwa-inst-step"><span class="pwa-inst-num">2</span>Tap <strong>Install</strong></div>`;
+    } else {
+      icon='&#x1F4F1;';
+      steps=`<div class="pwa-inst-step"><span class="pwa-inst-num">1</span>Tap the <strong>&#x22EE; menu</strong> in Chrome&rsquo;s top right</div>
+             <div class="pwa-inst-step"><span class="pwa-inst-num">2</span>Tap <strong>Add to Home screen</strong> or <strong>Install app</strong></div>
+             <div class="pwa-inst-step"><span class="pwa-inst-num">3</span>Tap <strong>Add</strong> to confirm</div>`;
+    }
+
+    ov.innerHTML=`<div class="sheet"><div class="sheet-handle"></div>
+      <div class="sheet-hdr"><div class="sheet-title">${icon} Install Chore Quest</div>
+        <button class="sheet-close" onclick="document.getElementById('pwaInstructOverlay').remove()">&#x2715;</button></div>
+      <div class="sheet-body" style="padding:20px 18px 28px">
+        <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px">
+          Installing gives you an app icon, faster loads, offline access, and a full-screen experience &mdash; no App Store needed.</p>
+        ${steps}
+        <p style="font-size:11px;color:var(--muted);margin-top:16px;text-align:center">Already installed? Open it from your home screen.</p>
+      </div></div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+    ov.classList.add('open');
+  },
+
+  _wireButtons(){
+    const btnI=document.getElementById('btnInstall');
+    const btnD=document.getElementById('btnDismissInstall');
+    if(btnI) btnI.addEventListener('click',()=>this.install());
+    if(btnD) btnD.addEventListener('click',()=>this.dismiss());
+  },
+
+  _onVisible(){
+    if(this.isStandalone) return;
+    if(!this._canShowBanner()) return;
+    if(this.deferred) this._showBanner('native');
+    else if(this.isIOS) this._showBanner('ios');
+  },
+
+  _updateSettingsRow(){
+    const row = document.getElementById('setPwaInstall');
+    if(!row) return;
+    const desc = row.querySelector('.set-row-desc');
+    if(this.isStandalone){
+      row.style.display='none'; // already installed, hide the row
+    } else {
+      row.style.display='';
+      if(desc){
+        const wasUninstalled = localStorage.getItem(this.K_OUTCOME)==='uninstalled';
+        desc.textContent = wasUninstalled
+          ? 'App was removed — tap to reinstall'
+          : this.deferred ? 'Add to home screen for offline access'
+          : this.isIOS ? 'Instructions to add to your home screen'
+          : 'Add to home screen for offline access';
+      }
+    }
+  }
+};
+
+window.addEventListener('appinstalled',()=>{
+  localStorage.setItem(_pwa.K_INSTALLED,'1');
+  localStorage.setItem(_pwa.K_OUTCOME,'installed');
+  _pwa.hideBanner();
+  _pwa.deferred=null;
+  _pwa._updateSettingsRow();
+});
+
+_pwa.init();
 
 
 /* ══════════════════════════════════════════════
