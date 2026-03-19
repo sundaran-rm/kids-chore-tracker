@@ -1,34 +1,70 @@
-const CACHE = 'chore-quest-v8';
-const ASSETS = [
+const CACHE = 'chore-quest-v9';
+
+// Only cache LOCAL assets on install — CDN failures won't block PWA installation
+const LOCAL_ASSETS = [
   './index.html',
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})));
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(LOCAL_ASSETS))
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  const isHTML = e.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/';
+  const isLocal = url.origin === self.location.origin;
+  const isHTML = e.request.destination === 'document'
+               || url.pathname.endsWith('.html')
+               || url.pathname === '/';
+
   if (isHTML) {
+    // Network-first for HTML — always get latest, fall back to cache offline
     e.respondWith(
       fetch(e.request)
-        .then(res => { const clone = res.clone(); caches.open(CACHE).then(c => c.put(e.request, clone)); return res; })
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
         .catch(() => caches.match(e.request))
     );
+  } else if (isLocal) {
+    // Local assets: cache-first
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      }))
+    );
   } else {
-    e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => cached)));
+    // External CDN assets (fonts, chart.js): network-first, cache as fallback
+    // These are NOT required for install — cached lazily on first use
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
   }
 });
 
