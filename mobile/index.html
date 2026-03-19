@@ -149,6 +149,18 @@ body.kids-mode .approval-badge{display:none!important}
 .knote-btn{flex:1;padding:11px 0;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:800;border:none;cursor:pointer}
 .knote-btn.skip{background:var(--navy4);color:var(--muted)}
 .knote-btn.send{background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff}
+.knote-photo-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.knote-photo-btn{background:var(--navy4);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:12px;font-weight:700;border-radius:9px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.knote-photo-btn:active{border-color:var(--blue);color:var(--blue)}
+.knote-preview{width:64px;height:64px;border-radius:8px;object-fit:cover;border:2px solid var(--border);cursor:pointer;display:none}
+.knote-preview.has-photo{display:block;border-color:var(--blue)}
+.knote-remove-photo{background:rgba(255,80,80,.15);border:1px solid rgba(255,80,80,.3);color:var(--red);font-family:var(--font);font-size:10px;font-weight:800;border-radius:6px;padding:3px 7px;cursor:pointer;display:none}
+.knote-remove-photo.has-photo{display:block}
+.ap-photo-thumb{width:54px;height:54px;border-radius:7px;object-fit:cover;border:1px solid var(--border);cursor:pointer;flex-shrink:0;margin-top:4px}
+.ap-photo-thumb:active{opacity:.8}
+.photo-viewer{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.photo-viewer img{max-width:95vw;max-height:90vh;border-radius:10px;object-fit:contain}
+.photo-viewer-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .tok-expiry-warn{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:800;color:var(--orange);background:rgba(255,183,77,.12);border:1px solid rgba(255,183,77,.3);border-radius:5px;padding:1px 5px;margin-left:5px;vertical-align:middle}
 .tok-locked-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:800;color:var(--muted);background:rgba(128,128,128,.1);border:1px solid rgba(128,128,128,.25);border-radius:5px;padding:1px 5px;margin-left:4px;vertical-align:middle}
 .expiry-settings-box{background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
@@ -1958,9 +1970,11 @@ function buildChoreCard(grp,secId,idx,item,k){
     if(kidsMode&&S.approvalMode){
       if(!k.pendingApprovals)k.pendingApprovals=[];
       if(!k.pendingApprovals.find(p=>p.choreId===item.id)){
-        openKidNoteModal(item.title||'Chore',kidNote=>{
+        openKidNoteModal(item.title||'Chore',result=>{
+          const kidNote=(typeof result==='object'?result.note:result)||'';
+          const photoBase64=(typeof result==='object'?result.photo:null)||null;
           const baseT=Number(item.tokens||0);const multi=isCOTW(item.id)?2:1;
-          k.pendingApprovals.push({id:uid(),choreId:item.id,choreTitle:item.title||'Chore',tokens:baseT,multi,grp,secId,requestedAt:Date.now(),kidNote:kidNote||''});
+          k.pendingApprovals.push({id:uid(),choreId:item.id,choreTitle:item.title||'Chore',tokens:baseT,multi,grp,secId,requestedAt:Date.now(),kidNote,photoBase64});
           save();renderAll();
         });
       }
@@ -2400,6 +2414,7 @@ function renderApprovalPanel(){
       row1.appendChild(dot);row1.appendChild(info);row1.appendChild(tok);row1.appendChild(acts);
       item.appendChild(row1);
       if(p.kidNote){const noteEl=document.createElement('div');noteEl.className='ap-kid-note';noteEl.textContent='\uD83D\uDCAC '+p.kidNote;item.appendChild(noteEl);}
+      if(p.photoBase64){const ph=document.createElement('img');ph.className='ap-photo-thumb';ph.src=p.photoBase64;ph.title='Tap to view photo';ph.addEventListener('click',()=>openPhotoViewer(p.photoBase64));item.appendChild(ph);}
       body.appendChild(item);
     });
   });
@@ -2988,19 +3003,81 @@ function deleteCustomTemplate(id){
 }
 
 
+/* ── PHOTO COMPRESSION ── */
+async function compressPhoto(file,maxKB){
+  maxKB=maxKB||45;
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const canvas=document.createElement('canvas');
+      // scale down to fit within 600px on longest side
+      let w=img.width,h=img.height;
+      const maxDim=600;
+      if(w>maxDim||h>maxDim){if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}else{w=Math.round(w*maxDim/h);h=maxDim;}}
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
+      // try reducing quality until under maxKB
+      let q=0.7;
+      const attempt=()=>{
+        canvas.toBlob(blob=>{
+          if(!blob){resolve(null);return;}
+          if(blob.size/1024<=maxKB||q<=0.15){
+            const reader=new FileReader();
+            reader.onload=e=>resolve(e.target.result); // base64 data URL
+            reader.readAsDataURL(blob);
+          }else{q=Math.max(0.15,q-0.15);attempt();}
+        },'image/jpeg',q);
+      };
+      attempt();
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve(null);};
+    img.src=url;
+  });
+}
+
+function openPhotoViewer(src){
+  let ov=document.getElementById('photoViewer');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='photoViewer';ov.className='photo-viewer';
+  ov.innerHTML='<img src="'+src+'"><button class="photo-viewer-close" title="Close">&#x2715;</button>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',()=>ov.remove());
+  ov.querySelector('.photo-viewer-close').addEventListener('click',e=>{e.stopPropagation();ov.remove();});
+}
+
 /* ── KID NOTE MODAL ── */
 function openKidNoteModal(choreTitle,cb){
   let el=document.getElementById('kidNoteOverlay');if(el)el.remove();
   el=document.createElement('div');el.id='kidNoteOverlay';el.className='knote-overlay';
-  el.innerHTML='<div class="knote-box"><div class="knote-title">&#x1F4AC; Add a note? <span style="font-size:11px;color:var(--muted);font-weight:400">(optional)</span></div><div class="knote-sub">Tell your parent about <strong>'+escHtml(choreTitle)+'</strong></div><textarea class="knote-inp" id="kidNoteInp" placeholder="e.g. I also wiped the counter\u2026" maxlength="100" rows="2"></textarea><div class="knote-char"><span id="kidNoteCount">0</span>/100</div><div class="knote-btns"><button class="knote-btn skip" id="kidNoteSkip">Skip</button><button class="knote-btn send" id="kidNoteSend">&#x2705; Submit</button></div></div>';
+  el.innerHTML='<div class="knote-box"><div class="knote-title">&#x1F4AC; Add a note? <span style="font-size:11px;color:var(--muted);font-weight:400">(optional)</span></div><div class="knote-sub">Tell your parent about <strong>'+escHtml(choreTitle)+'</strong></div><textarea class="knote-inp" id="kidNoteInp" placeholder="e.g. I also wiped the counter\u2026" maxlength="100" rows="2"></textarea><div class="knote-char"><span id="kidNoteCount">0</span>/100</div><div class="knote-photo-row"><button class="knote-photo-btn" id="kidPhotoBtn">&#x1F4F7; Add Photo</button><img class="knote-preview" id="kidPhotoPreview" alt="preview"><button class="knote-remove-photo" id="kidRemovePhoto">&#x2715; Remove</button></div><div class="knote-btns"><button class="knote-btn skip" id="kidNoteSkip">Skip</button><button class="knote-btn send" id="kidNoteSend">&#x2705; Submit</button></div></div>';
   document.body.appendChild(el);
+  let _photoBase64=null;
   const inp=document.getElementById('kidNoteInp');
   const cnt=document.getElementById('kidNoteCount');
+  const preview=document.getElementById('kidPhotoPreview');
+  const removeBtn=document.getElementById('kidRemovePhoto');
   inp.addEventListener('input',()=>{cnt.textContent=inp.value.length;});
   inp.focus();
-  document.getElementById('kidNoteSkip').addEventListener('click',()=>{el.remove();cb('');});
-  document.getElementById('kidNoteSend').addEventListener('click',()=>{el.remove();cb(inp.value.trim());});
-  el.addEventListener('click',e=>{if(e.target===el){el.remove();cb('');}});
+  document.getElementById('kidPhotoBtn').addEventListener('click',()=>{
+    const fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.capture='environment';
+    fi.addEventListener('change',async e=>{
+      const f=e.target.files[0];if(!f)return;
+      const compressed=await compressPhoto(f,45);
+      if(!compressed)return;
+      _photoBase64=compressed;
+      preview.src=compressed;preview.classList.add('has-photo');
+      removeBtn.classList.add('has-photo');
+    });fi.click();
+  });
+  removeBtn.addEventListener('click',()=>{
+    _photoBase64=null;preview.src='';preview.classList.remove('has-photo');removeBtn.classList.remove('has-photo');
+  });
+  preview.addEventListener('click',()=>{if(_photoBase64)openPhotoViewer(_photoBase64);});
+  const doSubmit=()=>{el.remove();cb({note:inp.value.trim(),photo:_photoBase64});};
+  document.getElementById('kidNoteSkip').addEventListener('click',()=>{el.remove();cb({note:'',photo:null});});
+  document.getElementById('kidNoteSend').addEventListener('click',doSubmit);
+  el.addEventListener('click',e=>{if(e.target===el){el.remove();cb({note:'',photo:null});}});
 }
 
 /* ── TOKEN EXPIRY SHEET ── */
