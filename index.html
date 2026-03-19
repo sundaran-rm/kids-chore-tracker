@@ -1573,7 +1573,8 @@ function processTokenExpiry(k){
   const lockedIds=new Set(k.tokenExpiry.lockedTokens.map(l=>l.id));
   (k.tokens||[]).forEach(e=>{if(!e.id)e.id=uid();});
   (k.tokens||[]).forEach(e=>{
-    if(Number(e.amount||0)>0&&!e.manual&&e.timestamp<cutoff&&!lockedIds.has(e.id)){
+    const _expTs=e.earnedAt||e.timestamp; // use earnedAt for retro credits so backdated entries aren't immediately locked
+    if(Number(e.amount||0)>0&&!e.manual&&_expTs<cutoff&&!lockedIds.has(e.id)){
       k.tokenExpiry.lockedTokens.push({id:e.id,lockedAt:Date.now(),amount:Number(e.amount),note:e.note||''});
       lockedIds.add(e.id);
     }
@@ -1587,7 +1588,8 @@ function getExpiryWarningIds(k){
   const lockedIds=new Set((k.tokenExpiry.lockedTokens||[]).map(l=>l.id));
   const warn=new Set();
   (k.tokens||[]).forEach(e=>{
-    if(Number(e.amount||0)>0&&!e.manual&&!lockedIds.has(e.id)&&e.timestamp<warnCutoff&&e.timestamp>=cutoff)warn.add(e.id);
+    const _expTs=e.earnedAt||e.timestamp;
+    if(Number(e.amount||0)>0&&!e.manual&&!lockedIds.has(e.id)&&_expTs<warnCutoff&&_expTs>=cutoff)warn.add(e.id);
   });
   return warn;
 }
@@ -2141,7 +2143,247 @@ function closeKidDropdown(){
   const dd=document.getElementById('kidDropdown');if(dd)dd.classList.remove('open');
   const btn=document.getElementById('kidPickerBtn');if(btn)btn.classList.remove('open');
 }
+function openTokenExpirySheet(){
+  let ov=document.getElementById('tokenExpiryOverlay');if(ov)ov.remove();
+  ov=document.createElement('div');ov.id='tokenExpiryOverlay';ov.className='overlay';
+  ov.innerHTML=`<div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><button class="set-sub-back" onclick="_backToSettingsCat('rewards')" title="Back" style="margin-right:6px">&#x2039;</button><div class="sheet-title" style="flex:1">&#x23F3; Token Expiry</div><button class="sheet-close" onclick="closeAllSettings()">&#x2715;</button></div>
+    <div class="sheet-body" id="tokenExpirySheetBody" style="padding:14px 18px 22px"></div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  renderTokenExpirySheet();
+  ov.classList.add('open');
+}
+function renderTokenExpirySheet(){
+  const body=document.getElementById('tokenExpirySheetBody');if(!body)return;
+  body.innerHTML='';
+  if(!S.kids||!S.kids.length){body.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">No kids added yet.</div>';return;}
+  const desc=document.createElement('p');
+  desc.style.cssText='font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6';
+  desc.innerHTML='When enabled, tokens not spent within the set number of days get <strong>locked</strong>. They won\'t be spendable but are never deleted \u2014 you can restore them as a reward for good behaviour.';
+  body.appendChild(desc);
+  S.kids.forEach(k=>{
+    if(!k.tokenExpiry)k.tokenExpiry={enabled:false,days:30,lockedTokens:[]};
+    const te=k.tokenExpiry;
+    const locked=te.lockedTokens||[];
+    const lockedTotal=locked.reduce((s,l)=>s+l.amount,0);
+    const t=THEMES[(kidsMode&&k.kidsTheme)||k.theme||'galaxy']||THEMES.galaxy;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='margin-bottom:16px;padding:12px 14px;background:var(--navy3);border:1px solid var(--border);border-radius:12px;';
+    wrap.innerHTML=
+      `<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+        <div style="width:9px;height:9px;border-radius:50%;background:${t.accent}"></div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(k.name||'Kid')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <label class="km-toggle" style="flex-shrink:0"><input type="checkbox" id="exEn_${k.id}"${te.enabled?' checked':''}><span class="km-slider"></span></label>
+        <span style="font-size:12px;color:var(--muted)">Enable expiry &mdash; lock after</span>
+        <input class="expiry-inp" id="exDays_${k.id}" type="number" min="7" max="365" value="${te.days||30}" style="${te.enabled?'':'opacity:.4;pointer-events:none'}">
+        <span style="font-size:12px;color:var(--muted)">days</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.5">Kids see a <strong style="color:var(--orange)">\u26a0\ufe0f warning</strong> 3 days before tokens expire.</div>
+      ${lockedTotal>0?`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--navy4);border:1px solid var(--border);border-radius:9px">
+        <div style="flex:1;font-size:12px;color:var(--muted)">${lockedTotal}\u2B50 locked (${locked.length} batch${locked.length!==1?'es':''})</div>
+        <button id="exRestore_${k.id}" style="background:linear-gradient(135deg,var(--green),#00897b);color:#fff;font-family:var(--font);font-size:11px;font-weight:800;border:none;border-radius:8px;padding:6px 12px;cursor:pointer">\uD83D\uDD13 Restore</button>
+      </div>`:''}`;
+    body.appendChild(wrap);
+    // Toggle
+    const enChk=document.getElementById('exEn_'+k.id);
+    const daysInp=document.getElementById('exDays_'+k.id);
+    if(enChk)enChk.addEventListener('change',e=>{
+      te.enabled=e.target.checked;
+      if(daysInp)daysInp.style.cssText=te.enabled?'':'opacity:.4;pointer-events:none';
+      if(te.enabled)processTokenExpiry(k);
+      save();renderAll();updateTokenExpiryDesc();
+    });
+    // Days input
+    if(daysInp)daysInp.addEventListener('change',e=>{
+      te.days=Math.max(7,Math.min(365,Number(e.target.value||30)));
+      if(te.enabled)processTokenExpiry(k);
+      save();renderAll();updateTokenExpiryDesc();
+    });
+    // Restore button (guard against double-click)
+    const restoreBtn=document.getElementById('exRestore_'+k.id);
+    if(restoreBtn)restoreBtn.addEventListener('click',()=>{
+      const currentLocked=te.lockedTokens||[];if(!currentLocked.length)return;
+      const total=currentLocked.reduce((s,l)=>s+l.amount,0);
+      // Stamp original entries with earnedAt=now so processTokenExpiry won't immediately re-lock them
+      const lockedIdSet=new Set(currentLocked.map(l=>l.id));
+      (k.tokens||[]).forEach(e=>{if(e.id&&lockedIdSet.has(e.id))e.earnedAt=Date.now();});
+      k.tokens.unshift({id:uid(),amount:total,note:'\uD83D\uDD13 Restored locked tokens ('+currentLocked.length+' batches)',timestamp:Date.now(),manual:true});
+      te.lockedTokens=[];
+      renderTokenExpirySheet(); // immediate UI update — locked row disappears now
+      save();renderAll();
+      showInappNotif('\uD83D\uDD13','Restored',total+'\u2B50 returned to '+k.name);
+    });
+  });
+  updateTokenExpiryDesc();
+}
+function saveTokenExpiry(kidId){
+  // Legacy stub — handled inline via renderTokenExpirySheet
+  const k=S.kids.find(x=>x.id===kidId);if(!k)return;
+  const en=document.getElementById('expiryEnabled')?.checked||false;
+  const days=Math.max(7,Math.min(365,Number(document.getElementById('expiryDays')?.value||30)));
+  if(!k.tokenExpiry)k.tokenExpiry={enabled:false,days:30,lockedTokens:[]};
+  k.tokenExpiry.enabled=en;k.tokenExpiry.days=days;
+  processTokenExpiry(k);save();
+  document.getElementById('tokenExpiryOverlay').classList.remove('open');
+  renderAll();showInappNotif('\u23F3','Saved','Token expiry updated for '+k.name);
+}
+function restoreLockedTokens(kidId){
+  const k=S.kids.find(x=>x.id===kidId);if(!k||!k.tokenExpiry)return;
+  const locked=k.tokenExpiry.lockedTokens||[];if(!locked.length)return;
+  const total=locked.reduce((s,l)=>s+l.amount,0);
+  k.tokens.unshift({id:uid(),amount:total,note:'\uD83D\uDD13 Restored locked tokens ('+locked.length+' batches)',timestamp:Date.now()});
+  // Stamp original entries with earnedAt=now so processTokenExpiry won't immediately re-lock them
+  const _lockedIdSet=new Set(locked.map(l=>l.id));
+  (k.tokens||[]).forEach(e=>{if(e.id&&_lockedIdSet.has(e.id))e.earnedAt=Date.now();});
+  k.tokenExpiry.lockedTokens=[];
+  renderTokenExpirySheet(); // re-render so locked row disappears
+  save();renderAll();
+  showInappNotif('\uD83D\uDD13','Restored',total+'\u2B50 returned to '+k.name);
+}
+
 function updateTokenExpiryDesc(){const k=kid();const el=document.getElementById('tokenExpiryDesc');if(!el)return;if(!k||!k.tokenExpiry?.enabled){el.textContent='Tokens expire if not spent — teaches kids to spend wisely';return;}const locked=(k.tokenExpiry.lockedTokens||[]).reduce((s,l)=>s+l.amount,0);el.textContent='Active · '+k.tokenExpiry.days+' days · '+(locked?locked+'⭐ locked':'no locked tokens');}
+function renderTabs(){
+  const k=kid();
+  /* ── update picker button ── */
+  const btn=document.getElementById('kidPickerBtn');
+  const dot=document.getElementById('kpbDot');
+  const name=document.getElementById('kpbName');
+  if(btn&&k){
+    const t=THEMES[(kidsMode&&k.kidsTheme)||k.theme||'galaxy']||THEMES.galaxy;
+    if(dot){dot.style.background=t.accent;dot.style.boxShadow='0 0 5px '+t.accent;}
+    if(name)name.textContent=k.name||'Kid';
+  } else if(btn){
+    if(dot){dot.style.background='var(--muted)';dot.style.boxShadow='none';}
+    if(name)name.textContent='No kids yet';
+  }
+  /* ── populate dropdown ── */
+  const dd=document.getElementById('kidDropdown');if(!dd)return;
+  dd.innerHTML='';
+  S.kids.forEach(kk=>{
+    const row=document.createElement('div');
+    row.className='kd-kid-row'+(kk.id===S.activeId?' active-kid':'');
+    const radio=document.createElement('div');
+    radio.className='kd-radio'+(kk.id===S.activeId?' checked':'');
+    const kt=THEMES[kk.theme||'galaxy']||THEMES.galaxy;
+    const inp=document.createElement('input');
+    inp.className='kd-name-inp';inp.type='text';inp.value=kk.name||'';inp.placeholder='Kid name…';
+    inp.addEventListener('pointerdown',e=>e.stopPropagation());
+    inp.addEventListener('click',e=>e.stopPropagation());
+    inp.addEventListener('input',e=>{kk.name=e.target.value;save();if(kk.id===S.activeId){const n=document.getElementById('kpbName');if(n)n.textContent=kk.name||'Kid';}});
+    const acts=document.createElement('div');acts.className='kd-actions';
+    const effectiveThemeKey=(kidsMode&&kk.kidsTheme)||kk.theme||'galaxy';
+    const kt2=THEMES[effectiveThemeKey]||THEMES.galaxy;
+    const tdot=document.createElement('div');tdot.className='kd-theme-dot';
+    tdot.style.background=kt2.accent;tdot.title='Change theme';
+    tdot.addEventListener('click',e=>{
+      e.stopPropagation();S.activeId=kk.id;save();renderAll();closeKidDropdown();
+      setTimeout(openThemePicker,80);
+    });
+    const del=document.createElement('button');del.className='kd-del';del.textContent='✕';del.title='Remove';
+    del.addEventListener('click',e=>{e.stopPropagation();closeKidDropdown();setTimeout(()=>removeKid(kk.id),80);});
+    acts.appendChild(tdot);acts.appendChild(del);
+    row.appendChild(radio);row.appendChild(inp);row.appendChild(acts);
+    row.addEventListener('click',()=>{S.activeId=kk.id;save();renderAll();closeKidDropdown();});
+    dd.appendChild(row);
+  });
+  const div=document.createElement('div');div.className='kd-divider';dd.appendChild(div);
+  const addRow=document.createElement('div');addRow.className='kd-add-row';
+  addRow.innerHTML='<span style="font-size:15px">&#x2795;</span><span>Add Kid</span>';
+  addRow.addEventListener('click',e=>{e.stopPropagation();closeKidDropdown();addKid();});
+  dd.appendChild(addRow);
+}
+
+function renderAll(){
+  const k=kid(),has=!!k;
+  const nm=document.getElementById('noKidMsg');if(nm)nm.style.display=has?'none':'block';
+  const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
+  const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
+  renderTabs();
+  if(has){processTokenExpiry(k);applyTheme((kidsMode&&k.kidsTheme)||k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);renderBadges(k);renderCalendar('calBody');renderXPHeaderBar(k);}
+  updateApprovalBadge();
+  updateFlashBadge();
+}
+
+function renderXPHeaderBar(k){
+  const el=document.getElementById('xpHeaderBar');if(!el)return;
+  if(!k){el.style.display='none';return;}
+  const xp=getXP(k);const lv=getLevel(xp);const next=getNextLevel(xp);
+  const pct=next?Math.min(100,Math.round((xp-lv.min)/(next.min-lv.min)*100)):100;
+  el.style.display='flex';
+  const badge=document.getElementById('xpHbBadge');if(badge)badge.textContent=lv.emoji+' '+lv.name;
+  const fill=document.getElementById('xpHbFill');if(fill)fill.style.width=pct+'%';
+  const label=document.getElementById('xpHbLabel');
+  if(label)label.textContent=next?(xp+' / '+next.min+' XP'):(xp+' XP \uD83D\uDD25 MAX');
+}
+
+/* ── TOGGLE SECTION ── */
+function toggleSection(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
+function getAllSectionIds(){
+  const k=kid();
+  const base=['secDaily','secBonus','secRewards','secHistory','secBadges','secCalendar','secCharts','secRedemptions','secMischief'];
+  if(document.getElementById('secOneTime'))base.push('secOneTime');
+  if(k)(k.customSections||[]).forEach(s=>base.push('secCustom_'+s.id));
+  return base;
+}
+
+
+function openSummary(){
+  const k=kid();if(!k){alert('Add a kid first!');return;}
+  const body=document.getElementById('sumBody');body.innerHTML='';
+  // All-time stats
+  let totalEarned=0,totalRedeemed=0,bestDayVal=0,bestDayDate='';
+  const dayTotals={};
+  (k.tokens||[]).forEach(ev=>{
+    const v=Number(ev.amount||0),ds=dateStr(new Date(ev.timestamp));
+    const isUndoEv=(ev.note||'').startsWith('Undo:');
+    const isRedeemEv=(ev.note||'').startsWith('\ud83c\udf81');
+    if(v>0&&!isUndoEv){totalEarned+=v;dayTotals[ds]=(dayTotals[ds]||0)+v;}
+    else if(isUndoEv){totalEarned=Math.max(0,totalEarned+v);dayTotals[ds]=Math.max(0,(dayTotals[ds]||0)+v);}
+    else if(isRedeemEv)totalRedeemed+=Math.abs(v);
+  });
+  Object.entries(dayTotals).forEach(([ds,val])=>{if(val>bestDayVal){bestDayVal=val;bestDayDate=ds;}});
+  const bLbl=bestDayDate?new Date(bestDayDate+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+bestDayVal+')':'\u2014';
+  const allChores=getAllChores(k);
+  const totalDone=allChores.reduce((s,c)=>(c.completions||[]).length+s,0);
+  const streak=calcStreak(k);
+  const badgeCount=(k.badges||[]).length;
+  const xp=getXP(k);const lv=getLevel(xp);
+  const period=document.createElement('div');period.className='sum-period';
+  period.textContent=(k.name||'Kid')+' \u00B7 All Time';
+  body.appendChild(period);
+  const grid=document.createElement('div');grid.className='stat-grid';
+  [{v:'+'+totalEarned,kk:'Earned',c:CC.green},{v:totalRedeemed,kk:'Redeemed',c:CC.red},
+   {v:totalDone,kk:'Chores Done',c:CC.blue},
+   {v:bLbl,kk:'Best Day',c:CC.blue,sm:true},{v:streak+'\uD83D\uDD25',kk:'Streak',c:CC.orange},
+   {v:(k.bestStreak||0)+'\uD83C\uDFC6',kk:'Best Streak',c:CC.yellow},
+   {v:(lv.emoji+' '+lv.name),kk:'Level',c:CC.purple,sm:true},{v:badgeCount+' / '+((BADGES.length+(k.customBadges||[]).length)),kk:'Badges',c:CC.yellow}
+  ].forEach(s=>{
+    const c=document.createElement('div');c.className='stat-card';
+    const vv=document.createElement('div');vv.className='stat-val';vv.style.color=s.c;vv.style.fontSize=s.sm?'11px':'22px';vv.textContent=s.v;
+    const kk=document.createElement('div');kk.className='stat-key';kk.textContent=s.kk;
+    c.appendChild(vv);c.appendChild(kk);grid.appendChild(c);
+  });
+  body.appendChild(grid);
+  const allC=[];
+  allChores.forEach(c=>{const done=(c.completions||[]).length;if(done>0)allC.push({name:c.title||'Untitled',done});});
+  if(allC.length){
+    const t=document.createElement('div');t.className='sum-sec';t.textContent='All-Time Chore Completions';body.appendChild(t);
+    allC.sort((a,b)=>b.done-a.done).slice(0,10).forEach(c=>{
+      const maxDone=allC[0].done||1;
+      const r=document.createElement('div');r.className='cs-row';
+      const n=document.createElement('div');n.className='cs-name';n.textContent=c.name;
+      const tr=document.createElement('div');tr.className='cs-track';
+      const fi=document.createElement('div');fi.className='cs-fill';fi.style.width=Math.round(c.done/maxDone*100)+'%';tr.appendChild(fi);
+      const cnt=document.createElement('div');cnt.className='cs-pct';cnt.style.color=CC.green;cnt.textContent=c.done+'\xd7';
+      r.appendChild(n);r.appendChild(tr);r.appendChild(cnt);body.appendChild(r);
+    });
+  }
+  document.getElementById('summaryOverlay').classList.add('open');
+}
 function renderTabs(){
   const k=kid();
   /* ── update picker button ── */
@@ -2775,65 +3017,6 @@ function openKidNoteModal(choreTitle,cb){
 }
 
 /* ── TOKEN EXPIRY SHEET ── */
-function openTokenExpirySheet(){
-  const k=kid();if(!k)return;
-  if(!k.tokenExpiry)k.tokenExpiry={enabled:false,days:30,lockedTokens:[]};
-  let ov=document.getElementById('tokenExpiryOverlay');if(ov)ov.remove();
-  ov=document.createElement('div');ov.id='tokenExpiryOverlay';ov.className='overlay';ov.style.zIndex='3200';
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});
-  document.body.appendChild(ov);
-  const locked=k.tokenExpiry.lockedTokens||[];
-  const lockedTotal=locked.reduce((s,l)=>s+l.amount,0);
-  ov.innerHTML='<div class="sheet"><div class="sheet-handle"></div>'
-    +'<div class="sheet-hdr"><button class="set-sub-back" onclick="_backToSettingsCat(\'rewards\')" title="Back" style="margin-right:6px">&#x2039;</button><div class="sheet-title" style="flex:1">&#x23F3; Token Expiry</div>'
-    +'<button class="sheet-close" onclick="closeAllSettings()">&#x2715;</button></div>'
-    +'<div class="sheet-body" style="padding:16px 18px 30px">'
-    +'<p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">When enabled, tokens not spent within the set number of days get <strong>locked</strong>. They won\'t be spendable but are never deleted \u2014 you can restore them as a reward for good behaviour.</p>'
-    +'<div class="expiry-settings-box">'
-    +'<div class="expiry-row"><span class="expiry-toggle-label">Enable for <strong>'+escHtml(k.name)+'</strong></span>'
-    +'<label class="km-toggle"><input type="checkbox" id="expiryEnabled"'+(k.tokenExpiry.enabled?' checked':'')+'><span class="km-slider"></span></label></div>'
-    +'<div id="expiryDaysRow" style="'+(k.tokenExpiry.enabled?'':'opacity:.4;pointer-events:none')+'">'
-    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
-    +'<span style="font-size:12px;color:var(--muted);flex:1">Expire after</span>'
-    +'<input class="expiry-inp" id="expiryDays" type="number" min="7" max="365" value="'+(k.tokenExpiry.days||30)+'">'
-    +'<span style="font-size:12px;color:var(--muted)">days</span></div>'
-    +'<p style="font-size:10px;color:var(--muted);line-height:1.5">Tokens earned more than this many days ago get locked. Kids see a <strong style="color:var(--orange)">warning badge</strong> in their Wallet 3 days before expiry.</p>'
-    +'</div></div>'
-    +(lockedTotal>0?'<div style="margin-top:16px"><div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Locked Tokens</div>'
-    +'<div style="background:var(--navy3);border:1px solid var(--border);border-radius:10px;padding:12px 14px">'
-    +'<div style="font-size:18px;font-weight:800;color:var(--muted)">'+lockedTotal+'\u2B50 locked</div>'
-    +'<div style="font-size:11px;color:var(--muted);margin:4px 0 12px">'+locked.length+' batch'+(locked.length!==1?'es':'')+' from past '+(k.tokenExpiry.days||30)+' days</div>'
-    +'<button onclick="restoreLockedTokens(\''+k.id+'\')" style="background:linear-gradient(135deg,var(--green),#00897b);color:#fff;font-family:var(--font);font-size:12px;font-weight:800;border:none;border-radius:8px;padding:8px 16px;cursor:pointer">&#x1F513; Restore All Locked Tokens</button>'
-    +'</div></div>':'')
-    +'<button onclick="saveTokenExpiry(\''+k.id+'\')" style="margin-top:18px;width:100%;background:linear-gradient(135deg,var(--blue),#0288d1);color:#fff;font-family:var(--font);font-size:13px;font-weight:800;border:none;border-radius:10px;padding:12px 0;cursor:pointer">Save</button>'
-    +'</div></div>';
-  ov.classList.add('open');
-  document.getElementById('expiryEnabled').addEventListener('change',e=>{
-    const dRow=document.getElementById('expiryDaysRow');
-    if(dRow)dRow.style.cssText=e.target.checked?'':'opacity:.4;pointer-events:none';
-  });
-}
-function saveTokenExpiry(kidId){
-  const k=S.kids.find(x=>x.id===kidId);if(!k)return;
-  const en=document.getElementById('expiryEnabled')?.checked||false;
-  const days=Math.max(7,Math.min(365,Number(document.getElementById('expiryDays')?.value||30)));
-  if(!k.tokenExpiry)k.tokenExpiry={enabled:false,days:30,lockedTokens:[]};
-  k.tokenExpiry.enabled=en;k.tokenExpiry.days=days;
-  processTokenExpiry(k);save();
-  document.getElementById('tokenExpiryOverlay').classList.remove('open');
-  renderAll();showInappNotif('\u23F3','Saved','Token expiry updated for '+k.name);
-}
-function restoreLockedTokens(kidId){
-  const k=S.kids.find(x=>x.id===kidId);if(!k||!k.tokenExpiry)return;
-  const locked=k.tokenExpiry.lockedTokens||[];if(!locked.length)return;
-  const total=locked.reduce((s,l)=>s+l.amount,0);
-  k.tokens.unshift({id:uid(),amount:total,note:'\uD83D\uDD13 Restored locked tokens ('+locked.length+' batches)',timestamp:Date.now()});
-  k.tokenExpiry.lockedTokens=[];
-  save();renderAll();
-  document.getElementById('tokenExpiryOverlay').classList.remove('open');
-  showInappNotif('\uD83D\uDD13','Restored',total+'\u2B50 returned to '+k.name);
-}
-
 /* ── PARENT DASHBOARD (summary panel) ── */
 
 /* ── SETTINGS BACK NAVIGATION ── */
@@ -3721,6 +3904,9 @@ renderAll=function(){
     document.getElementById('dbOverlay').classList.remove('open');
     showInappNotif('🔄','Switched!','Now syncing '+( localStorage.getItem('cq_hid')||''));
   }
+  // Re-render any open per-kid settings sheets so Firebase changes appear immediately
+  if(document.getElementById('tokenExpirySheetBody'))renderTokenExpirySheet();
+  if(document.getElementById('allowanceSheetBody'))renderAllowanceSheet();
 };
 
 
@@ -4400,7 +4586,7 @@ function giveCalCredit(choreId,ds,containerId){
   c.completions.push(ds);
   const ts=new Date(ds+'T12:00:00').getTime();
   const baseT=Number(c.tokens||0);
-  k.tokens.unshift({amount:baseT,note:(c.title||'Task')+' (retro)',timestamp:ts});
+  k.tokens.unshift({amount:baseT,note:(c.title||'Task')+' (retro)',timestamp:ts,earnedAt:Date.now()});
   refreshStreak(k);save();closeCalPop();renderAll();
 }
 function showCalPop(e,ds,containerId){
