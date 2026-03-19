@@ -2226,7 +2226,10 @@ function renderRight(){
     const time=document.createElement('div');time.className='h-time';time.textContent=timeAgo(ev.timestamp);
     item.appendChild(amt);item.appendChild(note);item.appendChild(time);feed.appendChild(item);
   });}
-  renderCharts(k);
+  // Only render charts if the Stats pane is currently active;
+  // otherwise the tab-click handler will call renderCharts when the user navigates there
+  const _statPane=document.getElementById('paneStats');
+  if(_statPane&&_statPane.classList.contains('active'))renderCharts(k);
 }
 
 /* ── CHARTS ── */
@@ -2275,18 +2278,21 @@ function renderCharts(k){
     if(wi!==-1){
       if(isRedeem) wRT[wi]+=Math.abs(t);
       else if(isMischief) wMT[wi]+=Math.abs(t);
-      else if(!isUndo) wT[wi]=Math.max(0,(wT[wi]||0)+t);
+      else wT[wi]=(wT[wi]||0)+t; // accumulate raw — clamp to 0 after all entries processed
     }
 
     for(let i=0;i<months.length;i++){
       if(evDate.getFullYear()===months[i].y&&evDate.getMonth()===months[i].m){
         if(isRedeem) mRT[i]+=Math.abs(t);
         else if(isMischief) mMT[i]+=Math.abs(t);
-        else if(!isUndo) mT[i]=Math.max(0,(mT[i]||0)+t);
+        else mT[i]=(mT[i]||0)+t; // accumulate raw — clamp to 0 after all entries processed
         break;
       }
     }
   });
+  // Clamp all earned buckets to 0 after processing (undo can make them negative during accumulation)
+  for(let i=0;i<wT.length;i++)wT[i]=Math.max(0,wT[i]);
+  for(let i=0;i<mT.length;i++)mT[i]=Math.max(0,mT[i]);
 
   /* ── draw ── */
   const tt={backgroundColor:'#141c2e',borderColor:'#2a3854',borderWidth:1,callbacks:{label:t=>` ${t.formattedValue} \u2605`}};
@@ -2507,8 +2513,11 @@ function openSummary(){
   const dayTotals={};
   (k.tokens||[]).forEach(ev=>{
     const v=Number(ev.amount||0),ds=dateStr(new Date(ev.timestamp));
-    if(v>0){totalEarned+=v;dayTotals[ds]=(dayTotals[ds]||0)+v;}
-    else if((ev.note||'').startsWith('\uD83C\uDF81'))totalRedeemed+=Math.abs(v);
+    const isUndoEv=(ev.note||'').startsWith('Undo:');
+    const isRedeemEv=(ev.note||'').startsWith('\uD83C\uDF81');
+    if(v>0&&!isUndoEv){totalEarned+=v;dayTotals[ds]=(dayTotals[ds]||0)+v;}
+    else if(isUndoEv){totalEarned=Math.max(0,totalEarned+v);dayTotals[ds]=Math.max(0,(dayTotals[ds]||0)+v);}
+    else if(isRedeemEv)totalRedeemed+=Math.abs(v);
   });
   Object.entries(dayTotals).forEach(([ds,val])=>{if(val>bestDayVal){bestDayVal=val;bestDayDate=ds;}});
   const bLbl=bestDayDate?new Date(bestDayDate+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+bestDayVal+')':'\u2014';
@@ -3240,8 +3249,9 @@ function setupCommonEvents(){
   });
   const mUndo=document.getElementById('btnMUndo');if(mUndo)mUndo.addEventListener('click',()=>{
     const k=kid();if(!k)return;
-    const idx=k.tokens.findIndex(e=>e.manual===true);
-    if(idx===-1){mUndo.textContent='Nothing to undo';setTimeout(()=>mUndo.textContent='\u21a9 Undo',1500);return;}
+    const today_=todayStr();
+    const idx=k.tokens.findIndex(e=>e.manual===true&&dateStr(new Date(e.timestamp))===today_);
+    if(idx===-1){mUndo.textContent='Nothing to undo today';setTimeout(()=>mUndo.textContent='\u21a9 Undo',1500);return;}
     k.tokens.splice(idx,1);save();renderAll();mUndo.textContent='Undone!';setTimeout(()=>mUndo.textContent='\u21a9 Undo',1200);
   });
   const cHist=document.getElementById('btnClearHist');if(cHist)cHist.addEventListener('click',()=>{const k=kid();if(!k)return;if(!confirm('Clear token history?'))return;k.tokens=[];save();renderAll();});
