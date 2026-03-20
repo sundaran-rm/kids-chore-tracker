@@ -1555,7 +1555,7 @@ const SK='choreQuestV2';
 const DAY_LABELS=['S','M','T','W','T','F','S'];
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ALL_DAYS=[0,1,2,3,4,5,6];
-const CC={green:'#69f0ae',yellow:'#ffd740',blue:'#4fc3f7',orange:'#ffb74d',red:'#ff6b6b'};
+const CC={green:'#69f0ae',yellow:'#ffd740',blue:'#4fc3f7',orange:'#ffb74d',red:'#ff6b6b',purple:'#b388ff'};
 const GRP_ICON={daily:'\u{1F9FC}',bonus:'\u26A1',custom:'\u2728',onetime:'\u26A1\uFE0F'};
 const DIFF_STATES=['none','easy','medium','hard'];
 const DIFF_LABELS={none:'\u25A1 None',easy:'\uD83D\uDFE2 Easy',medium:'\uD83D\uDFE1 Med',hard:'\uD83D\uDD34 Hard'};
@@ -2534,15 +2534,26 @@ function openSummary(){
   const k=kid();if(!k){alert('Add a kid first!');return;}
   const body=document.getElementById('sumBody');body.innerHTML='';
   // All-time stats
-  let totalEarned=0,totalRedeemed=0,bestDayVal=0,bestDayDate='';
-  const dayTotals={};
+  let totalEarned=0,totalRedeemed=0,totalMischief=0,bestDayVal=0,bestDayDate='';
+  const dayTotals={},redeemMap={},mischiefMap={};
   (k.tokens||[]).forEach(ev=>{
     const v=Number(ev.amount||0),ds=dateStr(new Date(ev.timestamp));
-    const isUndoEv=(ev.note||'').startsWith('Undo:');
-    const isRedeemEv=(ev.note||'').startsWith('\uD83C\uDF81');
+    const note=ev.note||'';
+    const isUndoEv=note.startsWith('Undo:');
+    const isRedeemEv=note.startsWith('\uD83C\uDF81');
+    const isMischief=!isRedeemEv&&!isUndoEv&&v<0&&ev.manual;
     if(v>0&&!isUndoEv){totalEarned+=v;dayTotals[ds]=(dayTotals[ds]||0)+v;}
     else if(isUndoEv){totalEarned=Math.max(0,totalEarned+v);dayTotals[ds]=Math.max(0,(dayTotals[ds]||0)+v);}
-    else if(isRedeemEv)totalRedeemed+=Math.abs(v);
+    else if(isRedeemEv){
+      totalRedeemed+=Math.abs(v);
+      const rn=note.replace('\uD83C\uDF81','').trim()||'Reward';
+      redeemMap[rn]=(redeemMap[rn]||0)+Math.abs(v);
+    }
+    else if(isMischief){
+      totalMischief+=Math.abs(v);
+      const mn=note.replace(/^Manual:\s*/i,'').trim()||'Adjustment';
+      mischiefMap[mn]=(mischiefMap[mn]||0)+Math.abs(v);
+    }
   });
   Object.entries(dayTotals).forEach(([ds,val])=>{if(val>bestDayVal){bestDayVal=val;bestDayDate=ds;}});
   const bLbl=bestDayDate?new Date(bestDayDate+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})+' (+'+bestDayVal+')':'\u2014';
@@ -2555,7 +2566,8 @@ function openSummary(){
   period.textContent=(k.name||'Kid')+' \u00B7 All Time';
   body.appendChild(period);
   const grid=document.createElement('div');grid.className='stat-grid';
-  [{v:'+'+totalEarned,kk:'Earned',c:CC.green},{v:totalRedeemed,kk:'Redeemed',c:CC.red},
+  [{v:'+'+totalEarned,kk:'Earned',c:CC.green},{v:totalRedeemed,kk:'Redeemed',c:CC.purple},
+   {v:'-'+totalMischief,kk:'Mischief',c:CC.red},
    {v:totalDone,kk:'Chores Done',c:CC.blue},
    {v:bLbl,kk:'Best Day',c:CC.blue,sm:true},{v:streak+'\uD83D\uDD25',kk:'Streak',c:CC.orange},
    {v:(k.bestStreak||0)+'\uD83C\uDFC6',kk:'Best Streak',c:CC.yellow},
@@ -2582,6 +2594,25 @@ function openSummary(){
       r.appendChild(n);r.appendChild(tr);r.appendChild(cnt);body.appendChild(r);
     });
   }
+  // Redeemed (purple — matches redemption chart)
+  const redeemArr=Object.entries(redeemMap||{}).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  const makeBars=(label,items,color)=>{
+    if(!items.length)return;
+    const bt=document.createElement('div');bt.className='sum-sec';bt.textContent=label;body.appendChild(bt);
+    const maxVal=items[0].v||1;
+    items.slice(0,10).forEach(item=>{
+      const br=document.createElement('div');br.className='cs-row';
+      const bn=document.createElement('div');bn.className='cs-name';bn.textContent=item.k;
+      const btr=document.createElement('div');btr.className='cs-track';
+      const bfi=document.createElement('div');bfi.className='cs-fill';bfi.style.width=Math.round(item.v/maxVal*100)+'%';bfi.style.background=color;btr.appendChild(bfi);
+      const bcnt=document.createElement('div');bcnt.className='cs-pct';bcnt.style.color=color;bcnt.textContent=item.v+'\u2B50';
+      br.appendChild(bn);br.appendChild(btr);br.appendChild(bcnt);body.appendChild(br);
+    });
+  };
+  makeBars('Redeemed Rewards',redeemArr,CC.purple);
+  // Mischief (red — matches mischief chart)
+  const mischiefArr=Object.entries(mischiefMap||{}).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  makeBars('Mischief Adjustments',mischiefArr,CC.red);
   document.getElementById('summaryOverlay').classList.add('open');
 }
 
