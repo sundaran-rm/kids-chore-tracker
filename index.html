@@ -563,6 +563,11 @@ body.kids-mode .kd-name-inp { pointer-events:none!important }
 .bt-text{display:flex;flex-direction:column;gap:1px}
 .bt-title{font-size:10px;font-weight:800;color:var(--yellow);letter-spacing:.5px;text-transform:uppercase}
 .bt-name{font-size:14px;font-weight:800;color:var(--text);font-family:var(--display)}
+.badge-pop{position:fixed;z-index:9999;background:var(--navy2);border:1px solid rgba(255,215,64,0.35);
+  border-radius:12px;padding:9px 13px;font-size:11px;color:var(--text);line-height:1.5;text-align:center;
+  pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s;
+  box-shadow:0 8px 28px rgba(0,0,0,0.55);max-width:200px;white-space:pre-line;}
+.badge-pop.visible{opacity:1;transform:translateY(-100%) translateY(-4px);}
 
 /* ══════════════════════════════════════════════
    CHORE TEMPLATES
@@ -2519,12 +2524,14 @@ function exitKidsMode(){
 function totalPending(){return(S.kids||[]).reduce((s,k)=>s+(k.pendingApprovals||[]).length,0);}
 function updateApprovalBadge(){
   const n=totalPending();
-  const badge=document.getElementById('approvalBadge');
+  const badge=document.getElementById('approvalBadge');         // PWA
+  const btnApprovals=document.getElementById('btnApprovals');   // Desktop
   const count=document.getElementById('approvalCount');
   const statusBadge=document.getElementById('approvalStatusBadge');
   const show=n>0&&!kidsMode&&!!S.approvalMode;
   if(badge){badge.classList.toggle('has-pending',show);}
-  if(count)count.textContent=n;
+  if(btnApprovals){btnApprovals.style.display=show?'':'none';}
+  if(count)count.textContent=n>0?n:'';
   if(statusBadge)statusBadge.textContent=S.approvalMode?'On':'Off';
 }
 function openApprovalPanel(){
@@ -2724,6 +2731,23 @@ function showBadgeToast(badge){
   clearTimeout(_badgeToastTimer);
   _badgeToastTimer=setTimeout(()=>toast.classList.remove('show'),3200);
 }
+let _badgePopTimer=null;
+function showBadgePop(anchor,text){
+  let pop=document.getElementById('badgePopover');
+  if(!pop){pop=document.createElement('div');pop.id='badgePopover';pop.className='badge-pop';document.body.appendChild(pop);}
+  clearTimeout(_badgePopTimer);
+  pop.classList.remove('visible');
+  pop.textContent=text;
+  // Position above the anchor card (fixed = viewport coords, no scrollY)
+  const r=anchor.getBoundingClientRect();
+  const popW=200;
+  pop.style.left=Math.max(8,Math.min(r.left+r.width/2-popW/2,window.innerWidth-popW-8))+'px';
+  pop.style.top=(r.top-8)+'px';
+  pop.style.transform='translateY(-100%) translateY(-4px)';
+  requestAnimationFrame(()=>pop.classList.add('visible'));
+  _badgePopTimer=setTimeout(()=>pop.classList.remove('visible'),3000);
+}
+
 
 function checkAchievements(k){
   if(!k)return;
