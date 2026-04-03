@@ -132,7 +132,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 /* Approval badge on header */
 .approval-badge{position:relative;display:none}
 .approval-badge.has-pending{display:flex}
-body.kids-mode .approval-badge{display:none!important}
+body.kids-mode 
 .approval-badge-count{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 /* Approval panel items */
 .ap-item{display:flex;flex-direction:column;gap:6px;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--navy3);border-radius:10px;margin-bottom:6px;}
@@ -412,7 +412,6 @@ body.kids-mode .drag-handle,
 body.kids-mode .manual-row,
 body.kids-mode .m-hint,
 body.kids-mode .manual-label,
-body.kids-mode #btnAddChallenge,
 body.kids-mode #btnClearHist,
 body.kids-mode .sec-tip,
 body.kids-mode .day-row,
@@ -553,13 +552,14 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .tab-pane.active{display:flex}
 
 /* ── BOTTOM TAB BAR ── */
-.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:200;padding-bottom:var(--safe-bot);
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:400;padding-bottom:var(--safe-bot);
   background:rgba(13,20,36,0.97);border-top:1px solid var(--border);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   padding:8px 2px;height:var(--tab-h);cursor:pointer;border:none;background:transparent;
   color:var(--muted);font-family:var(--font);font-size:9px;font-weight:800;letter-spacing:.3px;
-  text-transform:uppercase;transition:color .15s;position:relative;}
+  text-transform:uppercase;transition:color .15s;position:relative;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;}
 .tab-icon{font-size:20px;line-height:1;transition:transform .2s}
 .tab.active{color:var(--blue)}
 .tab.active .tab-icon{transform:scale(1.12)}
@@ -577,7 +577,8 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .logo-icon{font-size:22px;flex-shrink:0;line-height:1;cursor:default;user-select:none}
 .kid-picker-btn{flex:1;min-width:0;display:flex;align-items:center;gap:7px;
   background:var(--navy3);border:1.5px solid var(--border);border-radius:22px;
-  padding:6px 12px 6px 10px;cursor:pointer;transition:all .18s;overflow:hidden;}
+  padding:6px 12px 6px 10px;cursor:pointer;transition:all .18s;overflow:hidden;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .kid-picker-btn.active{background:rgba(79,195,247,0.11);border-color:var(--blue)}
 .kpb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .kpb-name{flex:1;min-width:0;font-family:var(--font);font-size:14px;font-weight:800;
@@ -633,7 +634,8 @@ body.kids-mode .theme-dot { pointer-events:none!important;opacity:.5 }
 .sync-icon-btn.pending .si-dot{background:var(--orange)}
 
 .icon-btn{width:34px;height:34px;border-radius:10px;background:var(--navy3);border:1px solid var(--border);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);flex-shrink:0;}
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);flex-shrink:0;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 
 /* Sheet handle visible on mobile */
 .sheet-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
@@ -1292,7 +1294,7 @@ body.kids-mode #btnKidsHelp{display:flex!important}
     <div class="section" id="secChallenges">
       <div class="sec-hdr" onclick="toggleSection('secChallenges')">
         <div class="sec-title">&#x1F3AF; Challenges</div>
-        <button class="add-btn" onclick="event.stopPropagation();openCreateChallenge()" style="display:none" id="btnAddChallenge">+ Add</button>
+        <div class="sec-hdr-acts"><button class="btn-add" id="btnAddChallenge" onclick="event.stopPropagation();openCreateChallenge()">+ Add</button></div>
       </div>
       <div class="sec-body" id="chalBody"></div>
     </div>
@@ -1599,6 +1601,12 @@ const DAY_LABELS=['S','M','T','W','T','F','S'];
 const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ALL_DAYS=[0,1,2,3,4,5,6];
 const CC={green:'#69f0ae',yellow:'#ffd740',blue:'#4fc3f7',orange:'#ffb74d',red:'#ff6b6b',purple:'#b388ff'};
+const CHAL_TYPES = [
+  { id:'chores_n',  icon:'✅', label:'Complete N chores',     unit:'chores' },
+  { id:'streak_n',  icon:'🔥', label:'Reach N-day streak',    unit:'days'   },
+  { id:'tokens_n',  icon:'⭐', label:'Earn N tokens',         unit:'tokens' },
+  { id:'daily_all', icon:'🌟', label:'All dailies N days',    unit:'days'   },
+];
 const GRP_ICON={daily:'\u{1F9FC}',bonus:'\u26A1',custom:'\u2728',onetime:'\u26A1\uFE0F'};
 const DIFF_STATES=['none','easy','medium','hard'];
 const DIFF_LABELS={none:'\u25A1 None',easy:'\uD83D\uDFE2 Easy',medium:'\uD83D\uDFE1 Med',hard:'\uD83D\uDD34 Hard'};
@@ -1796,8 +1804,15 @@ function startListener(hid){
         if(!S.customLevels)S.customLevels=[];
         if(!S.flashMessages)S.flashMessages=[];
         S.kids.forEach(k=>{if(!k.customSections)k.customSections=[];if(!k.oneTime)k.oneTime=[];if(!k.theme)k.theme='galaxy';if(k.kidsTheme===undefined)k.kidsTheme=null;if(!k.goal)k.goal={name:'',target:100,rewardId:null,savingsLock:false};if(k.goal.savingsLock===undefined)k.goal.savingsLock=false;if(!k.badges)k.badges=[];if(!k.allowance)k.allowance={amount:0,day:1,lastPaid:null,lastWeekPaid:null};if(!k.badgeThresholds)k.badgeThresholds={};if(!k.customBadges)k.customBadges=[];if(!k.pendingApprovals)k.pendingApprovals=[];if(!k.challenges)k.challenges=[];if(!k.tokenExpiry)k.tokenExpiry={enabled:false,days:30,lockedTokens:[]};k.daily.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});k.bonus.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';});(k.customSections||[]).forEach(s=>s.chores.forEach(c=>{if(c.difficulty===undefined)c.difficulty=null;if(c.notes===undefined)c.notes='';}));});
-        saveLocal();renderAll();updateFlashBadge();
-        if(kidsMode)checkFlashMessages();
+        saveLocal();
+        // Defer DOM rebuild to next animation frame so pending touch events
+        // are processed first. Cancels any previous pending frame to avoid stacking.
+        if(window._fbRafId)cancelAnimationFrame(window._fbRafId);
+        window._fbRafId=requestAnimationFrame(()=>{
+          window._fbRafId=null;
+          renderAll();updateFlashBadge();
+          if(kidsMode)checkFlashMessages();
+        });
       }
     }else{
       if(window._dbSwitchingHousehold){
@@ -2545,7 +2560,7 @@ function renderAll(){
   const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
-  if(has){processTokenExpiry(k);applyTheme((kidsMode&&k.kidsTheme)||k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);checkChallenges(k);renderBadges(k);renderCalendar('calBody');renderChallenges(k);renderXPHeaderBar(k);}
+  if(has){processTokenExpiry(k);applyTheme((kidsMode&&k.kidsTheme)||k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);setTimeout(()=>checkChallenges(kid()),0);renderBadges(k);renderCalendar('calBody');renderChallenges(k);renderXPHeaderBar(k);}
   updateApprovalBadge();
   updateFlashBadge();
 }
@@ -5666,13 +5681,6 @@ if(kidsMode)setTimeout(checkFlashMessages,600);
    CHALLENGES
 ══════════════════════════════════════════════ */
 
-const CHAL_TYPES = [
-  { id:'chores_n',  icon:'✅', label:'Complete N chores',     unit:'chores' },
-  { id:'streak_n',  icon:'🔥', label:'Reach N-day streak',    unit:'days'   },
-  { id:'tokens_n',  icon:'⭐', label:'Earn N tokens',         unit:'tokens' },
-  { id:'daily_all', icon:'🌟', label:'All dailies N days',    unit:'days'   },
-];
-
 function mkChallenge(){
   return {
     id: uid(),
@@ -5717,7 +5725,9 @@ function chalProgress(c, k) {
     // Count consecutive days where all daily tasks were completed, going back from today
     let count = 0;
     const d = new Date();
-    while (true) {
+    const _maxDays = 365;
+    let _safetyCount = 0;
+    while (_safetyCount++ < _maxDays) {
       const ds = dateStr(d);
       if (ds < dateStr(start)) break;
       const sched = k.daily.filter(ch => (ch.days||[]).includes(d.getDay()));
@@ -5747,6 +5757,11 @@ function chalDeadlineLabel(c) {
 function renderChallenges(k) {
   const body = document.getElementById('chalBody'); if (!body) return;
   const addBtn = document.getElementById('btnAddChallenge');
+  // Only rebuild DOM if challenge data actually changed — prevents layout
+  // thrash on every Firebase onSnapshot which blocks touch events on Android.
+  const _cacheKey = JSON.stringify(k ? (k.challenges||[]) : []) + (kidsMode?'1':'0');
+  if (body._chalCache === _cacheKey) return;
+  body._chalCache = _cacheKey;
   body.innerHTML = '';
 
   if (!k) { if(addBtn)addBtn.style.display='none'; return; }
@@ -5796,6 +5811,7 @@ function renderChallenges(k) {
       item.querySelector('.chal-del-btn').addEventListener('click', e => {
         e.stopPropagation();
         k.challenges = (k.challenges||[]).filter(x => x.id !== c.id);
+        const _cb=document.getElementById('chalBody');if(_cb)_cb._chalCache=null;
         save(); renderAll();
       });
     }
@@ -5984,6 +6000,7 @@ function closeKidDropdown(){
 }
 
 /* ── PWA TAB BAR ── */
+// touch-action:manipulation in CSS eliminates the 300ms tap delay — click fires instantly
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
     closeKidDropdown();
