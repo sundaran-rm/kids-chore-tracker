@@ -74,7 +74,7 @@ body{background-image:radial-gradient(ellipse 80% 50% at 10% 10%,rgba(79,195,247
 .btn-add-kid:hover{border-color:var(--orange);color:var(--orange)}
 .theme-dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;transition:transform .15s;}
 .hdr-btns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;flex-shrink:0;align-items:center}
-.hbtn{background:var(--navy3);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:11px;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.hbtn{background:var(--navy3);border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:11px;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;transition:all .18s;white-space:nowrap;touch-action:manipulation;}
 .hbtn:hover{border-color:var(--blue);color:var(--blue)}
 .hbtn.db-btn{border-color:rgba(105,240,174,0.3);color:var(--green)}
 .sync-pill{display:flex;align-items:center;gap:5px;background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0;transition:all .3s;}
@@ -477,7 +477,6 @@ body.kids-mode .ic-btn.del,
 body.kids-mode .drag-handle,
 body.kids-mode .manual-row,
 body.kids-mode .m-hint,
-body.kids-mode #btnAddChallenge,
 body.kids-mode #btnClearHist,
 body.kids-mode .sec-tip,
 body.kids-mode .day-row,
@@ -1185,7 +1184,7 @@ body.kids-mode #btnKidsHelp{display:flex!important}
      <div class="section" id="secChallenges">
       <div class="sec-hdr" onclick="toggleSection('secChallenges')">
         <div class="sec-title">&#x1F3AF; Challenges</div>
-        <button class="add-btn" onclick="event.stopPropagation();openCreateChallenge()" style="display:none" id="btnAddChallenge">+ Add</button>
+        <div class="sec-hdr-acts"><button class="btn-add" id="btnAddChallenge" onclick="event.stopPropagation();openCreateChallenge()">+ Add</button></div>
       </div>
       <div class="sec-body" id="chalBody"></div>
     </div>
@@ -2389,7 +2388,9 @@ function chalProgress(c, k) {
     // Count consecutive days where all daily tasks were completed, going back from today
     let count = 0;
     const d = new Date();
-    while (true) {
+    const _maxDays = 365;
+    let _safetyCount = 0;
+    while (_safetyCount++ < _maxDays) {
       const ds = dateStr(d);
       if (ds < dateStr(start)) break;
       const sched = k.daily.filter(ch => (ch.days||[]).includes(d.getDay()));
@@ -2419,6 +2420,9 @@ function chalDeadlineLabel(c) {
 function renderChallenges(k) {
   const body = document.getElementById('chalBody'); if (!body) return;
   const addBtn = document.getElementById('btnAddChallenge');
+  const _cacheKey = JSON.stringify(k ? (k.challenges||[]) : []) + (kidsMode?'1':'0');
+  if (body._chalCache === _cacheKey) return;
+  body._chalCache = _cacheKey;
   body.innerHTML = '';
 
   if (!k) { if(addBtn)addBtn.style.display='none'; return; }
@@ -2468,6 +2472,7 @@ function renderChallenges(k) {
       item.querySelector('.chal-del-btn').addEventListener('click', e => {
         e.stopPropagation();
         k.challenges = (k.challenges||[]).filter(x => x.id !== c.id);
+        const _cb=document.getElementById('chalBody');if(_cb)_cb._chalCache=null;
         save(); renderAll();
       });
     }
@@ -2660,7 +2665,7 @@ function renderAll(){
   const mg=document.getElementById('mainGrid');if(mg)mg.style.display=has?'':'none';
   const tb=document.querySelector('.tabbar');if(tb)tb.style.display=has?'flex':'none';
   renderTabs();
-  if(has){processTokenExpiry(k);applyTheme((kidsMode&&k.kidsTheme)||k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);checkChallenges(k);renderBadges(k);renderCalendar('calBody');renderChallenges(k);renderXPHeaderBar(k);}
+  if(has){processTokenExpiry(k);applyTheme((kidsMode&&k.kidsTheme)||k.theme||'galaxy');renderLeft();renderRight();checkAchievements(k);setTimeout(()=>checkChallenges(kid()),0);renderBadges(k);renderCalendar('calBody');renderChallenges(k);renderXPHeaderBar(k);}
   updateApprovalBadge();
   updateFlashBadge();
 }
