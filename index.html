@@ -6243,7 +6243,6 @@ function closeSettingsSub(){
 function _settingsRowAction(id){
   const closeSub=()=>{
     document.getElementById('settingsSubOverlay').classList.remove('open');
-    document.getElementById('settingsOverlay').classList.remove('open');
   };
   if(id==='setKidsMode'){
     const km=typeof kidsMode!=='undefined'?kidsMode:false;
@@ -9200,5 +9199,12 @@ function closeReportCard(){const ov=document.getElementById('reportOverlay');if(
 </div>
 
 
+
+<div class="overlay" id="dbOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet"><div class="sheet-handle"></div>
+    <div class="sheet-hdr"><button class="set-sub-back" onclick="_backToSettingsCat('data')" title="Back to Settings" style="margin-right:6px">&#x2039;</button><div class="sheet-title" style="flex:1">&#x2601; Cloud Database</div><button class="sheet-close" id="btnDBClose" onclick="closeAllSettings()">&#x2715;</button></div>
+    <div class="sheet-body" id="dbModalBody"></div>
+  </div>
+</div>
 </body>
 </html>
